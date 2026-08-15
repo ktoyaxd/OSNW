@@ -75,7 +75,7 @@
 </head>
 <body>
 <div class="container">
-    <div class="back-btn" onclick="history.back()">← Назад к новостям</div>
+    <div class="back-btn" onclick="history.back()">Назад к новостям</div>
     <div id="articleContent">
         <div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка статьи...</div>
     </div>
@@ -94,7 +94,7 @@
         }
         
         try {
-            const res = await fetch(`news/${id}.json`);
+            const res = await fetch(`News/${id}.json`);
             if (!res.ok) throw new Error('Статья не найдена');
             const data = await res.json();
             
@@ -111,7 +111,7 @@
             document.getElementById('articleContent').innerHTML = `
                 <div style="text-align:center;color:#ffffff;">
                     Статья не найдена<br>
-                    <span style="font-size:13px;color:#FFFFFF;">Файл news/${id}.json отсутствует</span>
+                    <span style="font-size:13px;color:#FFFFFF;">Файл News/${id}.json отсутствует</span>
                 </div>
             `;
         }
