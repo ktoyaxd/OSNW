@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Old Strike Website News — Статья</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #202126;
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: #3A3F45;
+            border: 1px solid #363940;
+            padding: 30px;
+            margin: 20px auto;
+            animation: fadeIn 0.5s ease;
+        }
+        .back-btn {
+            display: inline-block;
+            color: #FFFFFF;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .back-btn:hover { color: #FFFFFF; }
+        .article-date {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .article-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 10px 0 16px;
+        }
+        .article-author {
+            color: #ffffff;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .article-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            background: #1a2240;
+        }
+        .article-text {
+            color: #FFFFFF;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 767px) {
+            .container { padding: 20px; margin: 10px; }
+            .article-title { font-size: 22px; }
+            .article-text { font-size: 15px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="back-btn" onclick="history.back()">← Назад к новостям</div>
+    <div id="articleContent">
+        <div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка статьи...</div>
+    </div>
+</div>
+
+<script>
+    async function loadArticle() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        
+        if (!id) {
+            document.getElementById('articleContent').innerHTML = `
+                <div style="text-align:center;color:#ffffff;">ID статьи не указан</div>
+            `;
+            return;
+        }
+        
+        try {
+            const res = await fetch(`news/${id}.json`);
+            if (!res.ok) throw new Error('Статья не найдена');
+            const data = await res.json();
+            
+            document.getElementById('articleContent').innerHTML = `
+                <div class="article-date">${data.date}</div>
+                <div class="article-title">${data.title}</div>
+                <div class="article-author">${data.author}</div>
+                ${data.image ? `<img class="article-image" src="${data.image}" alt="${data.title}" onerror="this.style.display='none'">` : ''}
+                <div class="article-text">${data.fullText.replace(/\n/g, '<br>')}</div>
+            `;
+            
+            document.title = `${data.title} — Old Strike`;
+        } catch (error) {
+            document.getElementById('articleContent').innerHTML = `
+                <div style="text-align:center;color:#ffffff;">
+                    Статья не найдена<br>
+                    <span style="font-size:13px;color:#FFFFFF;">Файл news/${id}.json отсутствует</span>
+                </div>
+            `;
+        }
+    }
+    
+    loadArticle();
+</script>
+</body>
+</html>
