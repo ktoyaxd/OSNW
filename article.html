@@ -68,6 +68,7 @@
             color: #ffffff;
             font-size: 14px;
             font-weight: 600;
+            opacity: 0.7;
         }
         .article-title {
             font-size: 28px;
@@ -78,6 +79,7 @@
             color: #ffffff;
             font-size: 14px;
             margin-bottom: 20px;
+            opacity: 0.7;
         }
         .article-text p {
             color: #FFFFFF;
@@ -114,7 +116,18 @@
 </div>
 
 <script>
-    // ===== ФУНКЦИЯ ДЛЯ КАРТИНОК В ТЕКСТЕ =====
+
+    function formatDateFromId(id) {
+        if (!id || id.length < 12) return id;
+        const day = id.slice(0, 2);
+        const month = id.slice(2, 4);
+        const year = id.slice(4, 8);
+        const hour = id.slice(8, 10);
+        const minute = id.slice(10, 12);
+        return `${day}.${month}.${year} ${hour}:${minute}`;
+    }
+
+
     function formatTextWithImages(text) {
         if (!text) return '';
         
@@ -153,9 +166,9 @@
             const data = await res.json();
             
             document.getElementById('articleContent').innerHTML = `
-                <div class="article-date">${data.date}</div>
+                <div class="article-date">${formatDateFromId(id)}</div>
                 <div class="article-title">${data.title}</div>
-                <div class="article-author">${data.author}</div>
+                <div class="article-author">${data.author || 'Автор не указан'}</div>
                 <div class="article-text">${formatTextWithImages(data.fullText)}</div>
             `;
             
