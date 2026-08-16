@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Old Strike Website News — Новости</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #202126;
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background-image: url('Icons/OS_logo.png');
+            background-repeat: repeat;
+            background-size: 80px 80px;
+            transform: rotate(45deg);
+            opacity: 0.06;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .fullscreen-btn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            background: #3A3F45;
+            border: 1px solid #363940;
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .fullscreen-btn:hover {
+            background: #363940;
+            border-color: #FFFFFF;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .back-btn {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 8px 16px;
+            border: 1px solid #363940;
+            background: #3A3F45;
+            transition: background 0.3s;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .back-btn:hover {
+            background: #363940;
+            border-color: #FFFFFF;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 16px;
+            border: 1px solid #363940;
+            background: #3A3F45;
+            color: #ffffff;
+            font-size: 16px;
+            outline: none;
+            transition: border 0.3s;
+        }
+        .search-box:focus {
+            border-color: #ffffff;
+        }
+        .search-box::placeholder {
+            color: #ffffff;
+            opacity: 0.6;
+        }
+
+        .news-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .news-card {
+            background: #3A3F45;
+            border: 1px solid #363940;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.5s ease forwards;
+            opacity: 0;
+        }
+        .news-card:hover {
+            background: #363940;
+            border-color: #FFFFFF;
+            transform: translateY(-3px);
+        }
+        .news-card .date {
+            color: #FFFFFF;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .news-card .title {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 8px 0 6px;
+        }
+        .news-card .preview {
+            color: #ffffff;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .news-card .author {
+            color: #FFFFFF;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+        .no-news {
+            text-align: center;
+            color: #FFFFFF;
+            padding: 40px 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: 40px;
+            }
+            .news-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+            .news-card .title {
+                font-size: 18px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .container {
+                padding: 0 10px;
+            }
+            .fullscreen-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 16px;
+                top: 10px;
+                right: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+
+    <div class="container">
+        <div class="top-bar">
+            <a href="index.html" class="back-btn">← Назад</a>
+            <input class="search-box" placeholder="Поиск новостей..." id="searchInput">
+        </div>
+        <div class="news-grid" id="newsGrid">
+            <div class="no-news">Загрузка новостей...</div>
+        </div>
+    </div>
+
+    <script>
+        const newsGrid = document.getElementById('newsGrid');
+        const searchInput = document.getElementById('searchInput');
+        let allNews = [];
+
+        const BASE_URL = 'https://ktoyaxd.github.io/OSNW';
+
+        async function loadNewsList() {
+            try {
+                const listRes = await fetch(`${BASE_URL}/News/list.json`);
+                if (!listRes.ok) throw new Error('Ошибка загрузки list.json');
+                const files = await listRes.json();
+
+                const newsPromises = files.map(async (file) => {
+                    const res = await fetch(`${BASE_URL}/News/${file}`);
+                    if (!res.ok) throw new Error(`Ошибка загрузки ${file}`);
+                    return await res.json();
+                });
+
+                allNews = await Promise.all(newsPromises);
+
+                allNews.sort((a, b) => {
+                    const da = a.date.split('.').reverse().join('');
+                    const db = b.date.split('.').reverse().join('');
+                    return db.localeCompare(da);
+                });
+
+                renderNews(allNews);
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                newsGrid.innerHTML = `
+                        <div class="no-news">
+                            Не удалось загрузить новости<br>
+                            <span style="font-size:13px;color:#FFFFFF;">
+                                Ошибка: ${error.message}<br>
+                                Проверь папку <b>News/</b> и файл <b>list.json</b>
+                            </span>
+                        </div>
+                    `;
+            }
+        }
+
+        function renderNews(newsArray) {
+            if (!newsArray || newsArray.length === 0) {
+                newsGrid.innerHTML = `<div class="no-news">Новостей не найдено</div>`;
+                return;
+            }
+
+            newsGrid.innerHTML = '';
+            newsArray.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'news-card';
+                card.style.animationDelay = `${index * 0.08}s`;
+
+                card.innerHTML = `
+                        <div class="date">${item.date}</div>
+                        <div class="title">${item.title}</div>
+                        <div class="preview">${item.preview}</div>
+                        <div class="author">${item.author}</div>
+                    `;
+
+                card.addEventListener('click', () => {
+                    const id = item.date.replace(/\./g, '');
+                    window.location.href = `article.html?id=${id}`;
+                });
+
+                newsGrid.appendChild(card);
+            });
+        }
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            if (!query) {
+                renderNews(allNews);
+                return;
+            }
+            const filtered = allNews.filter(item =>
+                item.title.toLowerCase().includes(query) ||
+                item.preview.toLowerCase().includes(query) ||
+                item.author.toLowerCase().includes(query)
+            );
+            renderNews(filtered);
+        });
+
+        // Полноэкранный режим
+        const fsBtn = document.getElementById('fullscreenBtn');
+        fsBtn.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        loadNewsList();
+    </script>
+
+</body>
+</html>
