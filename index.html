@@ -33,10 +33,19 @@
             background-image: url('Icons/OS_logo.png');
             background-repeat: repeat;
             background-size: 80px 80px;
-            transform: rotate(45deg);
             opacity: 0.06;
             pointer-events: none;
             z-index: 0;
+            animation: scrollDiagonal 30s linear infinite;
+        }
+
+        @keyframes scrollDiagonal {
+            0% {
+                transform: translate(0, 0) rotate(45deg);
+            }
+            100% {
+                transform: translate(200px, 200px) rotate(45deg);
+            }
         }
 
         .fullscreen-btn {
