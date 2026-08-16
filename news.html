@@ -47,7 +47,6 @@
             }
         }
 
-
         .fullscreen-btn {
             position: fixed;
             top: 16px;
@@ -145,6 +144,7 @@
             color: #FFFFFF;
             font-size: 13px;
             font-weight: 600;
+            opacity: 0.7;
         }
         .news-card .title {
             font-size: 20px;
@@ -160,6 +160,7 @@
             color: #FFFFFF;
             font-size: 12px;
             margin-top: 12px;
+            opacity: 0.7;
         }
         .no-news {
             text-align: center;
@@ -212,7 +213,7 @@
 
     <div class="container">
         <div class="top-bar">
-            <a href="index.html" class="back-btn">← Назад</a>
+            <a href="index.html" class="back-btn">Назад</a>
             <input class="search-box" placeholder="Поиск новостей..." id="searchInput">
         </div>
         <div class="news-grid" id="newsGrid">
@@ -227,38 +228,48 @@
 
         const BASE_URL = 'https://ktoyaxd.github.io/OSNW';
 
+        // ===== ФОРМАТИРОВАНИЕ ДАТЫ ИЗ ID =====
+        function formatDateFromId(id) {
+            if (!id || id.length < 12) return id;
+            const day = id.slice(0, 2);
+            const month = id.slice(2, 4);
+            const year = id.slice(4, 8);
+            const hour = id.slice(8, 10);
+            const minute = id.slice(10, 12);
+            return `${day}.${month}.${year} ${hour}:${minute}`;
+        }
+
         async function loadNewsList() {
             try {
                 const listRes = await fetch(`${BASE_URL}/News/list.json`);
                 if (!listRes.ok) throw new Error('Ошибка загрузки list.json');
                 const files = await listRes.json();
 
-                const newsPromises = files.map(async (file) => {
-                    const res = await fetch(`${BASE_URL}/News/${file}`);
-                    if (!res.ok) throw new Error(`Ошибка загрузки ${file}`);
-                    return await res.json();
+                const newsPromises = files.map(async (id) => {
+                    const res = await fetch(`${BASE_URL}/News/${id}.json`);
+                    if (!res.ok) throw new Error(`Ошибка загрузки ${id}`);
+                    const data = await res.json();
+                    data._id = id;
+                    data._date = formatDateFromId(id);
+                    return data;
                 });
 
                 allNews = await Promise.all(newsPromises);
 
-                allNews.sort((a, b) => {
-                    const da = a.date.split('.').reverse().join('');
-                    const db = b.date.split('.').reverse().join('');
-                    return db.localeCompare(da);
-                });
+                // Сортируем по ID (свежие сверху)
+                allNews.sort((a, b) => b._id.localeCompare(a._id));
 
                 renderNews(allNews);
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
                 newsGrid.innerHTML = `
-                        <div class="no-news">
-                            Не удалось загрузить новости<br>
-                            <span style="font-size:13px;color:#FFFFFF;">
-                                Ошибка: ${error.message}<br>
-                                Проверь папку <b>News/</b> и файл <b>list.json</b>
-                            </span>
-                        </div>
-                    `;
+                    <div class="no-news">
+                        Не удалось загрузить новости<br>
+                        <span style="font-size:13px;color:#FFFFFF;">
+                            Ошибка: ${error.message}<br>
+                        </span>
+                    </div>
+                `;
             }
         }
 
@@ -275,15 +286,14 @@
                 card.style.animationDelay = `${index * 0.08}s`;
 
                 card.innerHTML = `
-                        <div class="date">${item.date}</div>
-                        <div class="title">${item.title}</div>
-                        <div class="preview">${item.preview}</div>
-                        <div class="author">${item.author}</div>
-                    `;
+                    <div class="date">${item._date}</div>
+                    <div class="title">${item.title}</div>
+                    <div class="preview">${item.preview}</div>
+                    <div class="author">${item.author || 'Автор не указан'}</div>
+                `;
 
                 card.addEventListener('click', () => {
-                    const id = item.date.replace(/\./g, '');
-                    window.location.href = `article.html?id=${id}`;
+                    window.location.href = `article.html?id=${item._id}`;
                 });
 
                 newsGrid.appendChild(card);
@@ -299,12 +309,11 @@
             const filtered = allNews.filter(item =>
                 item.title.toLowerCase().includes(query) ||
                 item.preview.toLowerCase().includes(query) ||
-                item.author.toLowerCase().includes(query)
+                (item.author && item.author.toLowerCase().includes(query))
             );
             renderNews(filtered);
         });
 
-        // Полноэкранный режим
         const fsBtn = document.getElementById('fullscreenBtn');
         fsBtn.addEventListener('click', function() {
             if (!document.fullscreenElement) {
