@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Old Strike Website News</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             background: #202126;
             color: #fff;
@@ -13,12 +17,12 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
+            align-items: center;
             padding: 20px;
             position: relative;
             overflow-x: hidden;
         }
 
-        /* ===== ФОН С ПОВТОРЯЮЩЕЙСЯ ИКОНКОЙ ПОД 45° ===== */
         body::before {
             content: '';
             position: fixed;
@@ -34,208 +38,175 @@
             pointer-events: none;
             z-index: 0;
         }
-        
 
+        .fullscreen-btn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            background: #3A3F45;
+            border: 1px solid #363940;
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .fullscreen-btn:hover {
+            background: #363940;
+            border-color: #FFFFFF;
+        }
 
         .container {
             width: 100%;
-            max-width: 900px;
+            max-width: 600px;
             position: relative;
             z-index: 1;
-        }
-        .logo {
             text-align: center;
-            margin: 20px 0 30px;
         }
-        .search-box {
+
+        .logo {
+            margin-bottom: 40px;
+        }
+        .logo img {
+            width: 120px;
+            height: auto;
+        }
+
+        .main-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+        }
+
+        .menu-btn {
+            display: block;
             width: 100%;
-            padding: 14px 20px;
-            border: 1px solid #363940;
-            background: #3A3F45;
-            color: #ffffff;
-            font-size: 16px;
-            margin-bottom: 30px;
-            outline: none;
-            transition: border 0.3s;
-        }
-        .search-box:focus {
-            border-color: #ffffff;
-        }
-        .search-box::placeholder {
-            color: #ffffff;
-        }
-        .news-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-        .news-card {
+            max-width: 300px;
+            margin: 0 auto 16px;
+            padding: 16px;
             background: #3A3F45;
             border: 1px solid #363940;
-            padding: 20px;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            animation: fadeIn 0.5s ease forwards;
-            opacity: 0;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .news-card:hover {
+
+        .menu-btn:hover {
             background: #363940;
             border-color: #FFFFFF;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(74, 122, 255, 0.1);
+            transform: translateY(-2px);
         }
-        .news-card .date {
-            color: #FFFFFF;
-            font-size: 13px;
-            font-weight: 600;
+
+        .menu-btn.sub {
+            max-width: 200px;
+            font-size: 15px;
+            padding: 14px;
+            margin-top: 4px;
+            text-decoration: none;
+            color: #fff;
         }
-        .news-card .title {
-            font-size: 20px;
-            font-weight: 700;
-            margin: 8px 0 6px;
+
+        .menu-btn.hidden {
+            display: none;
         }
-        .news-card .preview {
-            color: #fffff;
-            font-size: 14px;
-            line-height: 1.5;
+
+        .sub-menu {
+            display: none;
+            margin-top: 10px;
         }
-        .news-card .author {
-            color: #FFFFFF;
-            font-size: 12px;
-            margin-top: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+
+        .sub-menu.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
         }
-        .no-news {
-            text-align: center;
-            color: #FFFFFF;
-            padding: 40px 0;
-        }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @media (min-width: 768px) {
-            body { padding: 40px; }
-            .news-grid {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 20px;
+            from {
+                opacity: 0;
+                transform: translateY(10px);
             }
-            .news-card {
-                animation: fadeIn 0.5s ease forwards;
-            }
-            .news-card .title {
-                font-size: 18px;
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
+
         @media (max-width: 767px) {
-            .container { padding: 0 10px; }
-            .logo img { width: 60px; }
-            .news-card .title { font-size: 17px; }
+            .logo img {
+                width: 80px;
+            }
+            .main-title {
+                font-size: 22px;
+            }
+            .menu-btn {
+                font-size: 16px;
+                padding: 14px;
+            }
+            .fullscreen-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 16px;
+                top: 10px;
+                right: 10px;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="logo">
-        <img src="https://ktoyaxd.github.io/OSNW/Icons/logo.png" alt="Old Strike Website News">
-    </div>
-    <input class="search-box" placeholder="Поиск новостей..." id="searchInput">
-    <div class="news-grid" id="newsGrid">
-        <div class="no-news">Загрузка новостей...</div>
-    </div>
-</div>
 
-<script>
-    const newsGrid = document.getElementById('newsGrid');
-    const searchInput = document.getElementById('searchInput');
-    let allNews = [];
+    <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
 
-    const BASE_URL = 'https://ktoyaxd.github.io/OSNW';
-
-    async function loadNewsList() {
-        try {
-            // Загружаем список файлов с GitHub
-            const listRes = await fetch(`${BASE_URL}/News/list.json`);
-            if (!listRes.ok) throw new Error('Ошибка загрузки list.json');
-            const files = await listRes.json();
-            
-            // Загружаем каждый файл новости
-            const newsPromises = files.map(async (file) => {
-                const res = await fetch(`${BASE_URL}/News/${file}`);
-                if (!res.ok) throw new Error(`Ошибка загрузки ${file}`);
-                return await res.json();
-            });
-            
-            allNews = await Promise.all(newsPromises);
-            
-            // Сортируем по дате (свежие сверху)
-            allNews.sort((a, b) => {
-                const da = a.date.split('.').reverse().join('');
-                const db = b.date.split('.').reverse().join('');
-                return db.localeCompare(da);
-            });
-            
-            renderNews(allNews);
-        } catch (error) {
-            console.error('Ошибка загрузки:', error);
-            newsGrid.innerHTML = `
-                <div class="no-news">
-                    Не удалось загрузить новости<br>
-                    <span style="font-size:13px;color:#FFFFFF;">
-                        Ошибка: ${error.message}<br>
-                        Проверь папку <b>news/</b> и файл <b>list.json</b> на GitHub
-                    </span>
-                </div>
-            `;
-        }
-    }
-
-    function renderNews(newsArray) {
-        if (!newsArray || newsArray.length === 0) {
-            newsGrid.innerHTML = `<div class="no-news">Новостей не найдено</div>`;
-            return;
-        }
+    <div class="container">
+        <div class="logo">
+            <img src="https://ktoyaxd.github.io/OSNW/Icons/logo.png" alt="Old Strike Website News">
+        </div>
         
-        newsGrid.innerHTML = '';
-        newsArray.forEach((item, index) => {
-            const card = document.createElement('div');
-            card.className = 'news-card';
-            card.style.animationDelay = `${index * 0.08}s`;
-            
-            card.innerHTML = `
-                <div class="date">${item.date}</div>
-                <div class="title">${item.title}</div>
-                <div class="preview">${item.preview}</div>
-                <div class="author">${item.author}</div>
-            `;
-            
-            card.addEventListener('click', () => {
-                const id = item.date.replace(/\./g, '');
-                window.location.href = `article.html?id=${id}`;
-            });
-            
-            newsGrid.appendChild(card);
+
+        <!-- Кнопка "Читать" -->
+        <div class="menu-btn" id="readBtn">Читать</div>
+
+        <!-- Подменю (изначально скрыто) -->
+        <div class="sub-menu" id="subMenu">
+            <a href="news.html" class="menu-btn sub">Новости</a>
+            <a href="videos.html" class="menu-btn sub">Видео</a>
+        </div>
+    </div>
+
+    <script>
+        const readBtn = document.getElementById('readBtn');
+        const subMenu = document.getElementById('subMenu');
+
+        readBtn.addEventListener('click', function() {
+            // Скрываем кнопку "Читать"
+            this.classList.add('hidden');
+            // Показываем подменю
+            subMenu.classList.add('show');
         });
-    }
 
-    searchInput.addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        if (!query) {
-            renderNews(allNews);
-            return;
-        }
-        const filtered = allNews.filter(item =>
-            item.title.toLowerCase().includes(query) ||
-            item.preview.toLowerCase().includes(query) ||
-            item.author.toLowerCase().includes(query)
-        );
-        renderNews(filtered);
-    });
+        // Полноэкранный режим
+        const fsBtn = document.getElementById('fullscreenBtn');
+        fsBtn.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+    </script>
 
-    loadNewsList();
-</script>
 </body>
-  </html>
+</html>
