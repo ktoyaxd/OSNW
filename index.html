@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Old Strike Website News</title>
     <style>
+        /* ===== ОБЩИЕ СТИЛИ (из i.html) ===== */
         * {
             margin: 0;
             padding: 0;
@@ -37,12 +38,8 @@
             animation: scrollDiagonal 30s linear infinite;
         }
         @keyframes scrollDiagonal {
-            0% {
-                transform: translate(0, 0) rotate(0deg);
-            }
-            100% {
-                transform: translate(300px, -150px) rotate(0deg);
-            }
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(300px, -150px) rotate(0deg); }
         }
 
         .fullscreen-btn {
@@ -75,24 +72,25 @@
             z-index: 1;
         }
 
-        /* ===== ЛОГО И МЕНЮ ===== */
-        .logo {
+        /* ===== СТИЛИ ГЛАВНОГО МЕНЮ (из i.html) ===== */
+        .menu-container {
+            max-width: 600px;
+            margin: 0 auto;
             text-align: center;
-            margin: 20px 0 30px;
+        }
+        .logo {
+            margin-bottom: 40px;
         }
         .logo img {
-            width: 120px;
+            width: 250px;
             height: auto;
         }
-
         .main-title {
-            text-align: center;
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 40px;
             letter-spacing: 2px;
         }
-
         .menu-btn {
             display: block;
             width: 100%;
@@ -115,7 +113,6 @@
             border-color: #FFFFFF;
             transform: translateY(-2px);
         }
-
         .menu-btn.sub {
             max-width: 200px;
             font-size: 15px;
@@ -124,7 +121,9 @@
             text-decoration: none;
             color: #fff;
         }
-
+        .menu-btn.hidden {
+            display: none;
+        }
         .sub-menu {
             display: none;
             margin-top: 10px;
@@ -133,19 +132,12 @@
             display: block;
             animation: fadeIn 0.3s ease;
         }
-
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ===== СТРАНИЦЫ ===== */
+        /* ===== СТИЛИ ДЛЯ ВСЕХ СТРАНИЦ (из news.html, videos.html, infoall.html) ===== */
         .page {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -154,7 +146,6 @@
             display: block;
         }
 
-        /* ===== ТОП-БАР (назад + поиск) ===== */
         .top-bar {
             display: flex;
             align-items: center;
@@ -196,7 +187,7 @@
             opacity: 0.6;
         }
 
-        /* ===== СЕТКА КАРТОЧЕК ===== */
+        /* Сетка карточек */
         .grid {
             display: flex;
             flex-direction: column;
@@ -252,7 +243,13 @@
             padding: 40px 0;
         }
 
-        /* ===== СТАТЬЯ ===== */
+        /* Стили для статей (из article.html и info_article.html) */
+        .article-container {
+            background: #3A3F45;
+            border: 1px solid #363940;
+            padding: 30px;
+            animation: fadeIn 0.5s ease;
+        }
         .article-title {
             font-size: 28px;
             font-weight: 700;
@@ -262,6 +259,12 @@
             color: #ffffff;
             font-size: 14px;
             margin-bottom: 20px;
+            opacity: 0.7;
+        }
+        .article-date {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
             opacity: 0.7;
         }
         .article-text p {
@@ -278,31 +281,19 @@
             border: 1px solid #363940;
             background: #202126;
         }
-        .article-date {
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 600;
-            opacity: 0.7;
-        }
 
-        /* ===== АДАПТИВ ===== */
+        /* Адаптив */
         @media (min-width: 768px) {
-            body {
-                padding: 40px;
-            }
+            body { padding: 40px; }
             .grid {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 20px;
             }
-            .card .title {
-                font-size: 18px;
-            }
+            .card .title { font-size: 18px; }
         }
         @media (max-width: 767px) {
-            .container {
-                padding: 0 10px;
-            }
+            .container { padding: 0 10px; }
             .fullscreen-btn {
                 width: 34px;
                 height: 34px;
@@ -310,25 +301,13 @@
                 top: 10px;
                 right: 10px;
             }
-            .logo img {
-                width: 80px;
-            }
-            .main-title {
-                font-size: 22px;
-            }
-            .menu-btn {
-                font-size: 16px;
-                padding: 14px;
-            }
-            .article-title {
-                font-size: 22px;
-            }
-            .article-text p {
-                font-size: 15px;
-            }
-            .inline-image {
-                max-height: 250px;
-            }
+            .logo img { width: 200px; }
+            .main-title { font-size: 22px; }
+            .menu-btn { font-size: 16px; padding: 14px; }
+            .article-title { font-size: 22px; }
+            .article-text p { font-size: 15px; }
+            .inline-image { max-height: 250px; }
+            .article-container { padding: 20px; }
         }
     </style>
 </head>
@@ -338,31 +317,31 @@
 
     <div class="container">
 
-        <!-- ===== ГЛАВНОЕ МЕНЮ ===== -->
+        <!-- ===== ГЛАВНОЕ МЕНЮ (i.html) ===== -->
         <div id="page-menu" class="page active">
-            <div class="logo">
-                <img src="Icons/logo.png" alt="Old Strike Website News">
-            </div>
-            <div class="main-title">OLD STRIKE<br>WEBSITE NEWS</div>
-
-            <div class="menu-btn" id="readBtn">Читать</div>
-            <div class="sub-menu" id="subMenu">
-                <div class="menu-btn sub" data-page="news">Новости</div>
-                <div class="menu-btn sub" data-page="videos">Видео</div>
-                <div class="menu-btn sub" data-page="infoall">Информация</div>
+            <div class="menu-container">
+                <div class="logo">
+                    <img src="Icons/logo.png" alt="Old Strike Website News">
+                </div>
+                <div class="menu-btn" id="readBtn">Читать</div>
+                <div class="sub-menu" id="subMenu">
+                    <div class="menu-btn sub" data-page="infoall">Информация о всём по игре и прочее</div>
+                    <div class="menu-btn sub" data-page="news">Новости</div>
+                    <div class="menu-btn sub" data-page="videos">Видео</div>
+                </div>
             </div>
         </div>
 
-        <!-- ===== НОВОСТИ ===== -->
+        <!-- ===== НОВОСТИ (news.html) ===== -->
         <div id="page-news" class="page">
             <div class="top-bar">
-                <div class="back-btn" data-back="menu">← Назад</div>
+                <div class="back-btn" data-back="menu">Назад</div>
                 <input class="search-box" placeholder="Поиск новостей..." id="newsSearch">
             </div>
             <div class="grid" id="newsGrid"><div class="no-data">Загрузка новостей...</div></div>
         </div>
 
-        <!-- ===== ВИДЕО ===== -->
+        <!-- ===== ВИДЕО (videos.html) ===== -->
         <div id="page-videos" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="menu">← Назад</div>
@@ -371,27 +350,40 @@
             <div class="grid" id="videoGrid"><div class="no-data">Загрузка видео...</div></div>
         </div>
 
-        <!-- ===== ИНФОРМАЦИЯ ===== -->
+        <!-- ===== ИНФОРМАЦИЯ (infoall.html) ===== -->
         <div id="page-infoall" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="menu">← Назад</div>
                 <input class="search-box" placeholder="Поиск информации..." id="infoSearch">
             </div>
-            <div class="grid" id="infoGrid"><div class="no-data">Загрузка информации...</div></div>
+            <div class="grid" id="infoGrid"><div class="no-data">Загрузка...</div></div>
         </div>
 
-        <!-- ===== СТАТЬЯ (универсальная) ===== -->
+        <!-- ===== СТАТЬЯ НОВОСТИ (article.html) ===== -->
         <div id="page-article" class="page">
+            <div class="top-bar">
+                <div class="back-btn" data-back="back">← Назад к новостям</div>
+            </div>
+            <div class="article-container" id="articleContent">
+                <div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка статьи...</div>
+            </div>
+        </div>
+
+        <!-- ===== СТАТЬЯ ИНФОРМАЦИИ (info_article.html) ===== -->
+        <div id="page-info-article" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="back">← Назад</div>
             </div>
-            <div id="articleContent"><div class="no-data">Выберите статью</div></div>
+            <div class="article-container" id="infoArticleContent">
+                <div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка...</div>
+            </div>
         </div>
 
     </div>
 
     <script>
-        const BASE = 'https://ktoyaxd.github.io/OSNW';
+        // ===== ОБЩИЕ ПЕРЕМЕННЫЕ =====
+        const BASE_URL = 'https://ktoyaxd.github.io/OSNW';
 
         // ===== НАВИГАЦИЯ =====
         function showPage(id) {
@@ -418,202 +410,275 @@
             btn.addEventListener('click', function() {
                 const page = this.dataset.page;
                 showPage(page);
-                // Загружаем данные, если ещё не загружены
                 if (page === 'news' && !window.newsLoaded) loadNews();
                 if (page === 'videos' && !window.videosLoaded) loadVideos();
                 if (page === 'infoall' && !window.infoLoaded) loadInfoAll();
             });
         });
 
-        // Кнопка "Читать"
+        // Кнопка "Читать" (из i.html)
         document.getElementById('readBtn').addEventListener('click', function() {
-            document.getElementById('subMenu').classList.toggle('show');
+            this.classList.add('hidden');
+            document.getElementById('subMenu').classList.add('show');
         });
 
-        // ===== ФУНКЦИЯ ДЛЯ ТЕКСТА С КАРТИНКАМИ =====
-        function formatText(text) {
+        // ===== ФУНКЦИИ ДЛЯ ТЕКСТА =====
+        function formatDateFromId(id) {
+            if (!id || id.length < 12) return id;
+            return id.slice(0, 2) + '.' + id.slice(2, 4) + '.' + id.slice(4, 8) + ' ' + id.slice(8, 10) + ':' + id.slice(10, 12);
+        }
+
+        function formatTextWithImages(text) {
             if (!text) return '';
             const lines = text.split('\n');
             let html = '';
             for (let line of lines) {
-                const t = line.trim();
-                if (t.startsWith('img:')) {
-                    const src = t.replace('img:', '').trim();
-                    html += `<img class="inline-image" src="${src}" onerror="this.style.display='none'">`;
-                } else if (t === '') {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('img:')) {
+                    const imagePath = trimmed.replace('img:', '').trim();
+                    html += `<img class="inline-image" src="${imagePath}" alt="Изображение" onerror="this.style.display='none'">`;
+                } else if (trimmed === '') {
                     html += '<br>';
                 } else {
-                    html += `<p>${t}</p>`;
+                    html += `<p>${trimmed}</p>`;
                 }
             }
             return html;
         }
 
-        // ===== ФОРМАТ ДАТЫ ИЗ ID =====
-        function formatDateFromId(id) {
-            if (!id || id.length < 12) return id;
-            return id.slice(0, 2) + '.' + id.slice(2, 4) + '.' + id.slice(4, 8) + ' ' + id.slice(8, 10) + ':' + id.slice(10,
-            12);
-        }
-
-        // ===== НОВОСТИ =====
+        // ===== НОВОСТИ (из news.html) =====
         async function loadNews() {
             window.newsLoaded = true;
             try {
-                const list = await fetch(`${BASE}/News/list.json`).then(r => r.json());
-                const data = await Promise.all(list.map(async id => {
-                    const res = await fetch(`${BASE}/News/${id}.json`);
-                    const json = await res.json();
-                    json._id = id;
-                    return json;
-                }));
-                window.allNews = data.sort((a, b) => b._id.localeCompare(a._id));
+                const listRes = await fetch(`${BASE_URL}/News/list.json`);
+                if (!listRes.ok) throw new Error('Ошибка загрузки list.json');
+                const files = await listRes.json();
+
+                const newsPromises = files.map(async (id) => {
+                    const res = await fetch(`${BASE_URL}/News/${id}.json`);
+                    if (!res.ok) throw new Error(`Ошибка загрузки ${id}`);
+                    const data = await res.json();
+                    data._id = id;
+                    data._date = formatDateFromId(id);
+                    return data;
+                });
+
+                window.allNews = await Promise.all(newsPromises);
+                window.allNews.sort((a, b) => b._id.localeCompare(a._id));
                 renderNews(window.allNews);
-            } catch (e) {
-                document.getElementById('newsGrid').innerHTML = `<div class="no-data">Ошибка загрузки новостей</div>`;
+            } catch (error) {
+                document.getElementById('newsGrid').innerHTML = `
+                    <div class="no-data">Не удалось загрузить новости<br><span style="font-size:13px;">Ошибка: ${error.message}</span></div>
+                `;
             }
         }
 
-        function renderNews(arr) {
+        function renderNews(newsArray) {
             const grid = document.getElementById('newsGrid');
-            if (!arr || !arr.length) return grid.innerHTML = `<div class="no-data">Новостей нет</div>`;
+            if (!newsArray || newsArray.length === 0) {
+                grid.innerHTML = `<div class="no-data">Новостей не найдено</div>`;
+                return;
+            }
             grid.innerHTML = '';
-            arr.forEach((item, index) => {
+            newsArray.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.style.animationDelay = (index * 0.08) + 's';
+                card.style.animationDelay = `${index * 0.08}s`;
                 card.innerHTML = `
-                    <div class="date">${formatDateFromId(item._id)}</div>
+                    <div class="date">${item._date}</div>
                     <div class="title">${item.title}</div>
                     <div class="preview">${item.preview || ''}</div>
-                    <div class="author">${item.author || ''}</div>
+                    <div class="author">${item.author || 'Автор не указан'}</div>
                 `;
-                card.onclick = () => openArticle('news', item._id);
+                card.addEventListener('click', () => {
+                    window.currentArticleId = item._id;
+                    showPage('article');
+                    loadArticle(item._id);
+                });
                 grid.appendChild(card);
             });
         }
 
         document.getElementById('newsSearch').addEventListener('input', function() {
-            const q = this.value.toLowerCase();
+            const query = this.value.toLowerCase().trim();
             if (!window.allNews) return;
-            renderNews(window.allNews.filter(i =>
-                i.title.toLowerCase().includes(q) ||
-                (i.preview || '').toLowerCase().includes(q) ||
-                (i.author || '').toLowerCase().includes(q)
-            ));
+            if (!query) { renderNews(window.allNews); return; }
+            const filtered = window.allNews.filter(item =>
+                item.title.toLowerCase().includes(query) ||
+                (item.preview || '').toLowerCase().includes(query) ||
+                (item.author || '').toLowerCase().includes(query)
+            );
+            renderNews(filtered);
         });
 
-        // ===== ВИДЕО =====
+        // ===== ВИДЕО (из videos.html) =====
         async function loadVideos() {
             window.videosLoaded = true;
             try {
-                window.allVideos = await fetch(`${BASE}/Videos/list.json`).then(r => r.json());
+                const listRes = await fetch(`${BASE_URL}/Videos/list.json`);
+                if (!listRes.ok) throw new Error('Ошибка загрузки list.json');
+                window.allVideos = await listRes.json();
+                window.allVideos.sort((a, b) => {
+                    const da = a.date.split('.').reverse().join('');
+                    const db = b.date.split('.').reverse().join('');
+                    return db.localeCompare(da);
+                });
                 renderVideos(window.allVideos);
-            } catch (e) {
-                document.getElementById('videoGrid').innerHTML = `<div class="no-data">Ошибка загрузки видео</div>`;
+            } catch (error) {
+                document.getElementById('videoGrid').innerHTML = `
+                    <div class="no-data">Не удалось загрузить видео<br><span style="font-size:13px;">Ошибка: ${error.message}</span></div>
+                `;
             }
         }
 
-        function renderVideos(arr) {
+        function renderVideos(videoArray) {
             const grid = document.getElementById('videoGrid');
-            if (!arr || !arr.length) return grid.innerHTML = `<div class="no-data">Видео нет</div>`;
+            if (!videoArray || videoArray.length === 0) {
+                grid.innerHTML = `<div class="no-data">Видео не найдены</div>`;
+                return;
+            }
             grid.innerHTML = '';
-            arr.forEach((item, index) => {
+            videoArray.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.style.animationDelay = (index * 0.08) + 's';
+                card.style.animationDelay = `${index * 0.08}s`;
+                const thumbUrl = `https://img.youtube.com/vi/${item.id}/mqdefault.jpg`;
                 card.innerHTML = `
-                    <img class="thumb" src="https://img.youtube.com/vi/${item.id}/mqdefault.jpg" onerror="this.style.display='none'">
+                    <img class="thumb" src="${thumbUrl}" alt="${item.title}" loading="lazy" onerror="this.style.display='none'">
                     <div class="title">${item.title}</div>
                     <div class="preview">${item.channel || ''}</div>
                     <div class="author">${item.date || ''}</div>
                 `;
-                card.onclick = () => window.open(`https://www.youtube.com/watch?v=${item.id}`, '_blank');
+                card.addEventListener('click', () => {
+                    window.open(`https://www.youtube.com/watch?v=${item.id}`, '_blank');
+                });
                 grid.appendChild(card);
             });
         }
 
         document.getElementById('videoSearch').addEventListener('input', function() {
-            const q = this.value.toLowerCase();
+            const query = this.value.toLowerCase().trim();
             if (!window.allVideos) return;
-            renderVideos(window.allVideos.filter(i =>
-                i.title.toLowerCase().includes(q) ||
-                (i.channel || '').toLowerCase().includes(q)
-            ));
+            if (!query) { renderVideos(window.allVideos); return; }
+            const filtered = window.allVideos.filter(item =>
+                item.title.toLowerCase().includes(query) ||
+                (item.channel || '').toLowerCase().includes(query)
+            );
+            renderVideos(filtered);
         });
 
-        // ===== ИНФОРМАЦИЯ =====
+        // ===== ИНФОРМАЦИЯ (из infoall.html) =====
         async function loadInfoAll() {
             window.infoLoaded = true;
             try {
-                const list = await fetch(`${BASE}/Infoall/list.json`).then(r => r.json());
-                const data = await Promise.all(list.map(async id => {
-                    const res = await fetch(`${BASE}/Infoall/${id}.json`);
-                    return await res.json();
-                }));
-                window.allInfo = data;
+                const listRes = await fetch(`${BASE_URL}/Infoall/list.json`);
+                if (!listRes.ok) throw new Error('Ошибка загрузки list.json');
+                const files = await listRes.json();
+
+                const infoPromises = files.map(async (file) => {
+                    const res = await fetch(`${BASE_URL}/Infoall/${file}`);
+                    if (!res.ok) throw new Error(`Ошибка загрузки ${file}`);
+                    const data = await res.json();
+                    data._fileName = file.replace('.json', '');
+                    return data;
+                });
+
+                window.allInfo = await Promise.all(infoPromises);
                 renderInfo(window.allInfo);
-            } catch (e) {
-                document.getElementById('infoGrid').innerHTML = `<div class="no-data">Ошибка загрузки информации</div>`;
+            } catch (error) {
+                document.getElementById('infoGrid').innerHTML = `
+                    <div class="no-info">Не удалось загрузить информацию<br><span style="font-size:13px;">Ошибка: ${error.message}</span></div>
+                `;
             }
         }
 
-        function renderInfo(arr) {
+        function renderInfo(infoArray) {
             const grid = document.getElementById('infoGrid');
-            if (!arr || !arr.length) return grid.innerHTML = `<div class="no-data">Информации нет</div>`;
+            if (!infoArray || infoArray.length === 0) {
+                grid.innerHTML = `<div class="no-data">Информация не найдена</div>`;
+                return;
+            }
             grid.innerHTML = '';
-            arr.forEach((item, index) => {
+            infoArray.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.style.animationDelay = (index * 0.08) + 's';
+                card.style.animationDelay = `${index * 0.08}s`;
+
+                let imageHtml = '';
+                if (item.image) {
+                    imageHtml = `<img class="thumb" src="${item.image}" alt="${item.title}" onerror="this.style.display='none'">`;
+                }
+
                 card.innerHTML = `
+                    ${imageHtml}
                     <div class="title">${item.title}</div>
                     <div class="preview">${item.preview || ''}</div>
                 `;
-                card.onclick = () => openArticle('info', index);
+                card.addEventListener('click', () => {
+                    window.currentInfoId = item._fileName || `info_${index}`;
+                    showPage('info-article');
+                    loadInfoArticle(window.currentInfoId);
+                });
                 grid.appendChild(card);
             });
         }
 
         document.getElementById('infoSearch').addEventListener('input', function() {
-            const q = this.value.toLowerCase();
+            const query = this.value.toLowerCase().trim();
             if (!window.allInfo) return;
-            renderInfo(window.allInfo.filter(i =>
-                i.title.toLowerCase().includes(q) ||
-                (i.preview || '').toLowerCase().includes(q)
-            ));
+            if (!query) { renderInfo(window.allInfo); return; }
+            const filtered = window.allInfo.filter(item =>
+                item.title.toLowerCase().includes(query) ||
+                (item.preview || '').toLowerCase().includes(query)
+            );
+            renderInfo(filtered);
         });
 
-        // ===== ОТКРЫТИЕ СТАТЬИ =====
-        async function openArticle(type, id) {
-            showPage('article');
+        // ===== СТАТЬЯ НОВОСТИ (из article.html) =====
+        async function loadArticle(id) {
             const container = document.getElementById('articleContent');
-            container.innerHTML = '<div class="no-data">Загрузка...</div>';
-
+            container.innerHTML = `<div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка статьи...</div>`;
             try {
-                let data;
-                if (type === 'news') {
-                    const res = await fetch(`${BASE}/News/${id}.json`);
-                    data = await res.json();
-                    container.innerHTML = `
-                        <div class="article-date">${formatDateFromId(id)}</div>
-                        <div class="article-title">${data.title}</div>
-                        <div class="article-author">${data.author || ''}</div>
-                        <div class="article-text">${formatText(data.fullText)}</div>
-                    `;
-                } else if (type === 'info') {
-                    data = window.allInfo[id];
-                    if (data) {
-                        container.innerHTML = `
-                            <div class="article-title">${data.title}</div>
-                            <div class="article-text">${formatText(data.fullText)}</div>
-                        `;
-                    } else {
-                        container.innerHTML = '<div class="no-data">Статья не найдена</div>';
-                    }
-                }
-            } catch (e) {
-                container.innerHTML = '<div class="no-data">Ошибка загрузки статьи</div>';
+                const res = await fetch(`${BASE_URL}/News/${id}.json`);
+                if (!res.ok) throw new Error('Статья не найдена');
+                const data = await res.json();
+                container.innerHTML = `
+                    <div class="article-date">${formatDateFromId(id)}</div>
+                    <div class="article-title">${data.title}</div>
+                    <div class="article-author">${data.author || 'Автор не указан'}</div>
+                    <div class="article-text">${formatTextWithImages(data.fullText)}</div>
+                `;
+                document.title = `${data.title} — OSNW`;
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="text-align:center;color:#ffffff;">
+                        Статья не найдена<br>
+                        <span style="font-size:13px;color:#FFFFFF;">Файл News/${id}.json отсутствует</span>
+                    </div>
+                `;
+            }
+        }
+
+        // ===== СТАТЬЯ ИНФОРМАЦИИ (из info_article.html) =====
+        async function loadInfoArticle(id) {
+            const container = document.getElementById('infoArticleContent');
+            container.innerHTML = `<div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка...</div>`;
+            try {
+                const res = await fetch(`${BASE_URL}/Infoall/${id}.json`);
+                if (!res.ok) throw new Error('Информация не найдена');
+                const data = await res.json();
+                container.innerHTML = `
+                    <div class="article-title">${data.title}</div>
+                    <div class="article-text">${formatTextWithImages(data.fullText)}</div>
+                `;
+                document.title = `${data.title} — Old Strike`;
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="text-align:center;color:#ffffff;">
+                        Информация не найдена<br>
+                        <span style="font-size:13px;color:#FFFFFF;">Файл Infoall/${id}.json отсутствует</span>
+                    </div>
+                `;
             }
         }
 
@@ -627,7 +692,7 @@
         });
 
         // ===== АВТОЗАГРУЗКА =====
-        // Стартуем с меню, новости загружаем при первом открытии
+        // Стартуем с меню, остальное подгружается при клике
     </script>
 
 </body>
