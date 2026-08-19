@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSNW</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #202126;
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background-image: url('Icons/OS_logo.png');
+            background-repeat: repeat;
+            background-size: 80px 80px;
+            opacity: 0.06;
+            pointer-events: none;
+            z-index: 0;
+            animation: scrollDiagonal 30s linear infinite;
+        }
+        @keyframes scrollDiagonal {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            100% {
+                transform: translate(300px, -150px) rotate(0deg);
+            }
+        }
+
+        .fullscreen-btn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            background: #3A3F45;
+            border: 1px solid #363940;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 999;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .fullscreen-btn:hover {
+            background: #363940;
+            border-color: #fff;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .logo img {
+            height: 60px;
+            width: auto;
+        }
+        .nav {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .nav button {
+            background: #3A3F45;
+            border: 1px solid #363940;
+            color: #fff;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        .nav button:hover {
+            background: #363940;
+            border-color: #fff;
+        }
+        .nav button.active {
+            background: #363940;
+            border-color: #fff;
+        }
+
+        /* PAGES */
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* CARDS */
+        .grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .card {
+            background: #3A3F45;
+            border: 1px solid #363940;
+            padding: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .card:hover {
+            background: #363940;
+            border-color: #fff;
+            transform: translateY(-2px);
+        }
+        .card .title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .card .preview {
+            font-size: 14px;
+            color: #ddd;
+        }
+        .card .meta {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 10px;
+        }
+        .card .thumb {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border: 1px solid #363940;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background: #3A3F45;
+            border: 1px solid #363940;
+            color: #fff;
+            padding: 6px 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+        .back-btn:hover {
+            background: #363940;
+            border-color: #fff;
+        }
+
+        .search {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid #363940;
+            background: #3A3F45;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+            margin-bottom: 20px;
+        }
+        .search:focus {
+            border-color: #fff;
+        }
+        .search::placeholder {
+            color: #aaa;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #aaa;
+            padding: 40px 0;
+        }
+
+        .article-text {
+            font-size: 16px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        .article-text p {
+            margin-bottom: 12px;
+        }
+        .inline-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            margin: 12px 0;
+            border: 1px solid #363940;
+            background: #202126;
+        }
+
+        @media (min-width: 768px) {
+            .grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+        }
+        @media (max-width: 767px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .nav {
+                justify-content: center;
+            }
+            .fullscreen-btn {
+                width: 34px;
+                height: 34px;
+                font-size: 16px;
+                top: 10px;
+                right: 10px;
+            }
+            .logo img {
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="header">
+            <div class="logo">
+                <img src="Icons/logo.png" alt="OSNW">
+            </div>
+            <div class="nav">
+                <button class="active" data-page="news">Новости</button>
+                <button data-page="videos">Видео</button>
+                <button data-page="infoall">Информация</button>
+            </div>
+        </div>
+
+        <!-- СТРАНИЦЫ -->
+        <div id="page-news" class="page active">
+            <input class="search" placeholder="Поиск новостей..." id="newsSearch">
+            <div class="grid" id="newsGrid"><div class="no-data">Загрузка...</div></div>
+        </div>
+
+        <div id="page-videos" class="page">
+            <input class="search" placeholder="Поиск видео..." id="videoSearch">
+            <div class="grid" id="videoGrid"><div class="no-data">Загрузка...</div></div>
+        </div>
+
+        <div id="page-infoall" class="page">
+            <input class="search" placeholder="Поиск информации..." id="infoSearch">
+            <div class="grid" id="infoGrid"><div class="no-data">Загрузка...</div></div>
+        </div>
+
+        <div id="page-article" class="page">
+            <button class="back-btn" id="articleBack">← Назад</button>
+            <div id="articleContent"><div class="no-data">Выберите статью</div></div>
+        </div>
+
+    </div>
+
+    <script>
+        const BASE = 'https://ktoyaxd.github.io/OSNW';
+        let allNews = [],
+            allVideos = [],
+            allInfo = [];
+
+        // ===== НАВИГАЦИЯ =====
+        document.querySelectorAll('.nav button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const page = this.dataset.page;
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                const target = document.getElementById('page-' + page);
+                if (target) target.classList.add('active');
+                if (page === 'news' && !allNews.length) loadNews();
+                if (page === 'videos' && !allVideos.length) loadVideos();
+                if (page === 'infoall' && !allInfo.length) loadInfoAll();
+            });
+        });
+
+        // ===== НАЗАД В АРТИКЛЕ =====
+        document.getElementById('articleBack').addEventListener('click', function() {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const last = document.querySelector('.nav button.active');
+            if (last) {
+                document.getElementById('page-' + last.dataset.page).classList.add('active');
+            } else {
+                document.getElementById('page-news').classList.add('active');
+            }
+        });
+
+        // ===== ФУНКЦИЯ ДЛЯ ТЕКСТА С КАРТИНКАМИ =====
+        function formatText(text) {
+            if (!text) return '';
+            const lines = text.split('\n');
+            let html = '';
+            for (let line of lines) {
+                const t = line.trim();
+                if (t.startsWith('img:')) {
+                    const src = t.replace('img:', '').trim();
+                    html += `<img class="inline-image" src="${src}" onerror="this.style.display='none'">`;
+                } else if (t === '') {
+                    html += '<br>';
+                } else {
+                    html += `<p>${t}</p>`;
+                }
+            }
+            return html;
+        }
+
+        // ===== ЗАГРУЗКА НОВОСТЕЙ =====
+        async function loadNews() {
+            try {
+                const list = await fetch(`${BASE}/News/list.json`).then(r => r.json());
+                const data = await Promise.all(list.map(async id => {
+                    const res = await fetch(`${BASE}/News/${id}.json`);
+                    const json = await res.json();
+                    json._id = id;
+                    return json;
+                }));
+                allNews = data.sort((a, b) => b._id.localeCompare(a._id));
+                renderNews(allNews);
+            } catch (e) {
+                document.getElementById('newsGrid').innerHTML = `<div class="no-data">Ошибка загрузки новостей</div>`;
+            }
+        }
+
+        function renderNews(arr) {
+            const grid = document.getElementById('newsGrid');
+            if (!arr || !arr.length) return grid.innerHTML = `<div class="no-data">Новостей нет</div>`;
+            grid.innerHTML = '';
+            arr.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="title">${item.title}</div>
+                    <div class="preview">${item.preview}</div>
+                    <div class="meta">${item.author || ''} • ${item._id ? item._id.slice(0,2)+'.'+item._id.slice(2,4)+'.'+item._id.slice(4,8)+' '+item._id.slice(8,10)+':'+item._id.slice(10,12) : ''}</div>
+                `;
+                card.onclick = () => openArticle('news', item._id);
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('newsSearch').addEventListener('input', function() {
+            const q = this.value.toLowerCase();
+            renderNews(allNews.filter(i => i.title.toLowerCase().includes(q) || (i.preview || '').toLowerCase().includes(q)));
+        });
+
+        // ===== ЗАГРУЗКА ВИДЕО =====
+        async function loadVideos() {
+            try {
+                allVideos = await fetch(`${BASE}/Videos/list.json`).then(r => r.json());
+                renderVideos(allVideos);
+            } catch (e) {
+                document.getElementById('videoGrid').innerHTML = `<div class="no-data">Ошибка загрузки видео</div>`;
+            }
+        }
+
+        function renderVideos(arr) {
+            const grid = document.getElementById('videoGrid');
+            if (!arr || !arr.length) return grid.innerHTML = `<div class="no-data">Видео нет</div>`;
+            grid.innerHTML = '';
+            arr.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img class="thumb" src="https://img.youtube.com/vi/${item.id}/mqdefault.jpg" onerror="this.style.display='none'">
+                    <div class="title">${item.title}</div>
+                    <div class="preview">${item.channel || ''}</div>
+                    <div class="meta">${item.date || ''}</div>
+                `;
+                card.onclick = () => window.open(`https://www.youtube.com/watch?v=${item.id}`, '_blank');
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('videoSearch').addEventListener('input', function() {
+            const q = this.value.toLowerCase();
+            renderVideos(allVideos.filter(i => i.title.toLowerCase().includes(q) || (i.channel || '').toLowerCase().includes(q)));
+        });
+
+        // ===== ЗАГРУЗКА ИНФОРМАЦИИ =====
+        async function loadInfoAll() {
+            try {
+                const list = await fetch(`${BASE}/Infoall/list.json`).then(r => r.json());
+                const data = await Promise.all(list.map(async id => {
+                    const res = await fetch(`${BASE}/Infoall/${id}.json`);
+                    return await res.json();
+                }));
+                allInfo = data;
+                renderInfo(allInfo);
+            } catch (e) {
+                document.getElementById('infoGrid').innerHTML = `<div class="no-data">Ошибка загрузки информации</div>`;
+            }
+        }
+
+        function renderInfo(arr) {
+            const grid = document.getElementById('infoGrid');
+            if (!arr || !arr.length) return grid.innerHTML = `<div class="no-data">Информации нет</div>`;
+            grid.innerHTML = '';
+            arr.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="title">${item.title}</div>
+                    <div class="preview">${item.preview || ''}</div>
+                `;
+                // Ищем ID файла — используем порядковый номер как временный ID
+                const idx = allInfo.indexOf(item);
+                card.onclick = () => openArticle('info', idx);
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('infoSearch').addEventListener('input', function() {
+            const q = this.value.toLowerCase();
+            renderInfo(allInfo.filter(i => i.title.toLowerCase().includes(q) || (i.preview || '').toLowerCase().includes(q)));
+        });
+
+        // ===== ОТКРЫТИЕ СТАТЬИ =====
+        async function openArticle(type, id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-article').classList.add('active');
+
+            const container = document.getElementById('articleContent');
+            container.innerHTML = '<div class="no-data">Загрузка...</div>';
+
+            try {
+                let data;
+                if (type === 'news') {
+                    const res = await fetch(`${BASE}/News/${id}.json`);
+                    data = await res.json();
+                    container.innerHTML = `
+                        <h2>${data.title}</h2>
+                        <div style="opacity:0.7;margin:8px 0;">${data.author || ''}</div>
+                        <div class="article-text">${formatText(data.fullText)}</div>
+                    `;
+                } else if (type === 'info') {
+                    // Для информации — берём из allInfo по индексу
+                    data = allInfo[id];
+                    if (data) {
+                        container.innerHTML = `
+                            <h2>${data.title}</h2>
+                            <div class="article-text">${formatText(data.fullText)}</div>
+                        `;
+                    } else {
+                        container.innerHTML = '<div class="no-data">Статья не найдена</div>';
+                    }
+                }
+            } catch (e) {
+                container.innerHTML = '<div class="no-data">Ошибка загрузки статьи</div>';
+            }
+        }
+
+        // ===== ПОЛНОЭКРАННЫЙ РЕЖИМ =====
+        document.getElementById('fullscreenBtn').addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        });
+
+        // ===== АВТОЗАГРУЗКА НОВОСТЕЙ =====
+        loadNews();
+    </script>
+
+</body>
+</html>
