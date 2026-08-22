@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Old Strike Website News</title>
+    <title>Old Strike News Website</title>
     <style>
         /* ===== ОБЩИЕ СТИЛИ (из i.html) ===== */
         * {
@@ -40,6 +41,30 @@
         @keyframes scrollDiagonal {
             0% { transform: translate(0, 0) rotate(0deg); }
             100% { transform: translate(300px, -150px) rotate(0deg); }
+        }
+        
+        .infosite-btn {
+            position: fixed;
+            top: 60px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            background: #3A3F45;
+            border: 1px solid #363940;
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        
+        .infosite-btn:hover {
+            background: #363940;
+            border-color: #FFFFFF;
         }
 
         .fullscreen-btn {
@@ -316,23 +341,51 @@
     <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
 
     <div class="container">
+        
+        <div id="page-infosite" class="page">
+            <div class="top-bar">
+                <div class="back-btn" data-back="menu">Назад</div>
+            </div>
+            <div class="article-container" id="infoSiteContent">
+                <div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка...</div>
+        </div>
+    </div>
+    
+    <!-- ===== ЧАТ ===== -->
+<div id="page-chat" class="page">
+    <div class="top-bar">
+        <div class="back-btn" data-back="menu">← Назад</div>
+    </div>
+    <div class="article-container" style="padding: 15px;">
+        <div id="chatBox" style="height: 400px; overflow-y: auto; margin-bottom: 12px; background: #202126; padding: 12px; border: 1px solid #363940;">
+            <div class="no-data" id="chatLoading">Загрузка сообщений...</div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="chatUsername" placeholder="Ваше имя" style="flex: 1; padding: 10px; border: 1px solid #363940; background: #3A3F45; color: #fff; outline: none;">
+            <input type="text" id="chatMessage" placeholder="Сообщение..." style="flex: 3; padding: 10px; border: 1px solid #363940; background: #3A3F45; color: #fff; outline: none;">
+            <button id="chatSendBtn" style="padding: 10px 20px; background: #3A3F45; border: 1px solid #363940; color: #fff; cursor: pointer;">Отправить</button>
+        </div>
+    </div>
+</div>
 
-        <!-- ===== ГЛАВНОЕ МЕНЮ (i.html) ===== -->
+        <!-- ===== ГЛАВНОЕ МЕНЮ ===== -->
         <div id="page-menu" class="page active">
             <div class="menu-container">
                 <div class="logo">
-                    <img src="Icons/logo.png" alt="Old Strike Website News">
+                    <img src="Icons/logo.png" alt="Old Strike News Website">
                 </div>
+                <button class="infosite-btn" id="InfoSite">i</button>
                 <div class="menu-btn" id="readBtn">Читать</div>
                 <div class="sub-menu" id="subMenu">
                     <div class="menu-btn sub" data-page="infoall">Информация о всём по игре и прочее</div>
                     <div class="menu-btn sub" data-page="news">Новости</div>
                     <div class="menu-btn sub" data-page="videos">Видео</div>
+                    <div class="menu-btn sub" data-page="chat">Чат (ТЕСТ)</div>
                 </div>
             </div>
         </div>
 
-        <!-- ===== НОВОСТИ (news.html) ===== -->
+        <!-- ===== НОВОСТИ ===== -->
         <div id="page-news" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="menu">Назад</div>
@@ -341,38 +394,38 @@
             <div class="grid" id="newsGrid"><div class="no-data">Загрузка новостей...</div></div>
         </div>
 
-        <!-- ===== ВИДЕО (videos.html) ===== -->
+        <!-- ===== ВИДЕО ===== -->
         <div id="page-videos" class="page">
             <div class="top-bar">
-                <div class="back-btn" data-back="menu">← Назад</div>
+                <div class="back-btn" data-back="menu">Назад</div>
                 <input class="search-box" placeholder="Поиск видео..." id="videoSearch">
             </div>
             <div class="grid" id="videoGrid"><div class="no-data">Загрузка видео...</div></div>
         </div>
 
-        <!-- ===== ИНФОРМАЦИЯ (infoall.html) ===== -->
+        <!-- ===== ИНФОРМАЦИЯ ===== -->
         <div id="page-infoall" class="page">
             <div class="top-bar">
-                <div class="back-btn" data-back="menu">← Назад</div>
+                <div class="back-btn" data-back="menu">Назад</div>
                 <input class="search-box" placeholder="Поиск информации..." id="infoSearch">
             </div>
             <div class="grid" id="infoGrid"><div class="no-data">Загрузка...</div></div>
         </div>
 
-        <!-- ===== СТАТЬЯ НОВОСТИ (article.html) ===== -->
+        <!-- ===== СТАТЬЯ НОВОСТИ ===== -->
         <div id="page-article" class="page">
             <div class="top-bar">
-                <div class="back-btn" data-back="back">← Назад к новостям</div>
+                <div class="back-btn" data-back="back">Назад к новостям</div>
             </div>
             <div class="article-container" id="articleContent">
                 <div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка статьи...</div>
             </div>
         </div>
 
-        <!-- ===== СТАТЬЯ ИНФОРМАЦИИ (info_article.html) ===== -->
+        <!-- ===== СТАТЬЯ ИНФОРМАЦИИ ===== -->
         <div id="page-info-article" class="page">
             <div class="top-bar">
-                <div class="back-btn" data-back="back">← Назад</div>
+                <div class="back-btn" data-back="back">Назад</div>
             </div>
             <div class="article-container" id="infoArticleContent">
                 <div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка...</div>
@@ -671,7 +724,7 @@
                     <div class="article-title">${data.title}</div>
                     <div class="article-text">${formatTextWithImages(data.fullText)}</div>
                 `;
-                document.title = `${data.title} — Old Strike`;
+                document.title = `${data.title} — OSNW`;
             } catch (error) {
                 container.innerHTML = `
                     <div style="text-align:center;color:#ffffff;">
@@ -693,6 +746,117 @@
 
         // ===== АВТОЗАГРУЗКА =====
         // Стартуем с меню, остальное подгружается при клике
+        
+        document.getElementById('InfoSite').addEventListener('click', function() {
+            showPage('infosite');
+                loadInfoSite(); // функция, которая покажет текст
+        });
+        
+        function loadInfoSite() {
+            const container = document.getElementById('infoSiteContent');
+            container.innerHTML = `
+                <div class="article-title">Информация о сайте чтоль</div>
+                <div class="article-text">Потом напишу потому что мне ща лень чото <b>хы</b>.</div>
+            `;
+        }
+        
+        // ===== НАСТРОЙКИ SUPABASE =====
+const SUPABASE_URL = 'https://wzoaqihzbfigsjmzumcr.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ecBRJoPfAofNIJIeZPQtMA_orQSCboi';
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let chatLoaded = false;
+
+async function loadChat() {
+    if (chatLoaded) return;
+    chatLoaded = true;
+    
+    const chatBox = document.getElementById('chatBox');
+    const usernameInput = document.getElementById('chatUsername');
+    const messageInput = document.getElementById('chatMessage');
+    const sendBtn = document.getElementById('chatSendBtn');
+    
+    async function loadMessages() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: true })
+                .limit(100);
+            
+            if (error) throw error;
+            
+            if (data.length === 0) {
+                chatBox.innerHTML = `<div class="no-data">Пока сообщений нет. Напиши первым!</div>`;
+                return;
+            }
+            
+            chatBox.innerHTML = '';
+            data.forEach(msg => {
+                const div = document.createElement('div');
+                div.style.cssText = 'margin-bottom: 10px; border-bottom: 1px solid #2a2f3a; padding-bottom: 8px;';
+                div.innerHTML = `
+                    <span style="color: #6a8aff; font-weight: 600;">${escapeHtml(msg.username)}</span>
+                    <span style="color: #5a6a8a; font-size: 11px; margin-left: 8px;">${new Date(msg.created_at).toLocaleTimeString()}</span>
+                    <div style="color: #fff; margin-top: 2px;">${escapeHtml(msg.content)}</div>
+                `;
+                chatBox.appendChild(div);
+            });
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } catch (error) {
+            chatBox.innerHTML = `<div class="no-data">Ошибка загрузки сообщений</div>`;
+            console.error('Ошибка чата:', error);
+        }
+    }
+    
+    async function sendMessage() {
+        const username = usernameInput.value.trim() || 'Аноним';
+        const content = messageInput.value.trim();
+        
+        if (!content) return;
+        
+        try {
+            const { error } = await supabaseClient
+                .from('messages')
+                .insert([{ username, content }]);
+            
+            if (error) throw error;
+            
+            messageInput.value = '';
+            messageInput.focus();
+            await loadMessages();
+        } catch (error) {
+            alert('Ошибка отправки: ' + error.message);
+        }
+    }
+    
+    // Realtime подписка
+    supabaseClient
+        .channel('messages')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+            loadMessages();
+        })
+        .subscribe();
+    
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+    
+    await loadMessages();
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Загружаем чат при переходе
+document.querySelector('[data-page="chat"]')?.addEventListener('click', function() {
+    setTimeout(loadChat, 100);
+});
     </script>
 
 </body>
