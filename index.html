@@ -559,7 +559,7 @@
                         <button class="sort-option" data-sort="random">Рандом</button>
                         <button class="sort-option" data-sort="oldest">Старые</button>
                     </div>
-                    <button class="shuffle-btn" id="shuffleBtn">🔄 Перемешать</button>
+                    <button class="shuffle-btn" id="shuffleBtn">Перемешать</button>
                 </div>
             </div>
             <div class="grid" id="videoGrid"><div class="no-data">Загрузка видео...</div></div>
@@ -777,7 +777,7 @@
         window.videosLoaded = true;
         try {
             const listRes = await fetch(`${BASE_URL}/Videos/list.json`);
-            if (!listRes.ok) throw new Error('Ошибка загрузки list.json');
+            if (!listRes.ok) throw new Error('Ошибка загрузки');
             window.allVideos = await listRes.json();
             window._filteredVideos = window.allVideos;
             videosPage = 1;
@@ -921,7 +921,7 @@
         window.infoLoaded = true;
         try {
             const listRes = await fetch(`${BASE_URL}/Infoall/list.json`);
-            if (!listRes.ok) throw new Error('Ошибка загрузки list.json');
+            if (!listRes.ok) throw new Error('Ошибка загрузки');
             const files = await listRes.json();
 
             const infoPromises = files.map(async (file) => {
