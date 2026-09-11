@@ -1,0 +1,45 @@
+{
+    "bunnyhop": {
+        "name": "Bunny Hop",
+        "hasMaps": true,
+        "maps": {
+            "speed": {
+                "name": "Speed",
+                "fields": [
+                    { "id": "blue", "label": "Синий портал (СП)", "gold": 30, "xp": 120 },
+                    { "id": "green", "label": "Зелёный портал (ЗП)", "gold": 20, "xp": 90 }
+                ]
+            },
+            "trainer": {
+                "name": "Trainer",
+                "fields": [
+                    { "id": "trainer", "label": "Прохождение", "gold": 90, "xp": 160 }
+                ]
+            },
+            "fall": {
+                "name": "Fall",
+                "fields": [
+                    { "id": "fall", "label": "Прохождение", "gold": 60, "xp": 120 }
+                ]
+            }
+        }
+    },
+    "minigames": {
+        "name": "Мини-игры",
+        "hasMaps": true,
+        "maps": {
+            "traps": {
+                "name": "150Traps",
+                "fields": [
+                    { "id": "traps", "label": "Пройдено Traps", "gold": 3, "xp": 5 }
+                ]
+            },
+            "blockdash": {
+                "name": "BlockDash",
+                "fields": [
+                    { "id": "wins", "label": "Побед", "gold": 0, "xp": 0 }
+                ]
+            }
+        }
+    }
+}
