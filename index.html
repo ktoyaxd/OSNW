@@ -6,12 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Old Strike News Website</title>
     <style>
-        /* ===== ОБЩИЕ СТИЛИ ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: #202126;
             color: #fff;
@@ -43,71 +38,6 @@
             100% { transform: translate(300px, -150px) rotate(0deg); }
         }
 
-        .sort-toggle {
-            padding: 9px 17px;
-            background: #3A3F45;
-            border: 1px solid #363940;
-            color: #ffffff;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            min-width: 140px;
-            text-align: left;
-        }
-        .sort-toggle:hover {
-            background: #363940;
-            border-color: #FFFFFF;
-        }
-        .sort-menu {
-            background: #3A3F45;
-            border: 1px solid #363940;
-            border-top: none;
-            min-width: 150px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .sort-option {
-            display: block;
-            width: 100%;
-            padding: 8px 17px;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid #2a2f3a;
-            color: #ffffff;
-            cursor: pointer;
-            text-align: left;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-        .sort-option:last-child {
-            border-bottom: none;
-        }
-        .sort-option:hover {
-            background: #2a303a;
-        }
-        .sort-option.active {
-            background: #2a303a;
-            color: #6a8aff;
-        }
-        .sort-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        .shuffle-btn {
-            display: none;
-            padding: 8px 14px;
-            background: #3A3F45;
-            border: 1px solid #363940;
-            color: #fff;
-            cursor: pointer;
-            font-size: 14px;
-            transition: 0.3s;
-            margin-left: 8px;
-        }
-        .shuffle-btn:hover {
-            background: #363940;
-            border-color: #FFFFFF;
-        }
-
         .infosite-btn {
             position: fixed;
             top: 60px;
@@ -126,10 +56,7 @@
             justify-content: center;
             line-height: 1;
         }
-        .infosite-btn:hover {
-            background: #363940;
-            border-color: #FFFFFF;
-        }
+        .infosite-btn:hover { background: #363940; border-color: #FFFFFF; }
 
         .fullscreen-btn {
             position: fixed;
@@ -149,10 +76,7 @@
             justify-content: center;
             line-height: 1;
         }
-        .fullscreen-btn:hover {
-            background: #363940;
-            border-color: #FFFFFF;
-        }
+        .fullscreen-btn:hover { background: #363940; border-color: #FFFFFF; }
 
         .container {
             width: 100%;
@@ -161,19 +85,13 @@
             z-index: 1;
         }
 
-        /* ===== МЕНЮ ===== */
         .menu-container {
             max-width: 600px;
             margin: 0 auto;
             text-align: center;
         }
-        .logo {
-            margin-bottom: 40px;
-        }
-        .logo img {
-            width: 250px;
-            height: auto;
-        }
+        .logo { margin-bottom: 40px; }
+        .logo img { width: 250px; height: auto; }
         .main-title {
             font-size: 28px;
             font-weight: 700;
@@ -210,9 +128,7 @@
             text-decoration: none;
             color: #fff;
         }
-        .menu-btn.hidden {
-            display: none;
-        }
+        .menu-btn.hidden { display: none; }
         .sub-menu {
             display: none;
             margin-top: 10px;
@@ -226,14 +142,8 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ===== СТРАНИЦЫ ===== */
-        .page {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        .page.active {
-            display: block;
-        }
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
 
         .top-bar {
             display: flex;
@@ -253,10 +163,8 @@
             cursor: pointer;
             white-space: nowrap;
         }
-        .back-btn:hover {
-            background: #363940;
-            border-color: #FFFFFF;
-        }
+        .back-btn:hover { background: #363940; border-color: #FFFFFF; }
+
         .search-box {
             flex: 1;
             min-width: 100px;
@@ -268,19 +176,36 @@
             outline: none;
             transition: border 0.3s;
         }
-        .search-box:focus {
-            border-color: #ffffff;
-        }
-        .search-box::placeholder {
-            color: #ffffff;
-            opacity: 0.6;
-        }
+        .search-box:focus { border-color: #ffffff; }
+        .search-box::placeholder { color: #ffffff; opacity: 0.6; }
 
-        .sort-dropdown {
+        /* СОРТИРОВКА ОДНОЙ КНОПКОЙ */
+        .sort-btn-main {
+            padding: 10px 17px;
+            background: #3A3F45;
+            border: 1px solid #363940;
+            color: #ffffff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+            min-width: 140px;
             flex-shrink: 0;
         }
+        .sort-btn-main:hover { background: #363940; border-color: #FFFFFF; }
 
-        /* ===== СЕТКА ===== */
+        .shuffle-btn {
+            padding: 10px 17px;
+            background: #3A3F45;
+            border: 1px solid #363940;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+            min-width: 140px;
+            flex-shrink: 0;
+        }
+        .shuffle-btn:hover { background: #363940; border-color: #FFFFFF; }
+
         .grid {
             display: flex;
             flex-direction: column;
@@ -300,28 +225,10 @@
             border-color: #FFFFFF;
             transform: translateY(-3px);
         }
-        .card .date {
-            color: #FFFFFF;
-            font-size: 13px;
-            font-weight: 600;
-            opacity: 0.7;
-        }
-        .card .title {
-            font-size: 20px;
-            font-weight: 700;
-            margin: 8px 0 6px;
-        }
-        .card .preview {
-            color: #ffffff;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        .card .author {
-            color: #FFFFFF;
-            font-size: 12px;
-            margin-top: 12px;
-            opacity: 0.7;
-        }
+        .card .date { color: #FFFFFF; font-size: 13px; font-weight: 600; opacity: 0.7; }
+        .card .title { font-size: 20px; font-weight: 700; margin: 8px 0 6px; }
+        .card .preview { color: #ffffff; font-size: 14px; line-height: 1.5; }
+        .card .author { color: #FFFFFF; font-size: 12px; margin-top: 12px; opacity: 0.7; }
         .card .thumb {
             width: 100%;
             max-height: 200px;
@@ -330,13 +237,8 @@
             border: 1px solid #363940;
             background: #202126;
         }
-        .no-data {
-            text-align: center;
-            color: #FFFFFF;
-            padding: 40px 0;
-        }
+        .no-data { text-align: center; color: #FFFFFF; padding: 40px 0; }
 
-        /* ===== ПАГИНАЦИЯ ===== */
         .pagination {
             display: flex;
             justify-content: center;
@@ -353,43 +255,19 @@
             cursor: pointer;
             transition: 0.3s;
         }
-        .page-btn:hover:not(:disabled) {
-            background: #363940;
-            border-color: #FFFFFF;
-        }
-        .page-btn:disabled {
-            opacity: 0.3;
-            cursor: default;
-        }
-        .page-info {
-            color: #fff;
-            font-size: 14px;
-        }
+        .page-btn:hover:not(:disabled) { background: #363940; border-color: #FFFFFF; }
+        .page-btn:disabled { opacity: 0.3; cursor: default; }
+        .page-info { color: #fff; font-size: 14px; }
 
-        /* ===== СТАТЬИ ===== */
         .article-container {
             background: #3A3F45;
             border: 1px solid #363940;
             padding: 30px;
             animation: fadeIn 0.5s ease;
         }
-        .article-title {
-            font-size: 28px;
-            font-weight: 700;
-            margin: 10px 0 16px;
-        }
-        .article-author {
-            color: #ffffff;
-            font-size: 14px;
-            margin-bottom: 20px;
-            opacity: 0.7;
-        }
-        .article-date {
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 600;
-            opacity: 0.7;
-        }
+        .article-title { font-size: 28px; font-weight: 700; margin: 10px 0 16px; }
+        .article-author { color: #ffffff; font-size: 14px; margin-bottom: 20px; opacity: 0.7; }
+        .article-date { color: #ffffff; font-size: 14px; font-weight: 600; opacity: 0.7; }
         .article-text p {
             color: #FFFFFF;
             font-size: 16px;
@@ -405,38 +283,27 @@
             background: #202126;
         }
 
-        /* ===== ЧАТ ===== */
-        .chat-inputs {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            flex-wrap: wrap;
-        }
+        .chat-inputs { display: flex; gap: 10px; width: 100%; flex-wrap: wrap; }
         .chat-inputs input {
             flex: 1;
             min-width: 80px;
             padding: 10px;
             border: 1px solid #363940;
-            background: #3A3F45;
+            background: #42474B;
             color: #fff;
             outline: none;
         }
-        .chat-inputs input:focus {
-            border-color: #fff;
-        }
+        .chat-inputs input:focus { border-color: #fff; }
         .chat-inputs button {
             padding: 10px 20px;
-            background: #3A3F45;
+            background: #42474B;
             border: 1px solid #363940;
             color: #fff;
             cursor: pointer;
             flex-shrink: 0;
             transition: 0.3s;
         }
-        .chat-inputs button:hover {
-            background: #363940;
-            border-color: #FFFFFF;
-        }
+        .chat-inputs button:hover { background: #363940; border-color: #FFFFFF; }
         .load-more-btn {
             display: none;
             margin-top: 10px;
@@ -447,12 +314,144 @@
             cursor: pointer;
             transition: 0.3s;
         }
-        .load-more-btn:hover {
-            background: #363940;
-            border-color: #FFFFFF;
-        }
+        .load-more-btn:hover { background: #363940; border-color: #FFFFFF; }
 
-        /* ===== АДАПТИВ ===== */
+        /* ===== КАЛЬКУЛЯТОР ===== */
+        .calc-label {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .dropdown {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        .dropdown-toggle {
+            width: 100%;
+            padding: 12px;
+            background: #42474B;
+            border: 1px solid #363940;
+            color: #fff;
+            cursor: pointer;
+            font-size: 15px;
+            text-align: left;
+            transition: 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dropdown-toggle:hover { background: #363940; border-color: #FFFFFF; }
+        .dropdown-toggle::after {
+            content: '▼';
+            font-size: 10px;
+            opacity: 0.6;
+            transition: transform 0.3s;
+        }
+        .dropdown.open .dropdown-toggle::after { transform: rotate(180deg); }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #2a2f3a;
+            border: 1px solid #363940;
+            border-top: none;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+        .dropdown.open .dropdown-menu { display: block; }
+        .dropdown-item {
+            padding: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 15px;
+            border-bottom: 1px solid #363940;
+            color: #fff;
+        }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background: #3A3F45; }
+        .dropdown-item.active { background: #3A3F45; color: #fff; }
+
+        .calc-clear-btn {
+            width: 100%;
+            padding: 12px;
+            background: #42474B;
+            border: 1px solid #363940;
+            color: #fff;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 15px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .calc-clear-btn:hover { background: #363940; border-color: #FFFFFF; }
+
+        .input-group { margin-bottom: 14px; }
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            background: #202126;
+            border: 1px solid #363940;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+        .input-group input:focus { border-color: #FFFFFF; }
+
+        .desc {
+            font-size: 13px;
+            opacity: 0.6;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .desc img { width: 16px; height: 16px; vertical-align: middle; }
+
+        .btn-calc {
+            width: 100%;
+            padding: 12px;
+            background: #42474B;
+            border: 1px solid #363940;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-calc:hover { background: #363940; border-color: #FFFFFF; }
+
+        .calc-result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #202126;
+            border: 1px solid #363940;
+            display: none;
+        }
+        .calc-result.show { display: block; }
+        .calc-result .row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .calc-result .row img { width: 24px; height: 24px; }
+        .calc-result .gold { color: #FFD700; }
+        .calc-result .xp { color: #6a8aff; }
+
         @media (min-width: 768px) {
             body { padding: 40px; }
             .grid {
@@ -464,13 +463,7 @@
         }
         @media (max-width: 767px) {
             .container { padding: 0 10px; }
-            .fullscreen-btn {
-                width: 34px;
-                height: 34px;
-                font-size: 16px;
-                top: 10px;
-                right: 10px;
-            }
+            .fullscreen-btn { width: 34px; height: 34px; font-size: 16px; top: 10px; right: 10px; }
             .logo img { width: 200px; }
             .main-title { font-size: 22px; }
             .menu-btn { font-size: 16px; padding: 14px; }
@@ -480,7 +473,6 @@
             .article-container { padding: 20px; }
             .top-bar { flex-wrap: wrap; }
             .search-box { min-width: 80px; flex: 1 1 100%; }
-            .sort-dropdown { margin-left: auto; }
         }
     </style>
 </head>
@@ -529,6 +521,13 @@
                     <div class="menu-btn sub" data-page="news">Новости</div>
                     <div class="menu-btn sub" data-page="videos">Видео</div>
                     <div class="menu-btn sub" data-page="chat">Чат (ТЕСТ)</div>
+                    <div class="menu-btn sub" id="backFromRead">← Назад</div>
+                </div>
+
+                <div class="menu-btn" id="funBtn">Приколюхи</div>
+                <div class="sub-menu" id="funMenu">
+                    <div class="menu-btn sub" data-page="calc">Калькулятор</div>
+                    <div class="menu-btn sub" id="backFromFun">← Назад</div>
                 </div>
             </div>
         </div>
@@ -541,9 +540,9 @@
             </div>
             <div class="grid" id="newsGrid"><div class="no-data">Загрузка новостей...</div></div>
             <div class="pagination" id="newsPagination">
-                <button class="page-btn" data-page="prev" id="newsPrev">◀</button>
+                <button class="page-btn" id="newsPrev">◀</button>
                 <span class="page-info" id="newsPageInfo">1 / 1</span>
-                <button class="page-btn" data-page="next" id="newsNext">▶</button>
+                <button class="page-btn" id="newsNext">▶</button>
             </div>
         </div>
 
@@ -552,21 +551,14 @@
             <div class="top-bar">
                 <div class="back-btn" data-back="back">Назад</div>
                 <input class="search-box" placeholder="Поиск видео..." id="videoSearch">
-                <div class="sort-dropdown">
-                    <button class="sort-toggle" id="sortToggle">Свежие ▼</button>
-                    <div class="sort-menu" id="sortMenu">
-                        <button class="sort-option" data-sort="newest">Свежие</button>
-                        <button class="sort-option" data-sort="random">Рандом</button>
-                        <button class="sort-option" data-sort="oldest">Старые</button>
-                    </div>
-                    <button class="shuffle-btn" id="shuffleBtn">Перемешать</button>
-                </div>
+                <button class="sort-btn-main" id="sortBtnMain">Свежие</button>
+                <button class="shuffle-btn" id="shuffleBtn">Перемешать</button>
             </div>
             <div class="grid" id="videoGrid"><div class="no-data">Загрузка видео...</div></div>
             <div class="pagination" id="videoPagination">
-                <button class="page-btn" data-page="prev" id="videoPrev">◀</button>
+                <button class="page-btn" id="videoPrev">◀</button>
                 <span class="page-info" id="videoPageInfo">1 / 1</span>
-                <button class="page-btn" data-page="next" id="videoNext">▶</button>
+                <button class="page-btn" id="videoNext">▶</button>
             </div>
         </div>
 
@@ -578,9 +570,9 @@
             </div>
             <div class="grid" id="infoGrid"><div class="no-data">Загрузка...</div></div>
             <div class="pagination" id="infoPagination">
-                <button class="page-btn" data-page="prev" id="infoPrev">◀</button>
+                <button class="page-btn" id="infoPrev">◀</button>
                 <span class="page-info" id="infoPageInfo">1 / 1</span>
-                <button class="page-btn" data-page="next" id="infoNext">▶</button>
+                <button class="page-btn" id="infoNext">▶</button>
             </div>
         </div>
 
@@ -604,491 +596,523 @@
             </div>
         </div>
 
+        <!-- ===== КАЛЬКУЛЯТОР ===== -->
+        <div id="page-calc" class="page">
+            <div class="top-bar">
+                <div class="back-btn" data-back="back">Назад</div>
+            </div>
+            <div class="article-container">
+                <div id="calcApp"></div>
+            </div>
+        </div>
+
     </div>
-<script>
-    // ===== ОБЩИЕ ПЕРЕМЕННЫЕ =====
-    const BASE_URL = 'https://osnw.duckdns.org/';
 
-    // ===== ПАГИНАЦИЯ =====
-    const PER_PAGE = 6;
-    let newsPage = 1;
-    let videosPage = 1;
-    let infoPage = 1;
+    <script>
+        // ============================================
+        // НАСТРОЙКИ
+        // ============================================
+        const BASE_URL = 'https://osnw.duckdns.org';
+        const PER_PAGE = 6;
 
-    // ===== ИСТОРИЯ СТРАНИЦ ДЛЯ КНОПКИ "НАЗАД" =====
-    let pageHistory = ['menu'];
+        let pageHistory = ['menu'];
+        let currentSort = 'newest';
+        let calcLoaded = false;
 
-    // ===== НАВИГАЦИЯ =====
-    function showPage(id, addHistory = true) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        const target = document.getElementById('page-' + id);
-        if (target) target.classList.add('active');
-        if (addHistory && id !== 'menu') {
-            pageHistory.push(id);
+        // ============================================
+        // НАВИГАЦИЯ
+        // ============================================
+        function showPage(id, addHistory = true) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById('page-' + id);
+            if (target) target.classList.add('active');
+
+            if (addHistory && id !== 'menu') pageHistory.push(id);
+
+            if (id === 'news' && !window.newsLoaded) { window.newsLoaded = true; loadNews(); }
+            if (id === 'videos' && !window.videosLoaded) { window.videosLoaded = true; loadVideos(); }
+            if (id === 'infoall' && !window.infoLoaded) { window.infoLoaded = true; loadInfoAll(); }
+            if (id === 'chat' && !window.chatLoaded) { window.chatLoaded = true; loadChat(); }
+            if (id === 'calc' && !calcLoaded) { calcLoaded = true; loadCalc(); }
         }
-    }
 
-    // ===== КНОПКИ "НАЗАД" =====
-    document.querySelectorAll('[data-back]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            if (pageHistory.length > 1) {
-                pageHistory.pop();
-                const prev = pageHistory[pageHistory.length - 1];
-                showPage(prev, false);
-            } else {
-                showPage('menu', false);
-            }
-        });
-    });
-
-    // ===== КНОПКИ ПОДМЕНЮ =====
-    document.querySelectorAll('[data-page]').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const page = this.dataset.page;
-            showPage(page);
-            if (page === 'news' && !window.newsLoaded) loadNews();
-            if (page === 'videos' && !window.videosLoaded) loadVideos();
-            if (page === 'infoall' && !window.infoLoaded) loadInfoAll();
-        });
-    });
-
-    document.getElementById('readBtn').addEventListener('click', function() {
-        this.classList.add('hidden');
-        document.getElementById('subMenu').classList.add('show');
-    });
-
-    // ===== ФУНКЦИИ ДЛЯ ТЕКСТА =====
-    function formatDateFromId(id) {
-        if (!id || id.length < 12) return id;
-        return id.slice(0, 2) + '.' + id.slice(2, 4) + '.' + id.slice(4, 8) + ' ' + id.slice(8, 10) + ':' + id.slice(10, 12);
-    }
-
-    function formatTextWithImages(text) {
-        if (!text) return '';
-        const lines = text.split('\n');
-        let html = '';
-        for (let line of lines) {
-            const trimmed = line.trim();
-            if (trimmed.startsWith('img:')) {
-                const imagePath = trimmed.replace('img:', '').trim();
-                html += `<img class="inline-image" src="${imagePath}" alt="Изображение" onerror="this.style.display='none'">`;
-            } else if (trimmed === '') {
-                html += '<br>';
-            } else {
-                html += `<p>${trimmed}</p>`;
-            }
-        }
-        return html;
-    }
-
-    // ===== НОВОСТИ =====
-    async function loadNews() {
-        window.newsLoaded = true;
-        try {
-            const listRes = await fetch(`${BASE_URL}/News/list.json`);
-            if (!listRes.ok) throw new Error('Ошибка загрузки list.json');
-            const files = await listRes.json();
-
-            const newsPromises = files.map(async (id) => {
-                const res = await fetch(`${BASE_URL}/News/${id}.json`);
-                if (!res.ok) throw new Error(`Ошибка загрузки ${id}`);
-                const data = await res.json();
-                data._id = id;
-                data._date = formatDateFromId(id);
-                return data;
+        document.querySelectorAll('[data-back]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (pageHistory.length > 1) {
+                    pageHistory.pop();
+                    const prev = pageHistory[pageHistory.length - 1];
+                    showPage(prev, false);
+                } else {
+                    showPage('menu', false);
+                }
             });
-
-            window.allNews = await Promise.all(newsPromises);
-            window.allNews.sort((a, b) => b._id.localeCompare(a._id));
-            window._filteredNews = window.allNews;
-            newsPage = 1;
-            renderNewsWithPagination();
-        } catch (error) {
-            document.getElementById('newsGrid').innerHTML = `
-                <div class="no-data">Не удалось загрузить новости<br><span style="font-size:13px;">Ошибка: ${error.message}</span></div>
-            `;
-            document.getElementById('newsPagination').style.display = 'none';
-        }
-    }
-
-    function renderNewsWithPagination() {
-        const data = window._filteredNews || [];
-        const start = (newsPage - 1) * PER_PAGE;
-        const end = start + PER_PAGE;
-        const pageItems = data.slice(start, end);
-        renderNews(pageItems);
-        updatePagination(data.length, 'news');
-    }
-
-    function renderNews(newsArray) {
-        const grid = document.getElementById('newsGrid');
-        if (!newsArray || newsArray.length === 0) {
-            grid.innerHTML = `<div class="no-data">Новостей не найдено</div>`;
-            return;
-        }
-        grid.innerHTML = '';
-        newsArray.forEach((item, index) => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.style.animationDelay = `${index * 0.08}s`;
-            card.innerHTML = `
-                <div class="date">${item._date}</div>
-                <div class="title">${item.title}</div>
-                <div class="preview">${item.preview || ''}</div>
-                <div class="author">${item.author || 'Автор не указан'}</div>
-            `;
-            card.addEventListener('click', () => {
-                window.currentArticleId = item._id;
-                showPage('article');
-                loadArticle(item._id);
-            });
-            grid.appendChild(card);
         });
-    }
 
-    document.getElementById('newsSearch').addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        if (!window.allNews) return;
-        if (!query) {
-            window._filteredNews = window.allNews;
-        } else {
-            window._filteredNews = window.allNews.filter(item =>
+        document.querySelectorAll('[data-page]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                showPage(this.dataset.page);
+            });
+        });
+
+        // ===== МЕНЮ "ЧИТАТЬ" =====
+        document.getElementById('readBtn').addEventListener('click', function() {
+            this.classList.add('hidden');
+            document.getElementById('funBtn').classList.add('hidden');
+            document.getElementById('subMenu').classList.add('show');
+        });
+
+        document.getElementById('backFromRead').addEventListener('click', function() {
+            document.getElementById('subMenu').classList.remove('show');
+            document.getElementById('readBtn').classList.remove('hidden');
+            document.getElementById('funBtn').classList.remove('hidden');
+        });
+
+        // ===== МЕНЮ "ПРИКОЛЮХИ" =====
+        document.getElementById('funBtn').addEventListener('click', function() {
+            this.classList.add('hidden');
+            document.getElementById('readBtn').classList.add('hidden');
+            document.getElementById('funMenu').classList.add('show');
+        });
+
+        document.getElementById('backFromFun').addEventListener('click', function() {
+            document.getElementById('funMenu').classList.remove('show');
+            document.getElementById('funBtn').classList.remove('hidden');
+            document.getElementById('readBtn').classList.remove('hidden');
+        });
+
+        // ============================================
+        // ФУНКЦИИ
+        // ============================================
+        function formatDateFromId(id) {
+            if (!id || id.length < 12) return id;
+            return id.slice(0, 2) + '.' + id.slice(2, 4) + '.' + id.slice(4, 8) + ' ' + id.slice(8, 10) + ':' + id.slice(10, 12);
+        }
+
+        function formatTextWithImages(text) {
+            if (!text) return '';
+            const lines = text.split('\n');
+            let html = '';
+            for (let line of lines) {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('img:')) {
+                    const imagePath = trimmed.replace('img:', '').trim();
+                    html += `<img class="inline-image" src="${imagePath}" alt="Изображение" onerror="this.style.display='none'">`;
+                } else if (trimmed === '') {
+                    html += '<br>';
+                } else {
+                    html += `<p>${trimmed}</p>`;
+                }
+            }
+            return html;
+        }
+
+        // ============================================
+        // НОВОСТИ
+        // ============================================
+        let newsPage = 1;
+        let allNews = [];
+
+        async function loadNews() {
+            window.newsLoaded = true;
+            try {
+                const listRes = await fetch(`${BASE_URL}/News/list.json`);
+                const files = await listRes.json();
+                const promises = files.map(async (id) => {
+                    const res = await fetch(`${BASE_URL}/News/${id}.json`);
+                    const data = await res.json();
+                    data._id = id;
+                    data._date = formatDateFromId(id);
+                    return data;
+                });
+                allNews = await Promise.all(promises);
+                allNews.sort((a, b) => b._id.localeCompare(a._id));
+                renderNewsPage();
+            } catch (e) {
+                document.getElementById('newsGrid').innerHTML = `<div class="no-data">Ошибка загрузки новостей</div>`;
+            }
+        }
+
+        function renderNewsPage() {
+            const grid = document.getElementById('newsGrid');
+            const start = (newsPage - 1) * PER_PAGE;
+            const end = start + PER_PAGE;
+            const pageItems = allNews.slice(start, end);
+            grid.innerHTML = '';
+            if (pageItems.length === 0) {
+                grid.innerHTML = '<div class="no-data">Новостей не найдено</div>';
+                return;
+            }
+            pageItems.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animationDelay = `${index * 0.08}s`;
+                card.innerHTML = `
+                    <div class="date">${item._date}</div>
+                    <div class="title">${item.title}</div>
+                    <div class="preview">${item.preview || ''}</div>
+                    <div class="author">${item.author || 'Автор не указан'}</div>
+                `;
+                card.addEventListener('click', () => {
+                    window.currentArticleId = item._id;
+                    showPage('article');
+                    loadArticle(item._id);
+                });
+                grid.appendChild(card);
+            });
+            const totalPages = Math.ceil(allNews.length / PER_PAGE) || 1;
+            document.getElementById('newsPageInfo').textContent = `${newsPage} / ${totalPages}`;
+            document.getElementById('newsPrev').disabled = newsPage === 1;
+            document.getElementById('newsNext').disabled = newsPage === totalPages;
+        }
+
+        document.getElementById('newsPrev').addEventListener('click', () => {
+            if (newsPage > 1) { newsPage--; renderNewsPage(); }
+        });
+        document.getElementById('newsNext').addEventListener('click', () => {
+            const totalPages = Math.ceil(allNews.length / PER_PAGE);
+            if (newsPage < totalPages) { newsPage++; renderNewsPage(); }
+        });
+
+        document.getElementById('newsSearch').addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            if (!query) { renderNewsPage(); return; }
+            const filtered = allNews.filter(item =>
                 item.title.toLowerCase().includes(query) ||
                 (item.preview || '').toLowerCase().includes(query) ||
                 (item.author || '').toLowerCase().includes(query)
             );
-        }
-        newsPage = 1;
-        renderNewsWithPagination();
-    });
-
-    document.getElementById('newsPrev').addEventListener('click', function() {
-        if (newsPage > 1) { newsPage--; renderNewsWithPagination(); }
-    });
-    document.getElementById('newsNext').addEventListener('click', function() {
-        const total = (window._filteredNews || []).length;
-        if (newsPage < Math.ceil(total / PER_PAGE)) { newsPage++; renderNewsWithPagination(); }
-    });
-
-    // ===== ВИДЕО =====
-    let currentSort = 'newest';
-
-    async function loadVideos() {
-        window.videosLoaded = true;
-        try {
-            const listRes = await fetch(`${BASE_URL}/Videos/list.json`);
-            if (!listRes.ok) throw new Error('Ошибка загрузки');
-            window.allVideos = await listRes.json();
-            window._filteredVideos = window.allVideos;
-            videosPage = 1;
-            renderVideosWithPagination();
-        } catch (error) {
-            document.getElementById('videoGrid').innerHTML = `
-                <div class="no-data">Не удалось загрузить видео<br><span style="font-size:13px;">Ошибка: ${error.message}</span></div>
-            `;
-            document.getElementById('videoPagination').style.display = 'none';
-        }
-    }
-
-    function renderVideosWithPagination() {
-        const data = window._filteredVideos || [];
-        const start = (videosPage - 1) * PER_PAGE;
-        const end = start + PER_PAGE;
-        const pageItems = data.slice(start, end);
-        renderVideos(pageItems);
-        updatePagination(data.length, 'video');
-    }
-
-    function renderVideos(videoArray) {
-        const grid = document.getElementById('videoGrid');
-        if (!videoArray || videoArray.length === 0) {
-            grid.innerHTML = `<div class="no-data">Видео не найдены</div>`;
-            return;
-        }
-        grid.innerHTML = '';
-        videoArray.forEach((item, index) => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.style.animationDelay = `${index * 0.08}s`;
-            const thumbUrl = `https://img.youtube.com/vi/${item.id}/mqdefault.jpg`;
-            card.innerHTML = `
-                <img class="thumb" src="${thumbUrl}" alt="${item.title}" loading="lazy" onerror="this.style.display='none'">
-                <div class="title">${item.title}</div>
-                <div class="preview">${item.channel || ''}</div>
-                <div class="author">${item.date || ''}</div>
-            `;
-            card.addEventListener('click', () => {
-                window.open(`https://www.youtube.com/watch?v=${item.id}`, '_blank');
-            });
-            grid.appendChild(card);
+            renderFiltered('newsGrid', filtered, 'news');
         });
-    }
 
-    document.getElementById('videoSearch').addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        if (!window.allVideos) return;
-        if (!query) {
-            window._filteredVideos = window.allVideos;
-        } else {
-            window._filteredVideos = window.allVideos.filter(item =>
-                item.title.toLowerCase().includes(query) ||
-                (item.channel || '').toLowerCase().includes(query)
-            );
-        }
-        videosPage = 1;
-        renderVideosWithPagination();
-    });
+        // ============================================
+        // ВИДЕО
+        // ============================================
+        let videosPage = 1;
+        let allVideos = [];
 
-    document.getElementById('videoPrev').addEventListener('click', function() {
-        if (videosPage > 1) { videosPage--; renderVideosWithPagination(); }
-    });
-    document.getElementById('videoNext').addEventListener('click', function() {
-        const total = (window._filteredVideos || []).length;
-        if (videosPage < Math.ceil(total / PER_PAGE)) { videosPage++; renderVideosWithPagination(); }
-    });
-
-    // ===== СОРТИРОВКА ВИДЕО =====
-    const sortToggle = document.getElementById('sortToggle');
-    const sortMenu = document.getElementById('sortMenu');
-    const shuffleBtn = document.getElementById('shuffleBtn');
-
-    sortToggle.addEventListener('click', function(e) {
-        e.stopPropagation();
-        sortMenu.style.display = sortMenu.style.display === 'block' ? 'none' : 'block';
-    });
-
-    document.addEventListener('click', function() {
-        sortMenu.style.display = 'none';
-    });
-
-    document.querySelectorAll('.sort-option').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const sortType = this.dataset.sort;
-            currentSort = sortType;
-            const labels = { 'newest': 'Свежие', 'random': 'Рандом', 'oldest': 'Старые' };
-            sortToggle.textContent = labels[sortType] + ' ▼';
-            document.querySelectorAll('.sort-option').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            sortMenu.style.display = 'none';
-
-            if (sortType === 'random') {
-                shuffleBtn.style.display = 'inline-block';
-            } else {
-                shuffleBtn.style.display = 'none';
-            }
-
-            if (window.allVideos) {
-                window._filteredVideos = sortVideos(window.allVideos, sortType);
-                videosPage = 1;
-                renderVideosWithPagination();
-            }
-        });
-    });
-
-    shuffleBtn.addEventListener('click', function() {
-        if (window.allVideos) {
-            window._filteredVideos = sortVideos(window.allVideos, 'random');
-            videosPage = 1;
-            renderVideosWithPagination();
-        }
-    });
-
-    function sortVideos(videos, sortType) {
-        const sorted = [...videos];
-        switch(sortType) {
-            case 'newest':
-                return sorted.sort((a, b) => {
+        async function loadVideos() {
+            window.videosLoaded = true;
+            try {
+                const listRes = await fetch(`${BASE_URL}/Videos/list.json`);
+                allVideos = await listRes.json();
+                allVideos.sort((a, b) => {
                     const da = a.date.split('.').reverse().join('');
                     const db = b.date.split('.').reverse().join('');
                     return db.localeCompare(da);
                 });
-            case 'oldest':
-                return sorted.sort((a, b) => {
-                    const da = a.date.split('.').reverse().join('');
-                    const db = b.date.split('.').reverse().join('');
-                    return da.localeCompare(db);
-                });
-            case 'random':
-                return sorted.sort(() => Math.random() - 0.5);
-            default:
-                return sorted;
-        }
-    }
-
-    // ===== ИНФОРМАЦИЯ =====
-    async function loadInfoAll() {
-        window.infoLoaded = true;
-        try {
-            const listRes = await fetch(`${BASE_URL}/Infoall/list.json`);
-            if (!listRes.ok) throw new Error('Ошибка загрузки');
-            const files = await listRes.json();
-
-            const infoPromises = files.map(async (file) => {
-                const res = await fetch(`${BASE_URL}/Infoall/${file}`);
-                if (!res.ok) throw new Error(`Ошибка загрузки ${file}`);
-                const data = await res.json();
-                data._fileName = file.replace('.json', '');
-                return data;
-            });
-
-            window.allInfo = await Promise.all(infoPromises);
-            window._filteredInfo = window.allInfo;
-            infoPage = 1;
-            renderInfoWithPagination();
-        } catch (error) {
-            document.getElementById('infoGrid').innerHTML = `
-                <div class="no-info">Не удалось загрузить информацию<br><span style="font-size:13px;">Ошибка: ${error.message}</span></div>
-            `;
-            document.getElementById('infoPagination').style.display = 'none';
-        }
-    }
-
-    function renderInfoWithPagination() {
-        const data = window._filteredInfo || [];
-        const start = (infoPage - 1) * PER_PAGE;
-        const end = start + PER_PAGE;
-        const pageItems = data.slice(start, end);
-        renderInfo(pageItems);
-        updatePagination(data.length, 'info');
-    }
-
-    function renderInfo(infoArray) {
-        const grid = document.getElementById('infoGrid');
-        if (!infoArray || infoArray.length === 0) {
-            grid.innerHTML = `<div class="no-data">Информация не найдена</div>`;
-            return;
-        }
-        grid.innerHTML = '';
-        infoArray.forEach((item, index) => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.style.animationDelay = `${index * 0.08}s`;
-
-            let imageHtml = '';
-            if (item.image) {
-                imageHtml = `<img class="thumb" src="${item.image}" alt="${item.title}" onerror="this.style.display='none'">`;
+                renderVideosPage();
+            } catch (e) {
+                document.getElementById('videoGrid').innerHTML = `<div class="no-data">Ошибка загрузки видео</div>`;
             }
+        }
 
-            card.innerHTML = `
-                ${imageHtml}
-                <div class="title">${item.title}</div>
-                <div class="preview">${item.preview || ''}</div>
-            `;
-            card.addEventListener('click', () => {
-                window.currentInfoId = item._fileName || `info_${index}`;
-                showPage('info-article');
-                loadInfoArticle(window.currentInfoId);
+        function renderVideosPage() {
+            const grid = document.getElementById('videoGrid');
+            const start = (videosPage - 1) * PER_PAGE;
+            const end = start + PER_PAGE;
+            const pageItems = allVideos.slice(start, end);
+            grid.innerHTML = '';
+            if (pageItems.length === 0) {
+                grid.innerHTML = '<div class="no-data">Видео не найдены</div>';
+                return;
+            }
+            pageItems.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animationDelay = `${index * 0.08}s`;
+                const thumbUrl = `https://img.youtube.com/vi/${item.id}/mqdefault.jpg`;
+                card.innerHTML = `
+                    <img class="thumb" src="${thumbUrl}" alt="${item.title}" loading="lazy" onerror="this.style.display='none'">
+                    <div class="title">${item.title}</div>
+                    <div class="preview">${item.channel || ''}</div>
+                    <div class="author">${item.date || ''}</div>
+                `;
+                card.addEventListener('click', () => {
+                    window.open(`https://www.youtube.com/watch?v=${item.id}`, '_blank');
+                });
+                grid.appendChild(card);
             });
-            grid.appendChild(card);
-        });
-    }
+            const totalPages = Math.ceil(allVideos.length / PER_PAGE) || 1;
+            document.getElementById('videoPageInfo').textContent = `${videosPage} / ${totalPages}`;
+            document.getElementById('videoPrev').disabled = videosPage === 1;
+            document.getElementById('videoNext').disabled = videosPage === totalPages;
+        }
 
-    document.getElementById('infoSearch').addEventListener('input', function() {
-        const query = this.value.toLowerCase().trim();
-        if (!window.allInfo) return;
-        if (!query) {
-            window._filteredInfo = window.allInfo;
-        } else {
-            window._filteredInfo = window.allInfo.filter(item =>
+        document.getElementById('videoPrev').addEventListener('click', () => {
+            if (videosPage > 1) { videosPage--; renderVideosPage(); }
+        });
+        document.getElementById('videoNext').addEventListener('click', () => {
+            const totalPages = Math.ceil(allVideos.length / PER_PAGE);
+            if (videosPage < totalPages) { videosPage++; renderVideosPage(); }
+        });
+
+        document.getElementById('videoSearch').addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            if (!query) { renderVideosPage(); return; }
+            const filtered = allVideos.filter(item =>
+                item.title.toLowerCase().includes(query) ||
+                (item.channel || '').toLowerCase().includes(query)
+            );
+            renderFiltered('videoGrid', filtered, 'video');
+        });
+
+        // ===== СОРТИРОВКА (ОДНА КНОПКА) =====
+        const sortLabels = ['newest', 'oldest', 'random'];
+        const sortNames = { 'newest': 'Свежие', 'oldest': 'Старые', 'random': 'Рандом' };
+        const sortBtnMain = document.getElementById('sortBtnMain');
+        const shuffleBtn = document.getElementById('shuffleBtn');
+
+        sortBtnMain.addEventListener('click', function() {
+            // Переключаем на следующий режим
+            let idx = sortLabels.indexOf(currentSort);
+            idx = (idx + 1) % sortLabels.length;
+            currentSort = sortLabels[idx];
+            sortBtnMain.textContent = sortNames[currentSort];
+
+            // Показываем/скрываем кнопку перемешать
+            shuffleBtn.style.display = currentSort === 'random' ? 'block' : 'none';
+
+            // Применяем сортировку
+            if (allVideos.length) {
+                allVideos = sortVideos(allVideos, currentSort);
+                videosPage = 1;
+                renderVideosPage();
+            }
+        });
+
+        shuffleBtn.addEventListener('click', function() {
+            if (allVideos.length) {
+                allVideos = sortVideos(allVideos, 'random');
+                videosPage = 1;
+                renderVideosPage();
+            }
+        });
+
+        function sortVideos(videos, sortType) {
+            const sorted = [...videos];
+            switch(sortType) {
+                case 'newest':
+                    return sorted.sort((a, b) => {
+                        const da = a.date.split('.').reverse().join('');
+                        const db = b.date.split('.').reverse().join('');
+                        return db.localeCompare(da);
+                    });
+                case 'oldest':
+                    return sorted.sort((a, b) => {
+                        const da = a.date.split('.').reverse().join('');
+                        const db = b.date.split('.').reverse().join('');
+                        return da.localeCompare(db);
+                    });
+                case 'random':
+                    return sorted.sort(() => Math.random() - 0.5);
+                default:
+                    return sorted;
+            }
+        }
+
+        // ============================================
+        // ИНФОРМАЦИЯ
+        // ============================================
+        let infoPage = 1;
+        let allInfo = [];
+
+        async function loadInfoAll() {
+            window.infoLoaded = true;
+            try {
+                const listRes = await fetch(`${BASE_URL}/Infoall/list.json`);
+                const files = await listRes.json();
+                const promises = files.map(async (file) => {
+                    const res = await fetch(`${BASE_URL}/Infoall/${file}`);
+                    const data = await res.json();
+                    data._fileName = file.replace('.json', '');
+                    return data;
+                });
+                allInfo = await Promise.all(promises);
+                renderInfoPage();
+            } catch (e) {
+                document.getElementById('infoGrid').innerHTML = `<div class="no-data">Ошибка загрузки информации</div>`;
+            }
+        }
+
+        function renderInfoPage() {
+            const grid = document.getElementById('infoGrid');
+            const start = (infoPage - 1) * PER_PAGE;
+            const end = start + PER_PAGE;
+            const pageItems = allInfo.slice(start, end);
+            grid.innerHTML = '';
+            if (pageItems.length === 0) {
+                grid.innerHTML = '<div class="no-data">Информация не найдена</div>';
+                return;
+            }
+            pageItems.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animationDelay = `${index * 0.08}s`;
+                let imageHtml = '';
+                if (item.image) {
+                    imageHtml = `<img class="thumb" src="${item.image}" alt="${item.title}" onerror="this.style.display='none'">`;
+                }
+                card.innerHTML = `
+                    ${imageHtml}
+                    <div class="title">${item.title}</div>
+                    <div class="preview">${item.preview || ''}</div>
+                `;
+                card.addEventListener('click', () => {
+                    window.currentInfoId = item._fileName || `info_${index}`;
+                    showPage('info-article');
+                    loadInfoArticle(window.currentInfoId);
+                });
+                grid.appendChild(card);
+            });
+            const totalPages = Math.ceil(allInfo.length / PER_PAGE) || 1;
+            document.getElementById('infoPageInfo').textContent = `${infoPage} / ${totalPages}`;
+            document.getElementById('infoPrev').disabled = infoPage === 1;
+            document.getElementById('infoNext').disabled = infoPage === totalPages;
+        }
+
+        document.getElementById('infoPrev').addEventListener('click', () => {
+            if (infoPage > 1) { infoPage--; renderInfoPage(); }
+        });
+        document.getElementById('infoNext').addEventListener('click', () => {
+            const totalPages = Math.ceil(allInfo.length / PER_PAGE);
+            if (infoPage < totalPages) { infoPage++; renderInfoPage(); }
+        });
+
+        document.getElementById('infoSearch').addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            if (!query) { renderInfoPage(); return; }
+            const filtered = allInfo.filter(item =>
                 item.title.toLowerCase().includes(query) ||
                 (item.preview || '').toLowerCase().includes(query)
             );
+            renderFiltered('infoGrid', filtered, 'info');
+        });
+
+        // ============================================
+        // УНИВЕРСАЛЬНЫЙ РЕНДЕР
+        // ============================================
+        function renderFiltered(gridId, items, type) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            if (items.length === 0) {
+                grid.innerHTML = '<div class="no-data">Не найдено</div>';
+                return;
+            }
+            items.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.animationDelay = `${index * 0.08}s`;
+
+                if (type === 'news') {
+                    card.innerHTML = `
+                        <div class="date">${item._date}</div>
+                        <div class="title">${item.title}</div>
+                        <div class="preview">${item.preview || ''}</div>
+                        <div class="author">${item.author || 'Автор не указан'}</div>
+                    `;
+                    card.addEventListener('click', () => {
+                        window.currentArticleId = item._id;
+                        showPage('article');
+                        loadArticle(item._id);
+                    });
+                } else if (type === 'video') {
+                    const thumbUrl = `https://img.youtube.com/vi/${item.id}/mqdefault.jpg`;
+                    card.innerHTML = `
+                        <img class="thumb" src="${thumbUrl}" alt="${item.title}" loading="lazy" onerror="this.style.display='none'">
+                        <div class="title">${item.title}</div>
+                        <div class="preview">${item.channel || ''}</div>
+                        <div class="author">${item.date || ''}</div>
+                    `;
+                    card.addEventListener('click', () => {
+                        window.open(`https://www.youtube.com/watch?v=${item.id}`, '_blank');
+                    });
+                } else if (type === 'info') {
+                    let imageHtml = '';
+                    if (item.image) {
+                        imageHtml = `<img class="thumb" src="${item.image}" alt="${item.title}" onerror="this.style.display='none'">`;
+                    }
+                    card.innerHTML = `
+                        ${imageHtml}
+                        <div class="title">${item.title}</div>
+                        <div class="preview">${item.preview || ''}</div>
+                    `;
+                    card.addEventListener('click', () => {
+                        window.currentInfoId = item._fileName;
+                        showPage('info-article');
+                        loadInfoArticle(window.currentInfoId);
+                    });
+                }
+                grid.appendChild(card);
+            });
         }
-        infoPage = 1;
-        renderInfoWithPagination();
-    });
 
-    document.getElementById('infoPrev').addEventListener('click', function() {
-        if (infoPage > 1) { infoPage--; renderInfoWithPagination(); }
-    });
-    document.getElementById('infoNext').addEventListener('click', function() {
-        const total = (window._filteredInfo || []).length;
-        if (infoPage < Math.ceil(total / PER_PAGE)) { infoPage++; renderInfoWithPagination(); }
-    });
+        // ============================================
+        // СТАТЬИ
+        // ============================================
+        async function loadArticle(id) {
+            const container = document.getElementById('articleContent');
+            container.innerHTML = `<div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка статьи...</div>`;
+            try {
+                const res = await fetch(`${BASE_URL}/News/${id}.json`);
+                const data = await res.json();
+                container.innerHTML = `
+                    <div class="article-date">${formatDateFromId(id)}</div>
+                    <div class="article-title">${data.title}</div>
+                    <div class="article-author">${data.author || 'Автор не указан'}</div>
+                    <div class="article-text">${formatTextWithImages(data.fullText)}</div>
+                `;
+                document.title = `${data.title} — OSNW`;
+            } catch (e) {
+                container.innerHTML = `<div style="text-align:center;color:#ffffff;">Статья не найдена</div>`;
+            }
+        }
 
-    function updatePagination(total, type) {
-        const totalPages = Math.ceil(total / PER_PAGE) || 1;
-        const pageInfo = document.getElementById(type + 'PageInfo');
-        const prevBtn = document.getElementById(type + 'Prev');
-        const nextBtn = document.getElementById(type + 'Next');
-        let current = type === 'news' ? newsPage : type === 'video' ? videosPage : infoPage;
-        if (pageInfo) pageInfo.textContent = `${current} / ${totalPages}`;
-        if (prevBtn) prevBtn.disabled = current === 1;
-        if (nextBtn) nextBtn.disabled = current === totalPages;
-    }
+        async function loadInfoArticle(id) {
+            const container = document.getElementById('infoArticleContent');
+            container.innerHTML = `<div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка...</div>`;
+            try {
+                const res = await fetch(`${BASE_URL}/Infoall/${id}.json`);
+                const data = await res.json();
+                container.innerHTML = `
+                    <div class="article-title">${data.title}</div>
+                    <div class="article-text">${formatTextWithImages(data.fullText)}</div>
+                `;
+                document.title = `${data.title} — OSNW`;
+            } catch (e) {
+                container.innerHTML = `<div style="text-align:center;color:#ffffff;">Информация не найдена</div>`;
+            }
+        }
 
-    // ===== СТАТЬЯ НОВОСТИ =====
-    async function loadArticle(id) {
-        const container = document.getElementById('articleContent');
-        container.innerHTML = `<div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка статьи...</div>`;
-        try {
-            const res = await fetch(`${BASE_URL}/News/${id}.json`);
-            if (!res.ok) throw new Error('Статья не найдена');
-            const data = await res.json();
+        // ============================================
+        // ПОЛНОЭКРАННЫЙ РЕЖИМ
+        // ============================================
+        document.getElementById('fullscreenBtn').addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        });
+
+        // ============================================
+        // I КНОПКА
+        // ============================================
+        document.getElementById('InfoSite').addEventListener('click', function() {
+            showPage('infosite');
+            loadInfoSite();
+        });
+
+        function loadInfoSite() {
+            const container = document.getElementById('infoSiteContent');
             container.innerHTML = `
-                <div class="article-date">${formatDateFromId(id)}</div>
-                <div class="article-title">${data.title}</div>
-                <div class="article-author">${data.author || 'Автор не указан'}</div>
-                <div class="article-text">${formatTextWithImages(data.fullText)}</div>
-            `;
-            document.title = `${data.title} — OSNW`;
-        } catch (error) {
-            container.innerHTML = `
-                <div style="text-align:center;color:#ffffff;">
-                    Статья не найдена<br>
-                    <span style="font-size:13px;color:#FFFFFF;">Файл News/${id}.json отсутствует</span>
-                </div>
+                <div class="article-title">Информация о сайте чтоль</div>
+                <div class="article-text">Потом напишу потому что мне ща лень чото <b>хы</b>.</div>
             `;
         }
-    }
 
-    // ===== СТАТЬЯ ИНФОРМАЦИИ =====
-    async function loadInfoArticle(id) {
-        const container = document.getElementById('infoArticleContent');
-        container.innerHTML = `<div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка...</div>`;
-        try {
-            const res = await fetch(`${BASE_URL}/Infoall/${id}.json`);
-            if (!res.ok) throw new Error('Информация не найдена');
-            const data = await res.json();
-            container.innerHTML = `
-                <div class="article-title">${data.title}</div>
-                <div class="article-text">${formatTextWithImages(data.fullText)}</div>
-            `;
-            document.title = `${data.title} — OSNW`;
-        } catch (error) {
-            container.innerHTML = `
-                <div style="text-align:center;color:#ffffff;">
-                    Информация не найдена<br>
-                    <span style="font-size:13px;color:#FFFFFF;">Файл Infoall/${id}.json отсутствует</span>
-                </div>
-            `;
-        }
-    }
-
-    // ===== ПОЛНОЭКРАННЫЙ РЕЖИМ =====
-    document.getElementById('fullscreenBtn').addEventListener('click', function() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(() => {});
-        } else {
-            if (document.exitFullscreen) document.exitFullscreen();
-        }
-    });
-
-    // ===== I КНОПКА =====
-    document.getElementById('InfoSite').addEventListener('click', function() {
-        showPage('infosite');
-        loadInfoSite();
-    });
-
-    function loadInfoSite() {
-        const container = document.getElementById('infoSiteContent');
-        container.innerHTML = `
-            <div class="article-title">Информация о сайте чтоль</div>
-            <div class="article-text">Потом напишу потому что мне ща лень чото <b>хы</b>.</div>
-        `;
-    }
-            // ===== SUPABASE ЧАТ =====
+        // ============================================
+        // ЧАТ
+        // ============================================
         const SUPABASE_URL = 'https://wzoaqihzbfigsjmzumcr.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_ecBRJoPfAofNIJIeZPQtMA_orQSCboi';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1111,31 +1135,20 @@
             const loadMoreBtn = document.getElementById('loadMoreBtn');
 
             async function loadMessages(reset = true) {
-                if (reset) {
-                    chatOffset = 0;
-                    chatTotalLoaded = 0;
-                    chatBox.innerHTML = '';
-                }
+                if (reset) { chatOffset = 0; chatTotalLoaded = 0; chatBox.innerHTML = ''; }
                 try {
                     const { data, error } = await supabaseClient
                         .from('messages')
                         .select('*')
                         .order('created_at', { ascending: false })
                         .range(chatOffset, chatOffset + CHAT_LIMIT - 1);
-
                     if (error) throw error;
-
                     if (data.length === 0 && chatTotalLoaded === 0) {
                         chatBox.innerHTML = `<div class="no-data">Пока сообщений нет. Напиши первым!</div>`;
                         loadMoreBtn.style.display = 'none';
                         return;
                     }
-
-                    if (reset) {
-                        chatBox.innerHTML = '';
-                        chatTotalLoaded = 0;
-                    }
-
+                    if (reset) { chatBox.innerHTML = ''; chatTotalLoaded = 0; }
                     data.reverse();
                     data.forEach(msg => {
                         const div = document.createElement('div');
@@ -1149,16 +1162,10 @@
                     });
                     chatTotalLoaded += data.length;
                     chatOffset += data.length;
-
-                    if (data.length === CHAT_LIMIT) {
-                        loadMoreBtn.style.display = 'inline-block';
-                    } else {
-                        loadMoreBtn.style.display = 'none';
-                    }
+                    loadMoreBtn.style.display = data.length === CHAT_LIMIT ? 'inline-block' : 'none';
                     chatBox.scrollTop = chatBox.scrollHeight;
-                } catch (error) {
+                } catch (e) {
                     chatBox.innerHTML = `<div class="no-data">Ошибка загрузки сообщений</div>`;
-                    console.error('Ошибка чата:', error);
                 }
             }
 
@@ -1172,26 +1179,18 @@
                     messageInput.value = '';
                     messageInput.focus();
                     await loadMessages(true);
-                } catch (error) {
-                    alert('Ошибка отправки: ' + error.message);
+                } catch (e) {
+                    alert('Ошибка отправки: ' + e.message);
                 }
             }
 
-            // Подписка на новые сообщения
-            supabaseClient
-                .channel('messages')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
-                    loadMessages(true);
-                })
+            supabaseClient.channel('messages')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => loadMessages(true))
                 .subscribe();
 
             sendBtn.addEventListener('click', sendMessage);
-            messageInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') sendMessage();
-            });
-            loadMoreBtn.addEventListener('click', function() {
-                loadMessages(false);
-            });
+            messageInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMessage(); });
+            loadMoreBtn.addEventListener('click', () => loadMessages(false));
 
             await loadMessages(true);
         }
@@ -1202,8 +1201,170 @@
             return div.innerHTML;
         }
 
-        document.querySelector('[data-page="chat"]')?.addEventListener('click', function() {
-            setTimeout(loadChat, 100);
+        // ============================================
+        // КАЛЬКУЛЯТОР
+        // ============================================
+        const ICON_GOLD = 'Icons/golds.png';
+        const ICON_XP = 'Icons/xp.png';
+
+        let CALC_DATA = null;
+        let calcMode = null;
+        let calcMap = null;
+
+        function imgTag(src, alt) {
+            return `<img src="${src}" alt="${alt}" onerror="this.style.display='none';">`;
+        }
+
+        async function loadCalc() {
+            const app = document.getElementById('calcApp');
+            app.innerHTML = '<div style="text-align:center;opacity:0.6;padding:20px;">Загрузка данных...</div>';
+            try {
+                const res = await fetch(`${BASE_URL}/rewards.json`);
+                CALC_DATA = await res.json();
+            } catch (e) {
+                app.innerHTML = '<div style="text-align:center;color:#fff;">Ошибка загрузки данных</div>';
+                return;
+            }
+            calcMode = Object.keys(CALC_DATA)[0];
+            calcMap = CALC_DATA[calcMode].hasMaps ? Object.keys(CALC_DATA[calcMode].maps)[0] : null;
+            renderCalc();
+        }
+
+        function renderCalc() {
+            const app = document.getElementById('calcApp');
+            app.innerHTML = `
+                <span class="calc-label">Выберите режим</span>
+                <div class="dropdown" id="calcModeDropdown">
+                    <button class="dropdown-toggle" id="calcModeToggle"></button>
+                    <div class="dropdown-menu" id="calcModeMenu"></div>
+                </div>
+
+                <div id="calcMapBlock"></div>
+
+                <button class="calc-clear-btn" id="calcClearBtn">Очистить всё</button>
+
+                <div id="calcInputsArea"></div>
+
+                <button class="btn-calc" id="calcCalcBtn">Рассчитать</button>
+
+                <div class="calc-result" id="calcResult">
+                    <div class="row">${imgTag(ICON_GOLD, 'gold')}<span class="gold" id="calcGold">0</span></div>
+                    <div class="row">${imgTag(ICON_XP, 'xp')}<span class="xp" id="calcXp">0</span></div>
+                </div>
+            `;
+            renderCalcModeDropdown();
+            renderCalcMapBlock();
+            renderCalcInputs();
+
+            document.getElementById('calcCalcBtn').addEventListener('click', calcCalculate);
+            document.getElementById('calcClearBtn').addEventListener('click', () => {
+                document.querySelectorAll('#calcInputsArea input').forEach(i => i.value = '0');
+                document.getElementById('calcResult').classList.remove('show');
+            });
+        }
+
+        function renderCalcModeDropdown() {
+            const toggle = document.getElementById('calcModeToggle');
+            const menu = document.getElementById('calcModeMenu');
+            toggle.textContent = CALC_DATA[calcMode].name;
+            menu.innerHTML = '';
+            Object.keys(CALC_DATA).forEach(key => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (key === calcMode ? ' active' : '');
+                item.textContent = CALC_DATA[key].name;
+                menu.appendChild(item);
+            });
+        }
+
+        function renderCalcMapBlock() {
+            const block = document.getElementById('calcMapBlock');
+            const modeData = CALC_DATA[calcMode];
+            if (!modeData.hasMaps) { block.innerHTML = ''; return; }
+            block.innerHTML = `
+                <span class="calc-label">Выберите карту</span>
+                <div class="dropdown" id="calcMapDropdown">
+                    <button class="dropdown-toggle" id="calcMapToggle"></button>
+                    <div class="dropdown-menu" id="calcMapMenu"></div>
+                </div>
+            `;
+            const toggle = document.getElementById('calcMapToggle');
+            const menu = document.getElementById('calcMapMenu');
+            toggle.textContent = modeData.maps[calcMap].name;
+            menu.innerHTML = '';
+            Object.keys(modeData.maps).forEach(key => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (key === calcMap ? ' active' : '');
+                item.textContent = modeData.maps[key].name;
+                menu.appendChild(item);
+            });
+        }
+
+        function renderCalcInputs() {
+            const area = document.getElementById('calcInputsArea');
+            const modeData = CALC_DATA[calcMode];
+            const fields = modeData.hasMaps ? modeData.maps[calcMap].fields : modeData.fields;
+            area.innerHTML = '';
+            fields.forEach(f => {
+                const div = document.createElement('div');
+                div.className = 'input-group';
+                div.innerHTML = `
+                    <label>${f.label}</label>
+                    <input type="number" id="${f.id}" value="0" min="0">
+                    <div class="desc">
+                        1 = ${f.gold} ${imgTag(ICON_GOLD, 'gold')} ${f.xp} ${imgTag(ICON_XP, 'xp')}
+                    </div>
+                `;
+                area.appendChild(div);
+            });
+        }
+
+        function calcCalculate() {
+            let gold = 0, xp = 0;
+            const modeData = CALC_DATA[calcMode];
+            const fields = modeData.hasMaps ? modeData.maps[calcMap].fields : modeData.fields;
+            fields.forEach(f => {
+                const val = parseInt(document.getElementById(f.id).value) || 0;
+                if (val > 0) { gold += val * f.gold; xp += val * f.xp; }
+            });
+            document.getElementById('calcGold').textContent = gold;
+            document.getElementById('calcXp').textContent = xp;
+            document.getElementById('calcResult').classList.add('show');
+        }
+
+        // Делегирование кликов
+        document.addEventListener('click', function(e) {
+            const toggle = e.target.closest('.dropdown-toggle');
+            if (toggle) {
+                e.stopPropagation();
+                const dropdown = toggle.closest('.dropdown');
+                document.querySelectorAll('.dropdown').forEach(d => { if (d !== dropdown) d.classList.remove('open'); });
+                dropdown.classList.toggle('open');
+                return;
+            }
+            const item = e.target.closest('.dropdown-item');
+            if (item) {
+                const dropdown = item.closest('.dropdown');
+                const index = Array.from(dropdown.querySelectorAll('.dropdown-item')).indexOf(item);
+
+                if (dropdown.id === 'calcModeDropdown') {
+                    calcMode = Object.keys(CALC_DATA)[index];
+                    calcMap = CALC_DATA[calcMode].hasMaps ? Object.keys(CALC_DATA[calcMode].maps)[0] : null;
+                    renderCalcModeDropdown();
+                    renderCalcMapBlock();
+                    renderCalcInputs();
+                    document.getElementById('calcResult').classList.remove('show');
+                } else if (dropdown.id === 'calcMapDropdown') {
+                    calcMap = Object.keys(CALC_DATA[calcMode].maps)[index];
+                    renderCalcMapBlock();
+                    renderCalcInputs();
+                    document.getElementById('calcResult').classList.remove('show');
+                }
+                dropdown.classList.remove('open');
+                return;
+            }
+            if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+            }
         });
     </script>
 </body>
