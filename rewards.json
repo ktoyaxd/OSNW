@@ -39,6 +39,30 @@
                 "fields": [
                     { "id": "wins", "label": "Побед", "gold": 0, "xp": 0 }
                 ]
+            },
+            "football": {
+                "name": "Football",
+                "fields": [
+                    { "id": "Scored", "label": "Забил", "gold": 5, "xp": 17 }
+                ]
+            }
+        }
+    },
+    "surf": {
+        "name": "Surf",
+        "hasMaps": true,
+        "maps": {
+            "longer": {
+                "name": "Longer",
+                "fields": [
+                    { "id": "longer", "label": "Прошел", "gold": 10, "xp": 20 }
+                ]
+            },
+            "jat": {
+                "name": "Jat",
+                "fields": [
+                    { "id": "jat", "label": "Прошел", "gold": 10, "xp": 20 }
+                ]
             }
         }
     }
