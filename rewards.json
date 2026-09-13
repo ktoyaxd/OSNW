@@ -59,9 +59,9 @@
                 ]
             },
             "jat": {
-                "name": "Jat",
+                "name": "Jet",
                 "fields": [
-                    { "id": "jat", "label": "Прошел", "gold": 10, "xp": 20 }
+                    { "id": "jet", "label": "Прошел", "gold": 10, "xp": 20 }
                 ]
             }
         }
