@@ -38,26 +38,6 @@
             100% { transform: translate(300px, -150px) rotate(0deg); }
         }
 
-        .infosite-btn {
-            position: fixed;
-            top: 60px;
-            right: 16px;
-            width: 40px;
-            height: 40px;
-            background: #3A3F45;
-            border: 1px solid #363940;
-            color: #ffffff;
-            font-size: 20px;
-            cursor: pointer;
-            z-index: 999;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
-        }
-        .infosite-btn:hover { background: #363940; border-color: #FFFFFF; }
-
         .fullscreen-btn {
             position: fixed;
             top: 16px;
@@ -77,6 +57,47 @@
             line-height: 1;
         }
         .fullscreen-btn:hover { background: #363940; border-color: #FFFFFF; }
+
+        .infosite-btn {
+            position: fixed;
+            top: 64px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            background: #3A3F45;
+            border: 1px solid #363940;
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .infosite-btn:hover { background: #363940; border-color: #FFFFFF; }
+
+        .profile-btn {
+            position: fixed;
+            top: 112px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            background: #3A3F45;
+            border: 1px solid #363940;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .profile-btn:hover { background: #363940; border-color: #FFFFFF; }
 
         .container {
             width: 100%;
@@ -179,7 +200,6 @@
         .search-box:focus { border-color: #ffffff; }
         .search-box::placeholder { color: #ffffff; opacity: 0.6; }
 
-        /* СОРТИРОВКА ОДНОЙ КНОПКОЙ */
         .sort-btn-main {
             padding: 10px 17px;
             background: #3A3F45;
@@ -316,7 +336,103 @@
         }
         .load-more-btn:hover { background: #363940; border-color: #FFFFFF; }
 
-        /* ===== КАЛЬКУЛЯТОР ===== */
+        .input-group { margin-bottom: 16px; }
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 6px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            background: #202126;
+            border: 1px solid #363940;
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+        .input-group input:focus { border-color: #FFFFFF; }
+
+        .input-group input[type="color"] {
+            height: 50px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .btn-calc {
+            width: 100%;
+            padding: 14px;
+            background: #42474B;
+            border: 1px solid #363940;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-calc:hover { background: #363940; border-color: #FFFFFF; }
+
+        .profile-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: #202126;
+            border: 1px solid #363940;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .profile-avatar {
+            width: 64px;
+            height: 64px;
+            background: #42474B;
+            border: 2px solid #363940;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .profile-info { flex: 1; }
+        .profile-nick {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .profile-id {
+            font-size: 13px;
+            opacity: 0.5;
+            margin-bottom: 8px;
+        }
+        .profile-role {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #42474B;
+            border: 1px solid #363940;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-logout {
+            width: 100%;
+            padding: 14px;
+            background: #2a1a1a;
+            border: 1px solid #5a2a2a;
+            color: #ff6b6b;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        .btn-logout:hover {
+            background: #3a1a1a;
+            border-color: #8a3a3a;
+        }
+
         .calc-label {
             font-size: 14px;
             opacity: 0.7;
@@ -390,24 +506,6 @@
         }
         .calc-clear-btn:hover { background: #363940; border-color: #FFFFFF; }
 
-        .input-group { margin-bottom: 14px; }
-        .input-group label {
-            display: block;
-            font-size: 14px;
-            opacity: 0.7;
-            margin-bottom: 4px;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 10px;
-            background: #202126;
-            border: 1px solid #363940;
-            color: #fff;
-            font-size: 16px;
-            outline: none;
-        }
-        .input-group input:focus { border-color: #FFFFFF; }
-
         .desc {
             font-size: 13px;
             opacity: 0.6;
@@ -418,19 +516,6 @@
             flex-wrap: wrap;
         }
         .desc img { width: 16px; height: 16px; vertical-align: middle; }
-
-        .btn-calc {
-            width: 100%;
-            padding: 12px;
-            background: #42474B;
-            border: 1px solid #363940;
-            color: #fff;
-            font-size: 18px;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
-        }
-        .btn-calc:hover { background: #363940; border-color: #FFFFFF; }
 
         .calc-result {
             margin-top: 20px;
@@ -464,6 +549,8 @@
         @media (max-width: 767px) {
             .container { padding: 0 10px; }
             .fullscreen-btn { width: 34px; height: 34px; font-size: 16px; top: 10px; right: 10px; }
+            .infosite-btn { width: 34px; height: 34px; font-size: 16px; top: 52px; right: 10px; }
+            .profile-btn { width: 34px; height: 34px; font-size: 16px; top: 94px; right: 10px; }
             .logo img { width: 200px; }
             .main-title { font-size: 22px; }
             .menu-btn { font-size: 16px; padding: 14px; }
@@ -479,10 +566,11 @@
 <body>
 
     <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+    <button class="infosite-btn" id="InfoSite">i</button>
+    <button class="profile-btn" id="profileBtn">👤</button>
 
     <div class="container">
 
-        <!-- ===== ИНФО О САЙТЕ ===== -->
         <div id="page-infosite" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="back">Назад</div>
@@ -492,35 +580,75 @@
             </div>
         </div>
 
-        <!-- ===== ЧАТ ===== -->
         <div id="page-chat" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="back">Назад</div>
             </div>
             <div class="article-container" style="padding:15px; width:100%; box-sizing:border-box;">
                 <div id="chatBox" style="height:400px; overflow-y:auto; margin-bottom:12px; background:#202126; padding:12px; border:1px solid #363940; width:100%;"></div>
-                <div class="chat-inputs">
-                    <input type="text" id="chatUsername" placeholder="Ваше имя">
+                <div class="chat-inputs" id="chatInputs">
                     <input type="text" id="chatMessage" placeholder="Сообщение...">
                     <button id="chatSendBtn">Отправить</button>
+                </div>
+                <div id="chatLoginPrompt" style="display:none; text-align:center; padding:20px;">
+                    <p style="opacity:0.6; margin-bottom:12px;">Войдите, чтобы писать в чат</p>
+                    <button class="btn-calc" onclick="showPage('login')">Войти</button>
                 </div>
                 <button class="load-more-btn" id="loadMoreBtn">Смотреть дальше</button>
             </div>
         </div>
 
-        <!-- ===== ГЛАВНОЕ МЕНЮ ===== -->
+        <div id="page-login" class="page">
+            <div class="top-bar">
+                <div class="back-btn" data-back="back">Назад</div>
+            </div>
+            <div class="article-container">
+                <h2 style="margin-bottom:20px;">Вход</h2>
+                <div class="input-group">
+                    <label>Логин</label>
+                    <input type="text" id="loginInput" placeholder="Ваш логин">
+                </div>
+                <div class="input-group">
+                    <label>Пароль</label>
+                    <input type="password" id="passwordInput" placeholder="Ваш пароль">
+                </div>
+                <button class="btn-calc" id="loginSubmit">Войти</button>
+                <div id="loginError" style="color:#ff6b6b; margin-top:10px; display:none;"></div>
+            </div>
+        </div>
+
+        <div id="page-profile" class="page">
+            <div class="top-bar">
+                <div class="back-btn" data-back="back">Назад</div>
+            </div>
+            <div class="article-container">
+                <div class="profile-card" id="profileCard"></div>
+
+                <h3 style="margin-bottom:16px;">Настройки</h3>
+                <div class="input-group">
+                    <label>Цвет ника</label>
+                    <input type="color" id="nicknameColor" value="#ffffff">
+                </div>
+                <button class="btn-calc" id="saveColorBtn">Сохранить цвет</button>
+
+                <button class="btn-logout" id="logoutBtn">Выйти из аккаунта</button>
+            </div>
+        </div>
+
         <div id="page-menu" class="page active">
             <div class="menu-container">
                 <div class="logo">
                     <img src="Icons/logo.png" alt="Old Strike News Website">
                 </div>
-                <button class="infosite-btn" id="InfoSite">i</button>
+
+                <div class="menu-btn" id="loginBtnMenu">Вход</div>
+
                 <div class="menu-btn" id="readBtn">Читать</div>
                 <div class="sub-menu" id="subMenu">
                     <div class="menu-btn sub" data-page="infoall">Информация о всём по игре и прочее</div>
                     <div class="menu-btn sub" data-page="news">Новости</div>
                     <div class="menu-btn sub" data-page="videos">Видео</div>
-                    <div class="menu-btn sub" data-page="chat">Чат (ТЕСТ)</div>
+                    <div class="menu-btn sub" data-page="chat">Чат</div>
                     <div class="menu-btn sub" id="backFromRead">← Назад</div>
                 </div>
 
@@ -532,7 +660,6 @@
             </div>
         </div>
 
-        <!-- ===== НОВОСТИ ===== -->
         <div id="page-news" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="back">Назад</div>
@@ -546,7 +673,6 @@
             </div>
         </div>
 
-        <!-- ===== ВИДЕО ===== -->
         <div id="page-videos" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="back">Назад</div>
@@ -562,7 +688,6 @@
             </div>
         </div>
 
-        <!-- ===== ИНФОРМАЦИЯ ===== -->
         <div id="page-infoall" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="back">Назад</div>
@@ -576,7 +701,6 @@
             </div>
         </div>
 
-        <!-- ===== СТАТЬЯ НОВОСТИ ===== -->
         <div id="page-article" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="back">Назад</div>
@@ -586,7 +710,6 @@
             </div>
         </div>
 
-        <!-- ===== СТАТЬЯ ИНФОРМАЦИИ ===== -->
         <div id="page-info-article" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="back">Назад</div>
@@ -596,7 +719,6 @@
             </div>
         </div>
 
-        <!-- ===== КАЛЬКУЛЯТОР ===== -->
         <div id="page-calc" class="page">
             <div class="top-bar">
                 <div class="back-btn" data-back="back">Назад</div>
@@ -609,19 +731,164 @@
     </div>
 
     <script>
-        // ============================================
-        // НАСТРОЙКИ
-        // ============================================
-        const BASE_URL = 'https://sykaneslivajtesite.duckdns.org';
+        const BASE_URL = 'https://osnw.duckdns.org';
         const PER_PAGE = 6;
+
+        const SUPABASE_URL = 'https://wzoaqihzbfigsjmzumcr.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_ecBRJoPfAofNIJIeZPQtMA_orQSCboi';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let pageHistory = ['menu'];
         let currentSort = 'newest';
         let calcLoaded = false;
+        let currentUser = null;
 
-        // ============================================
-        // НАВИГАЦИЯ
-        // ============================================
+        function loadCurrentUser() {
+            const saved = localStorage.getItem('osnw_user');
+            if (saved) {
+                try {
+                    currentUser = JSON.parse(saved);
+                    updateProfileBtn();
+                } catch (e) {
+                    localStorage.removeItem('osnw_user');
+                }
+            }
+        }
+
+        function updateProfileBtn() {
+            const btn = document.getElementById('profileBtn');
+            const loginBtn = document.getElementById('loginBtnMenu');
+            if (currentUser) {
+                btn.textContent = currentUser.nickname.charAt(0).toUpperCase();
+                btn.style.color = currentUser.nickname_color || '#ffffff';
+                loginBtn.style.display = 'none';
+            } else {
+                btn.textContent = '👤';
+                btn.style.color = '#ffffff';
+                loginBtn.style.display = 'block';
+            }
+        }
+
+        function logout() {
+            if (!confirm('Точно выйти из аккаунта?')) return;
+            currentUser = null;
+            localStorage.removeItem('osnw_user');
+            updateProfileBtn();
+            showPage('menu');
+        }
+
+        document.getElementById('logoutBtn')?.addEventListener('click', logout);
+
+        document.getElementById('profileBtn').addEventListener('click', function() {
+            if (currentUser) showPage('profile');
+            else showPage('login');
+        });
+
+        document.getElementById('loginBtnMenu').addEventListener('click', function() {
+            showPage('login');
+        });
+
+        document.getElementById('loginSubmit').addEventListener('click', async function() {
+            const login = document.getElementById('loginInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            const errorDiv = document.getElementById('loginError');
+
+            if (!login || !password) {
+                errorDiv.textContent = 'Заполните все поля';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('login', login)
+                .eq('password', password)
+                .single();
+
+            if (error || !data) {
+                errorDiv.textContent = 'Неверный логин или пароль';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            currentUser = {
+                id: data.id,
+                login: data.login,
+                nickname: data.nickname,
+                nickname_color: data.nickname_color || '#ffffff',
+                role: data.role
+            };
+            localStorage.setItem('osnw_user', JSON.stringify(currentUser));
+            updateProfileBtn();
+
+            document.getElementById('loginInput').value = '';
+            document.getElementById('passwordInput').value = '';
+            errorDiv.style.display = 'none';
+
+            showPage('chat');
+        });
+
+        async function renderProfile() {
+            const card = document.getElementById('profileCard');
+            if (!currentUser) {
+                card.innerHTML = '<div style="text-align:center;opacity:0.6;">Вы не авторизованы</div>';
+                return;
+            }
+
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (error || !data) {
+                card.innerHTML = '<div style="text-align:center;opacity:0.6;">Ошибка загрузки профиля</div>';
+                return;
+            }
+
+            currentUser.nickname = data.nickname;
+            currentUser.nickname_color = data.nickname_color || '#ffffff';
+            currentUser.role = data.role;
+            localStorage.setItem('osnw_user', JSON.stringify(currentUser));
+            updateProfileBtn();
+
+            const initial = data.nickname.charAt(0).toUpperCase();
+            const color = data.nickname_color || '#ffffff';
+
+            card.innerHTML = `
+                <div class="profile-avatar" style="color:${color};">${initial}</div>
+                <div class="profile-info">
+                    <div class="profile-nick" style="color:${color};">${data.nickname}</div>
+                    <div class="profile-id">ID: ${data.id}</div>
+                    <div class="profile-role">${data.role || 'user'}</div>
+                </div>
+            `;
+
+            document.getElementById('nicknameColor').value = color;
+        }
+
+        document.getElementById('saveColorBtn').addEventListener('click', async function() {
+            if (!currentUser) return;
+            const newColor = document.getElementById('nicknameColor').value;
+
+            const { error } = await supabaseClient
+                .from('profiles')
+                .update({ nickname_color: newColor })
+                .eq('id', currentUser.id);
+
+            if (error) {
+                alert('Ошибка сохранения: ' + error.message);
+                return;
+            }
+
+            currentUser.nickname_color = newColor;
+            localStorage.setItem('osnw_user', JSON.stringify(currentUser));
+            updateProfileBtn();
+            await renderProfile();
+            alert('Цвет сохранён!');
+        });
+
         function showPage(id, addHistory = true) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             const target = document.getElementById('page-' + id);
@@ -634,6 +901,7 @@
             if (id === 'infoall' && !window.infoLoaded) { window.infoLoaded = true; loadInfoAll(); }
             if (id === 'chat' && !window.chatLoaded) { window.chatLoaded = true; loadChat(); }
             if (id === 'calc' && !calcLoaded) { calcLoaded = true; loadCalc(); }
+            if (id === 'profile') renderProfile();
         }
 
         document.querySelectorAll('[data-back]').forEach(btn => {
@@ -654,10 +922,10 @@
             });
         });
 
-        // ===== МЕНЮ "ЧИТАТЬ" =====
         document.getElementById('readBtn').addEventListener('click', function() {
             this.classList.add('hidden');
             document.getElementById('funBtn').classList.add('hidden');
+            document.getElementById('loginBtnMenu').classList.add('hidden');
             document.getElementById('subMenu').classList.add('show');
         });
 
@@ -665,12 +933,13 @@
             document.getElementById('subMenu').classList.remove('show');
             document.getElementById('readBtn').classList.remove('hidden');
             document.getElementById('funBtn').classList.remove('hidden');
+            if (!currentUser) document.getElementById('loginBtnMenu').classList.remove('hidden');
         });
 
-        // ===== МЕНЮ "ПРИКОЛЮХИ" =====
         document.getElementById('funBtn').addEventListener('click', function() {
             this.classList.add('hidden');
             document.getElementById('readBtn').classList.add('hidden');
+            document.getElementById('loginBtnMenu').classList.add('hidden');
             document.getElementById('funMenu').classList.add('show');
         });
 
@@ -678,14 +947,22 @@
             document.getElementById('funMenu').classList.remove('show');
             document.getElementById('funBtn').classList.remove('hidden');
             document.getElementById('readBtn').classList.remove('hidden');
+            if (!currentUser) document.getElementById('loginBtnMenu').classList.remove('hidden');
         });
 
-        // ============================================
-        // ФУНКЦИИ
-        // ============================================
         function formatDateFromId(id) {
             if (!id || id.length < 12) return id;
             return id.slice(0, 2) + '.' + id.slice(2, 4) + '.' + id.slice(4, 8) + ' ' + id.slice(8, 10) + ':' + id.slice(10, 12);
+        }
+
+        function formatDateTime(isoString) {
+            const d = new Date(isoString);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            const hours = String(d.getHours()).padStart(2, '0');
+            const minutes = String(d.getMinutes()).padStart(2, '0');
+            return `${day}.${month}.${year} ${hours}:${minutes}`;
         }
 
         function formatTextWithImages(text) {
@@ -706,9 +983,12 @@
             return html;
         }
 
-        // ============================================
-        // НОВОСТИ
-        // ============================================
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         let newsPage = 1;
         let allNews = [];
 
@@ -784,9 +1064,6 @@
             renderFiltered('newsGrid', filtered, 'news');
         });
 
-        // ============================================
-        // ВИДЕО
-        // ============================================
         let videosPage = 1;
         let allVideos = [];
 
@@ -856,23 +1133,17 @@
             renderFiltered('videoGrid', filtered, 'video');
         });
 
-        // ===== СОРТИРОВКА (ОДНА КНОПКА) =====
         const sortLabels = ['newest', 'oldest', 'random'];
         const sortNames = { 'newest': 'Свежие', 'oldest': 'Старые', 'random': 'Рандом' };
         const sortBtnMain = document.getElementById('sortBtnMain');
         const shuffleBtn = document.getElementById('shuffleBtn');
 
         sortBtnMain.addEventListener('click', function() {
-            // Переключаем на следующий режим
             let idx = sortLabels.indexOf(currentSort);
             idx = (idx + 1) % sortLabels.length;
             currentSort = sortLabels[idx];
             sortBtnMain.textContent = sortNames[currentSort];
-
-            // Показываем/скрываем кнопку перемешать
             shuffleBtn.style.display = currentSort === 'random' ? 'block' : 'none';
-
-            // Применяем сортировку
             if (allVideos.length) {
                 allVideos = sortVideos(allVideos, currentSort);
                 videosPage = 1;
@@ -910,9 +1181,6 @@
             }
         }
 
-        // ============================================
-        // ИНФОРМАЦИЯ
-        // ============================================
         let infoPage = 1;
         let allInfo = [];
 
@@ -988,9 +1256,6 @@
             renderFiltered('infoGrid', filtered, 'info');
         });
 
-        // ============================================
-        // УНИВЕРСАЛЬНЫЙ РЕНДЕР
-        // ============================================
         function renderFiltered(gridId, items, type) {
             const grid = document.getElementById(gridId);
             grid.innerHTML = '';
@@ -1002,7 +1267,6 @@
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.style.animationDelay = `${index * 0.08}s`;
-
                 if (type === 'news') {
                     card.innerHTML = `
                         <div class="date">${item._date}</div>
@@ -1046,9 +1310,6 @@
             });
         }
 
-        // ============================================
-        // СТАТЬИ
-        // ============================================
         async function loadArticle(id) {
             const container = document.getElementById('articleContent');
             container.innerHTML = `<div style="text-align:center;color:#ffffff;padding:40px 0;">Загрузка статьи...</div>`;
@@ -1083,9 +1344,6 @@
             }
         }
 
-        // ============================================
-        // ПОЛНОЭКРАННЫЙ РЕЖИМ
-        // ============================================
         document.getElementById('fullscreenBtn').addEventListener('click', function() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(() => {});
@@ -1094,9 +1352,6 @@
             }
         });
 
-        // ============================================
-        // I КНОПКА
-        // ============================================
         document.getElementById('InfoSite').addEventListener('click', function() {
             showPage('infosite');
             loadInfoSite();
@@ -1105,17 +1360,10 @@
         function loadInfoSite() {
             const container = document.getElementById('infoSiteContent');
             container.innerHTML = `
-                <div class="article-title">Информация о сайте чтоль</div>
-                <div class="article-text">Потом напишу потому что мне ща лень чото <b>хы</b>.</div>
+                <div class="article-title">Информация о сайте</div>
+                <div class="article-text">Потом напишу.</div>
             `;
         }
-
-        // ============================================
-        // ЧАТ
-        // ============================================
-        const SUPABASE_URL = 'https://wzoaqihzbfigsjmzumcr.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_ecBRJoPfAofNIJIeZPQtMA_orQSCboi';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let chatLoaded = false;
         let chatOffset = 0;
@@ -1129,10 +1377,19 @@
             chatTotalLoaded = 0;
 
             const chatBox = document.getElementById('chatBox');
-            const usernameInput = document.getElementById('chatUsername');
             const messageInput = document.getElementById('chatMessage');
             const sendBtn = document.getElementById('chatSendBtn');
             const loadMoreBtn = document.getElementById('loadMoreBtn');
+            const chatInputs = document.getElementById('chatInputs');
+            const chatLoginPrompt = document.getElementById('chatLoginPrompt');
+
+            if (currentUser) {
+                chatInputs.style.display = 'flex';
+                chatLoginPrompt.style.display = 'none';
+            } else {
+                chatInputs.style.display = 'none';
+                chatLoginPrompt.style.display = 'block';
+            }
 
             async function loadMessages(reset = true) {
                 if (reset) { chatOffset = 0; chatTotalLoaded = 0; chatBox.innerHTML = ''; }
@@ -1149,13 +1406,27 @@
                         return;
                     }
                     if (reset) { chatBox.innerHTML = ''; chatTotalLoaded = 0; }
+
+                    const userIds = [...new Set(data.map(m => m.user_id).filter(Boolean))];
+                    let colorMap = {};
+                    if (userIds.length > 0) {
+                        const { data: profiles } = await supabaseClient
+                            .from('profiles')
+                            .select('id, nickname_color')
+                            .in('id', userIds);
+                        if (profiles) {
+                            profiles.forEach(p => { colorMap[p.id] = p.nickname_color || '#ffffff'; });
+                        }
+                    }
+
                     data.reverse();
                     data.forEach(msg => {
+                        const nickColor = msg.user_id && colorMap[msg.user_id] ? colorMap[msg.user_id] : '#6a8aff';
                         const div = document.createElement('div');
                         div.style.cssText = 'margin-bottom: 10px; border-bottom: 1px solid #2a2f3a; padding-bottom: 8px;';
                         div.innerHTML = `
-                            <span style="color: #6a8aff; font-weight: 600;">${escapeHtml(msg.username)}</span>
-                            <span style="color: #5a6a8a; font-size: 11px; margin-left: 8px;">${new Date(msg.created_at).toLocaleTimeString()}</span>
+                            <span style="color: ${nickColor}; font-weight: 600;">${escapeHtml(msg.username)}</span>
+                            <span style="color: #5a6a8a; font-size: 11px; margin-left: 8px;">${formatDateTime(msg.created_at)}</span>
                             <div style="color: #fff; margin-top: 2px;">${escapeHtml(msg.content)}</div>
                         `;
                         chatBox.appendChild(div);
@@ -1170,11 +1441,20 @@
             }
 
             async function sendMessage() {
-                const username = usernameInput.value.trim() || 'Аноним';
+                if (!currentUser) {
+                    alert('Войдите, чтобы писать в чат');
+                    showPage('login');
+                    return;
+                }
                 const content = messageInput.value.trim();
                 if (!content) return;
                 try {
-                    const { error } = await supabaseClient.from('messages').insert([{ username, content }]);
+                    const { error } = await supabaseClient.from('messages').insert([{
+                        username: currentUser.nickname,
+                        content: content,
+                        user_id: currentUser.id,
+                        ip_address: 'unknown'
+                    }]);
                     if (error) throw error;
                     messageInput.value = '';
                     messageInput.focus();
@@ -1195,15 +1475,6 @@
             await loadMessages(true);
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // ============================================
-        // КАЛЬКУЛЯТОР
-        // ============================================
         const ICON_GOLD = 'Icons/golds.png';
         const ICON_XP = 'Icons/xp.png';
 
@@ -1331,7 +1602,6 @@
             document.getElementById('calcResult').classList.add('show');
         }
 
-        // Делегирование кликов
         document.addEventListener('click', function(e) {
             const toggle = e.target.closest('.dropdown-toggle');
             if (toggle) {
@@ -1366,6 +1636,8 @@
                 document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
             }
         });
+
+        loadCurrentUser();
     </script>
 </body>
 </html>
