@@ -537,6 +537,112 @@
         .calc-result .gold { color: #FFD700; }
         .calc-result .xp { color: #6a8aff; }
 
+        /* ===== КАТАЛОГ ===== */
+        .catalog-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .catalog-filters .dropdown {
+            flex: 1;
+            min-width: 140px;
+            margin-bottom: 0;
+        }
+
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .skin-card {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 1.4 / 1;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            cursor: default;
+            animation: fadeIn 0.4s ease forwards;
+            opacity: 0;
+        }
+
+        .skin-card .top-part {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            position: relative;
+            min-height: 0;
+        }
+
+        .skin-card .top-part img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+        }
+
+        .skin-card .bottom-part {
+            background: #2D3037;
+            padding: 8px 12px;
+            min-height: 46px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .skin-card .name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 1.2;
+        }
+
+        .skin-card .weapon {
+            font-size: 10px;
+            color: #8a95a5;
+            text-align: left;
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Качества */
+        .quality-common .top-part {
+            background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 30%, #7A7A7A 60%, #3A3F45 100%);
+        }
+        .quality-common { border: 2px solid #C0C0C0; }
+
+        .quality-base .top-part {
+            background: linear-gradient(180deg, #6489DA 0%, #5B78BA 30%, #4B5D83 60%, #454C5F 100%);
+        }
+        .quality-base { border: 2px solid #5AB0FF; }
+
+        .quality-pro .top-part {
+            background: linear-gradient(180deg, #AA373A 0%, #8C3B44 30%, #6F3D46 60%, #52414B 100%);
+        }
+        .quality-pro { border: 2px solid #FF4444; }
+
+        .quality-legend .top-part {
+            background: linear-gradient(180deg, #C9367C 0%, #A13870 30%, #6F3C5D 60%, #514052 100%);
+        }
+        .quality-legend { border: 2px solid #A43E70; }
+
+        .quality-myth .top-part {
+            background: linear-gradient(180deg, #F4D74B 0%, #BFAD47 30%, #877D4C 60%, #585951 100%);
+        }
+        .quality-myth { border: 2px solid #D2BE4B; }
+
         @media (min-width: 768px) {
             body { padding: 40px; }
             .grid {
@@ -560,6 +666,7 @@
             .article-container { padding: 20px; }
             .top-bar { flex-wrap: wrap; }
             .search-box { min-width: 80px; flex: 1 1 100%; }
+            .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
         }
     </style>
 </head>
@@ -567,7 +674,7 @@
 
     <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
     <button class="infosite-btn" id="InfoSite">i</button>
-    <button class="profile-btn" id="profileBtn">👤</button>
+    <button class="profile-btn" id="profileBtn">П</button>
 
     <div class="container">
 
@@ -623,14 +730,12 @@
             </div>
             <div class="article-container">
                 <div class="profile-card" id="profileCard"></div>
-
                 <h3 style="margin-bottom:16px;">Настройки</h3>
                 <div class="input-group">
                     <label>Цвет ника</label>
                     <input type="color" id="nicknameColor" value="#ffffff">
                 </div>
                 <button class="btn-calc" id="saveColorBtn">Сохранить цвет</button>
-
                 <button class="btn-logout" id="logoutBtn">Выйти из аккаунта</button>
             </div>
         </div>
@@ -655,6 +760,7 @@
                 <div class="menu-btn" id="funBtn">Приколюхи</div>
                 <div class="sub-menu" id="funMenu">
                     <div class="menu-btn sub" data-page="calc">Калькулятор</div>
+                    <div class="menu-btn sub" data-page="catalog">Каталог</div>
                     <div class="menu-btn sub" id="backFromFun">← Назад</div>
                 </div>
             </div>
@@ -728,10 +834,36 @@
             </div>
         </div>
 
+        <div id="page-catalog" class="page">
+            <div class="top-bar">
+                <div class="back-btn" data-back="back">Назад</div>
+                <input class="search-box" placeholder="Поиск..." id="catalogSearch">
+            </div>
+
+            <div class="catalog-filters">
+                <div class="dropdown" id="categoryDropdown">
+                    <button class="dropdown-toggle" id="categoryToggle"></button>
+                    <div class="dropdown-menu" id="categoryMenu"></div>
+                </div>
+                <div class="dropdown" id="weaponDropdown">
+                    <button class="dropdown-toggle" id="weaponToggle"></button>
+                    <div class="dropdown-menu" id="weaponMenu"></div>
+                </div>
+                <div class="dropdown" id="qualityDropdown">
+                    <button class="dropdown-toggle" id="qualityToggle"></button>
+                    <div class="dropdown-menu" id="qualityMenu"></div>
+                </div>
+            </div>
+
+            <div class="catalog-grid" id="catalogGrid">
+                <div class="no-data">Загрузка каталога...</div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        const BASE_URL = 'https://sykaneslivajtesite.duckdns.org/';
+        const BASE_URL = 'https://sykaneslivajtesite.duckdns.org';
         const PER_PAGE = 6;
 
         const SUPABASE_URL = 'https://wzoaqihzbfigsjmzumcr.supabase.co';
@@ -901,6 +1033,7 @@
             if (id === 'infoall' && !window.infoLoaded) { window.infoLoaded = true; loadInfoAll(); }
             if (id === 'chat' && !window.chatLoaded) { window.chatLoaded = true; loadChat(); }
             if (id === 'calc' && !calcLoaded) { calcLoaded = true; loadCalc(); }
+            if (id === 'catalog' && !window.catalogLoaded) { window.catalogLoaded = true; loadCatalog(); }
             if (id === 'profile') renderProfile();
         }
 
@@ -1634,6 +1767,180 @@
             }
             if (!e.target.closest('.dropdown')) {
                 document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+            }
+        });
+
+        // ============================================
+        // КАТАЛОГ СКИНОВ
+        // ============================================
+        let catalogData = [];
+        let catalogWeapons = [];
+        let catalogCategory = 'skins';
+        let catalogWeapon = 'all';
+        let catalogQuality = 'all';
+
+        const CATALOG_QUALITIES = [
+            { id: 'all', name: 'Все' },
+            { id: 'common', name: 'Обычное' },
+            { id: 'base', name: 'Базовое' },
+            { id: 'pro', name: 'Профессиональное' },
+            { id: 'legend', name: 'Легендарное' },
+            { id: 'myth', name: 'Мистическое' }
+        ];
+
+        const CATALOG_CATEGORIES = [
+            { id: 'skins', name: 'Скины', path: 'Skins' },
+            { id: 'graffiti', name: 'Граффити', path: 'Graffiti' },
+            { id: 'stickers', name: 'Наклейки', path: 'Stickers' }
+        ];
+
+        async function loadCatalog() {
+            const grid = document.getElementById('catalogGrid');
+            grid.innerHTML = '<div class="no-data">Загрузка каталога...</div>';
+
+            try {
+                const category = CATALOG_CATEGORIES.find(c => c.id === catalogCategory);
+                const listRes = await fetch(`${BASE_URL}/Data/Catalog/${category.path}/list.json`);
+                const items = await listRes.json();
+
+                catalogData = [];
+
+                for (const item of items) {
+                    try {
+                        const res = await fetch(`${BASE_URL}/Data/Catalog/${category.path}/${item}.json`);
+                        const skins = await res.json();
+                        skins.forEach(skin => {
+                            skin._weapon = item;
+                            catalogData.push(skin);
+                        });
+                    } catch (err) {
+                        console.warn(`Не загружен ${item}.json`);
+                    }
+                }
+
+                catalogWeapons = [...new Set(catalogData.map(s => s.weapon || s._weapon))].filter(Boolean);
+
+                renderCategoryDropdown();
+                renderWeaponDropdown();
+                renderQualityDropdown();
+                renderCatalog();
+            } catch (e) {
+                grid.innerHTML = `<div class="no-data">Ошибка загрузки каталога</div>`;
+            }
+        }
+
+        function renderCategoryDropdown() {
+            const toggle = document.getElementById('categoryToggle');
+            const menu = document.getElementById('categoryMenu');
+            const current = CATALOG_CATEGORIES.find(c => c.id === catalogCategory);
+            toggle.textContent = current.name;
+            menu.innerHTML = '';
+            CATALOG_CATEGORIES.forEach(cat => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (cat.id === catalogCategory ? ' active' : '');
+                item.textContent = cat.name;
+                item.dataset.category = cat.id;
+                menu.appendChild(item);
+            });
+        }
+
+        function renderWeaponDropdown() {
+            const toggle = document.getElementById('weaponToggle');
+            const menu = document.getElementById('weaponMenu');
+            toggle.textContent = catalogWeapon === 'all' ? 'Все оружия' : catalogWeapon;
+            menu.innerHTML = '';
+
+            const allItem = document.createElement('div');
+            allItem.className = 'dropdown-item' + (catalogWeapon === 'all' ? ' active' : '');
+            allItem.textContent = 'Все оружия';
+            allItem.dataset.weapon = 'all';
+            menu.appendChild(allItem);
+
+            catalogWeapons.forEach(w => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (w === catalogWeapon ? ' active' : '');
+                item.textContent = w;
+                item.dataset.weapon = w;
+                menu.appendChild(item);
+            });
+        }
+
+        function renderQualityDropdown() {
+            const toggle = document.getElementById('qualityToggle');
+            const menu = document.getElementById('qualityMenu');
+            const current = CATALOG_QUALITIES.find(q => q.id === catalogQuality);
+            toggle.textContent = current.name;
+            menu.innerHTML = '';
+            CATALOG_QUALITIES.forEach(q => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (q.id === catalogQuality ? ' active' : '');
+                item.textContent = q.name;
+                item.dataset.quality = q.id;
+                menu.appendChild(item);
+            });
+        }
+
+        function renderCatalog() {
+            const grid = document.getElementById('catalogGrid');
+            const searchInput = document.getElementById('catalogSearch');
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            let filtered = catalogData.filter(skin => {
+                if (catalogWeapon !== 'all' && skin.weapon !== catalogWeapon && skin._weapon !== catalogWeapon) return false;
+                if (catalogQuality !== 'all' && skin.quality !== catalogQuality) return false;
+                if (query && !skin.name.toLowerCase().includes(query)) return false;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="no-data">Ничего не найдено</div>';
+                return;
+            }
+
+            grid.innerHTML = '';
+            filtered.forEach((skin, index) => {
+                const card = document.createElement('div');
+                card.className = `skin-card quality-${skin.quality}`;
+                card.style.animationDelay = `${index * 0.04}s`;
+                card.innerHTML = `
+                    <div class="top-part">
+                        <img src="${skin.image}" alt="${skin.name}" onerror="this.style.display='none';">
+                    </div>
+                    <div class="bottom-part">
+                        <div class="name">${skin.name}</div>
+                        <div class="weapon">${skin.weapon || skin._weapon || ''}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('catalogSearch')?.addEventListener('input', renderCatalog);
+
+        document.addEventListener('click', function(e) {
+            const item = e.target.closest('.dropdown-item');
+            if (!item) return;
+            const dropdown = item.closest('.dropdown');
+            if (!dropdown) return;
+
+            if (dropdown.id === 'categoryDropdown') {
+                catalogCategory = item.dataset.category;
+                catalogWeapon = 'all';
+                catalogQuality = 'all';
+                window.catalogLoaded = false;
+                document.getElementById('catalogSearch').value = '';
+                loadCatalog();
+                dropdown.classList.remove('open');
+            } else if (dropdown.id === 'weaponDropdown') {
+                catalogWeapon = item.dataset.weapon;
+                renderWeaponDropdown();
+                renderCatalog();
+                dropdown.classList.remove('open');
+            } else if (dropdown.id === 'qualityDropdown') {
+                catalogQuality = item.dataset.quality;
+                renderQualityDropdown();
+                renderCatalog();
+                dropdown.classList.remove('open');
             }
         });
 
