@@ -1,23 +1,23 @@
 [
   {
-    "id": "ak47chan",
-    "name": "Chan",
-    "weapon": "AK-47",
-    "image": "Data/Catalog/Skins/AK-47/ak47chan.png",
-    "quality": "pro"
-  },
-  {
     "id": "ak47478",
-    "name": "478",
+    "name": "Ak47478",
     "weapon": "AK-47",
     "image": "Data/Catalog/Skins/AK-47/ak47478.png",
-    "quality": "legend"
+    "quality": "common"
   },
   {
     "id": "ak47BlueFire",
-    "name": "Blue Fire",
+    "name": "Ak47Bluefire",
     "weapon": "AK-47",
     "image": "Data/Catalog/Skins/AK-47/ak47BlueFire.png",
-    "quality": "legend"
+    "quality": "common"
+  },
+  {
+    "id": "ak47chan",
+    "name": "Ak47Chan",
+    "weapon": "AK-47",
+    "image": "Data/Catalog/Skins/AK-47/ak47chan.png",
+    "quality": "common"
   }
 ]
