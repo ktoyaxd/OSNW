@@ -1,7 +1,7 @@
 [
   {
     "id": "bayonetSpectrum",
-    "name": "Bayonetspectrum",
+    "name": "Spectrum",
     "weapon": "Bayonet",
     "image": "Data/Catalog/Skins/Bayonet/bayonetSpectrum.png",
     "quality": "common"
