@@ -1,14 +1,14 @@
 [
   {
     "id": "prodigyK01",
-    "name": "Prodigyk01",
+    "name": "K01",
     "weapon": "Prodigy",
     "image": "Data/Catalog/Skins/Prodigy/prodigyK01.png",
     "quality": "common"
   },
   {
     "id": "prodigyTechohoid",
-    "name": "Prodigytechohoid",
+    "name": "Techohoid",
     "weapon": "Prodigy",
     "image": "Data/Catalog/Skins/Prodigy/prodigyTechohoid.png",
     "quality": "common"
