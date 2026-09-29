@@ -1,9 +1,9 @@
 [
   {
     "id": "bayonetSpectrum",
-    "name": "Spectrum",
-    "weapon": "Spectrum",
+    "name": "Bayonetspectrum",
+    "weapon": "Bayonet",
     "image": "Data/Catalog/Skins/Bayonet/bayonetSpectrum.png",
-    "quality": "pro"
+    "quality": "common"
   }
 ]
