@@ -12,5 +12,12 @@
     "weapon": "AK-47",
     "image": "Data/Catalog/Skins/AK-47/ak47478.png",
     "quality": "legend"
+  },
+  {
+    "id": "ak47BlueFire",
+    "name": "Blue Fire",
+    "weapon": "AK-47",
+    "image": "Data/Catalog/Skins/AK-47/ak47BlueFire.png",
+    "quality": "legend"
   }
 ]
