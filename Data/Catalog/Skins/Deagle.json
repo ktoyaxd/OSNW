@@ -1,0 +1,23 @@
+[
+  {
+    "id": "deagleAgent",
+    "name": "Deagleagent",
+    "weapon": "Deagle",
+    "image": "Data/Catalog/Skins/Deagle/deagleAgent.png",
+    "quality": "common"
+  },
+  {
+    "id": "deagleBloodyPink",
+    "name": "Deaglebloodypink",
+    "weapon": "Deagle",
+    "image": "Data/Catalog/Skins/Deagle/deagleBloodyPink.png",
+    "quality": "common"
+  },
+  {
+    "id": "deagleWinterAwakening",
+    "name": "Deaglewinterawakening",
+    "weapon": "Deagle",
+    "image": "Data/Catalog/Skins/Deagle/deagleWinterAwakening.png",
+    "quality": "common"
+  }
+]
