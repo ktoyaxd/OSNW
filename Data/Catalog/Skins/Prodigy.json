@@ -1,0 +1,16 @@
+[
+  {
+    "id": "prodigyTechonoid",
+    "name": "Technohoid",
+    "weapon": "Prodigy",
+    "image": "Data/Catalog/Skins/prodigy/prodigyTechonoid.png",
+    "quality": "pro"
+  },
+  {
+    "id": "prodigyK01",
+    "name": "K-01",
+    "weapon": "Prodigy",
+    "image": "Data/Catalog/Skins/Prodigy/prodigyK01.png",
+    "quality": "pro"
+  }
+]
