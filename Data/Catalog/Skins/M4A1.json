@@ -1,5 +1,12 @@
 [
   {
+    "id": "m4a1Vomissa",
+    "name": "Vomissa",
+    "weapon": "M4A1",
+    "image": "Data/Catalog/Skins/M4A1/m4a1Vomissa.png",
+    "quality": "common"
+  },
+  {
     "id": "m4a1chan",
     "name": "Chan",
     "weapon": "M4A1",
