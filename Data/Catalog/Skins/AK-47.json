@@ -14,6 +14,13 @@
     "quality": "common"
   },
   {
+    "id": "ak47FamiliarSkull",
+    "name": "Familiar Skull",
+    "weapon": "AK-47",
+    "image": "Data/Catalog/Skins/AK-47/ak47FamiliarSkull.png",
+    "quality": "common"
+  },
+  {
     "id": "ak47Halloween",
     "name": "Halloween",
     "weapon": "AK-47",
@@ -32,6 +39,13 @@
     "name": "Revenger",
     "weapon": "AK-47",
     "image": "Data/Catalog/Skins/AK-47/ak47Revenger.png",
+    "quality": "common"
+  },
+  {
+    "id": "ak47Universe",
+    "name": "Universe",
+    "weapon": "AK-47",
+    "image": "Data/Catalog/Skins/AK-47/ak47Universe.png",
     "quality": "common"
   },
   {
