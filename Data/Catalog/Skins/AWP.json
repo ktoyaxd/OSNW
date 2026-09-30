@@ -1,0 +1,23 @@
+[
+  {
+    "id": "awpPinkyLime",
+    "name": "Pinky Lime",
+    "weapon": "AWP",
+    "image": "Data/Catalog/Skins/AWP/awpPinkyLime.png",
+    "quality": "common"
+  },
+  {
+    "id": "awpSandsOfTime",
+    "name": "Sands Of Time",
+    "weapon": "AWP",
+    "image": "Data/Catalog/Skins/AWP/awpSandsOfTime.png",
+    "quality": "common"
+  },
+  {
+    "id": "awpchan",
+    "name": "Chan",
+    "weapon": "AWP",
+    "image": "Data/Catalog/Skins/AWP/awpchan.png",
+    "quality": "common"
+  }
+]
