@@ -14,6 +14,34 @@
     "quality": "common"
   },
   {
+    "id": "ak47Halloween",
+    "name": "Halloween",
+    "weapon": "AK-47",
+    "image": "Data/Catalog/Skins/AK-47/ak47Halloween.png",
+    "quality": "common"
+  },
+  {
+    "id": "ak47HalloweenBurn",
+    "name": "Halloween Burn",
+    "weapon": "AK-47",
+    "image": "Data/Catalog/Skins/AK-47/ak47HalloweenBurn.png",
+    "quality": "common"
+  },
+  {
+    "id": "ak47Revenger",
+    "name": "Revenger",
+    "weapon": "AK-47",
+    "image": "Data/Catalog/Skins/AK-47/ak47Revenger.png",
+    "quality": "common"
+  },
+  {
+    "id": "ak47Y65",
+    "name": "Y65",
+    "weapon": "AK-47",
+    "image": "Data/Catalog/Skins/AK-47/ak47Y65.png",
+    "quality": "common"
+  },
+  {
     "id": "ak47chan",
     "name": "Chan",
     "weapon": "AK-47",
