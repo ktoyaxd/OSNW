@@ -5,19 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>3D Test — OSNW</title>
     <style>
-        body { margin: 0; background: #202126; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; }
-        #canvas-container { width: 100vw; height: 100vh; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0;
+            background: #202126;
+            overflow: hidden;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #fff;
+        }
+        #canvas-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
         #loading {
-            position: fixed; top: 50%; left: 50%;
+            position: fixed;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            color: #FFD700; font-size: 16px; z-index: 100;
+            color: #FFD700;
+            font-size: 16px;
+            z-index: 100;
             text-align: center;
+        }
+        #debug {
+            position: fixed;
+            top: 16px; left: 16px;
+            color: #6a8aff;
+            font-size: 11px;
+            font-family: monospace;
+            z-index: 100;
+            pointer-events: none;
+            white-space: pre;
+            background: rgba(0,0,0,0.5);
+            padding: 6px 10px;
+            border-radius: 4px;
+        }
+        #skin-bar {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 0 16px;
+        }
+        .skin-btn {
+            background: #2D3037;
+            color: #fff;
+            border: 2px solid #444;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 90px;
+        }
+        .skin-btn:hover {
+            border-color: #FFD700;
+        }
+        .skin-btn.active {
+            background: #FFD700;
+            color: #202126;
+            border-color: #FFD700;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <div id="loading">Загрузка модели...</div>
+    <div id="loading">Загрузка...</div>
+    <div id="debug"></div>
     <div id="canvas-container"></div>
+    <div id="skin-bar">
+        <button class="skin-btn active" data-skin="0">Skin 1</button>
+        <button class="skin-btn" data-skin="1">Skin 2</button>
+        <button class="skin-btn" data-skin="2">Skin 3</button>
+    </div>
 
     <script type="importmap">
     {
@@ -33,58 +99,141 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
-        // Сцена
+        const debugEl = document.getElementById('debug');
+        function log(msg) {
+            debugEl.textContent += msg + '\n';
+            console.log(msg);
+        }
+
+        // === Атлас: координаты спрайтов ===
+        // 1-0: x=300, y=735, w=128, h=128
+        // 1-1: x=300, y=705, w=128, h=128
+        // 1-2: x=300, y=675, w=128, h=128
+        const ATLAS_SIZE = 2048;
+        const SKINS = [
+            { name: 'Skin 1 (1-0)', x: 300, y: 735, w: 128, h: 128 },
+            { name: 'Skin 2 (1-1)', x: 300, y: 705, w: 128, h: 128 },
+            { name: 'Skin 3 (1-2)', x: 300, y: 675, w: 128, h: 128 },
+        ];
+
+        // === Сцена ===
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x202126);
 
-        // Камера
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 1000);
-        camera.position.set(0, 0, 2);
+        // === Камера ===
+        const camera = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            0.01,
+            1000
+        );
+        camera.position.set(0, 0, 4);
 
-        // Рендерер
+        // === Рендерер ===
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        // Управление
+        // === Управление ===
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.1;
         controls.enablePan = false;
+        controls.minDistance = 1;
+        controls.maxDistance = 15;
 
-        // Свет
-        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-        const d1 = new THREE.DirectionalLight(0xffffff, 0.8);
-        d1.position.set(1, 2, 1);
+        // === Свет ===
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        const d1 = new THREE.DirectionalLight(0xffffff, 0.7);
+        d1.position.set(2, 3, 2);
         scene.add(d1);
         const d2 = new THREE.DirectionalLight(0xffffff, 0.4);
-        d2.position.set(-1, -1, -1);
+        d2.position.set(-2, -1, -2);
         scene.add(d2);
 
-        // Загрузка всех частей
+        // === Атлас ===
+        const atlasTexture = new THREE.TextureLoader().load(
+            'Data/3D/WeaponAtlas.png',
+            () => log('Атлас загружен: ' + atlasTexture.image.width + '×' + atlasTexture.image.height),
+            undefined,
+            (err) => log('ОШИБКА атласа: ' + err)
+        );
+        atlasTexture.colorSpace = THREE.SRGBColorSpace;
+        atlasTexture.wrapS = THREE.ClampToEdgeWrapping;
+        atlasTexture.wrapT = THREE.ClampToEdgeWrapping;
+
+        // Применяем смещение для скина
+        function applySkin(index) {
+            const skin = SKINS[index];
+            if (!skin) return;
+
+            // UV модели в диапазоне [0.13, 0.28] по обеим осям
+            // Это ~ 0.15 от всего UV пространства
+            const UV_MIN = 0.13;
+            const UV_MAX = 0.28;
+            const UV_SIZE = UV_MAX - UV_MIN;  // ~0.15
+
+            // Спрайт в атласе в UV-координатах
+            const sprite_u = skin.x / ATLAS_SIZE;
+            const sprite_v = 1.0 - (skin.y + skin.h) / ATLAS_SIZE;  // Y флипаем
+            const sprite_w = skin.w / ATLAS_SIZE;
+            const sprite_h = skin.h / ATLAS_SIZE;
+
+            // Формула: 
+            // final_uv = (uv_model - UV_MIN) * (sprite_size / UV_SIZE) + sprite_offset
+            // В Three.js: texture.repeat = sprite_size / UV_SIZE
+            //             texture.offset = sprite_offset - UV_MIN * repeat
+
+            const repeatX = sprite_w / UV_SIZE;
+            const repeatY = sprite_h / UV_SIZE;
+            const offsetX = sprite_u - UV_MIN * repeatX;
+            const offsetY = sprite_v - UV_MIN * repeatY;
+
+            atlasTexture.repeat.set(repeatX, repeatY);
+            atlasTexture.offset.set(offsetX, offsetY);
+            atlasTexture.needsUpdate = true;
+
+            log(`Скин: ${skin.name}`);
+            log(`  repeat: ${repeatX.toFixed(4)}, ${repeatY.toFixed(4)}`);
+            log(`  offset: ${offsetX.toFixed(4)}, ${offsetY.toFixed(4)}`);
+        }
+
+        // === Модель ===
         const PARTS = [
             'Object001.obj', 'Object002.obj', 'Object003.obj',
             'Object004.obj', 'Object005.obj', 'Object006.obj',
             'Object007.obj', 'Object008.obj', 'Object009.obj'
         ];
-        const BASE = 'Data/3D/Weapon/AK-47/';
+        const BASE = 'Data/3D/Weapons/AK-47/';
         const loader = new OBJLoader();
         const group = new THREE.Group();
         let loaded = 0;
 
-        PARTS.forEach(filename => {
+        // Собираем все UV из всех частей — для отладки
+        const allUVs = [];
+
+        PARTS.forEach((filename) => {
             loader.load(
                 BASE + filename,
                 (obj) => {
-                    obj.traverse(child => {
-                        if (child.isMesh) {
+                    obj.traverse((child) => {
+                        if (child.isMesh && child.geometry) {
+                            // Материал с атласом
                             child.material = new THREE.MeshStandardMaterial({
-                                color: 0xaaaaaa,
-                                metalness: 0.3,
-                                roughness: 0.6,
+                                map: atlasTexture,
+                                metalness: 0.2,
+                                roughness: 0.7,
                                 side: THREE.DoubleSide
                             });
+
+                            // Собираем UV для отладки
+                            const uvAttr = child.geometry.attributes.uv;
+                            if (uvAttr) {
+                                for (let i = 0; i < uvAttr.count; i++) {
+                                    allUVs.push(uvAttr.getX(i), uvAttr.getY(i));
+                                }
+                            }
                         }
                     });
                     group.add(obj);
@@ -92,37 +241,90 @@
                     document.getElementById('loading').textContent = `Загрузка: ${loaded}/${PARTS.length}`;
 
                     if (loaded === PARTS.length) {
-                        document.getElementById('loading').style.display = 'none';
-
-                        // Центрируем всю группу
-                        const box = new THREE.Box3().setFromObject(group);
-                        const center = box.getCenter(new THREE.Vector3());
-                        const size = box.getSize(new THREE.Vector3());
-                        const maxDim = Math.max(size.x, size.y, size.z);
-
-                        group.position.sub(center);
-                        group.scale.setScalar(2.0 / maxDim);
-
-                        scene.add(group);
-
-                        camera.position.set(0, 0, 2);
-                        controls.target.set(0, 0, 0);
-                        controls.update();
+                        onAllLoaded();
                     }
                 },
                 undefined,
-                (err) => console.error('Ошибка загрузки', filename, err)
+                (err) => {
+                    log('ОШИБКА: ' + filename);
+                    loaded++;
+                    if (loaded === PARTS.length) {
+                        onAllLoaded();
+                    }
+                }
             );
         });
 
-        // Ресайз
+        function onAllLoaded() {
+            document.getElementById('loading').style.display = 'none';
+
+            // Отладка UV
+            if (allUVs.length > 0) {
+                let minU = Infinity, maxU = -Infinity;
+                let minV = Infinity, maxV = -Infinity;
+                for (let i = 0; i < allUVs.length; i += 2) {
+                    const u = allUVs[i];
+                    const v = allUVs[i + 1];
+                    if (u < minU) minU = u;
+                    if (u > maxU) maxU = u;
+                    if (v < minV) minV = v;
+                    if (v > maxV) maxV = v;
+                }
+                log(`UV диапазон: U[${minU.toFixed(4)}, ${maxU.toFixed(4)}] V[${minV.toFixed(4)}, ${maxV.toFixed(4)}]`);
+            }
+
+            // Центрируем всю группу
+            const box = new THREE.Box3().setFromObject(group);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+
+            log(`Размер: ${size.x.toFixed(3)} × ${size.y.toFixed(3)} × ${size.z.toFixed(3)}`);
+
+            group.position.sub(center);
+            group.scale.setScalar(3.0 / maxDim);
+
+            // === Зеркальные копии ===
+            // Левая копия
+            const leftCopy = group.clone();
+            leftCopy.position.x = -2.5;
+            // Правая копия
+            const rightCopy = group.clone();
+            rightCopy.position.x = 2.5;
+            // Центральная — уже есть (group)
+            group.position.x = 0;
+
+            scene.add(leftCopy);
+            scene.add(group);
+            scene.add(rightCopy);
+
+            // Камера под 3 модели
+            camera.position.set(0, 0, 6);
+            controls.target.set(0, 0, 0);
+            controls.update();
+
+            // Ставим первый скин
+            applySkin(0);
+        }
+
+        // === Кнопки скинов ===
+        document.querySelectorAll('.skin-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.skin-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const idx = parseInt(btn.dataset.skin, 10);
+                applySkin(idx);
+            });
+        });
+
+        // === Ресайз ===
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Анимация
+        // === Анимация ===
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
