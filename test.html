@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Pixel Bake — OSNW</title>
+    <title>AK-47 Skins — OSNW</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
@@ -11,10 +11,7 @@
             font-family: 'Segoe UI', Arial, sans-serif; color: #fff;
             height: 100vh;
         }
-        #canvas-container {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
-        }
+        #canvas-container { position: fixed; inset: 0; }
         .btns {
             position: fixed; bottom: 12px; left: 50%;
             transform: translateX(-50%); display: flex; gap: 8px;
@@ -26,15 +23,12 @@
             padding: 8px 14px; font-size: 12px; font-family: inherit;
             cursor: pointer;
         }
-        .btn.active {
-            background: #FFD700; color: #202126; border-color: #FFD700;
-        }
+        .btn.active { background: #FFD700; color: #202126; border-color: #FFD700; }
         #debug {
             position: fixed; top: 12px; left: 12px;
-            color: #6a8aff; font-size: 10px;
-            font-family: monospace; background: rgba(0,0,0,0.6);
-            padding: 6px 8px; border-radius: 4px;
-            pointer-events: none; max-width: 220px; line-height: 1.3;
+            color: #6a8aff; font-size: 10px; font-family: monospace;
+            background: rgba(0,0,0,0.6); padding: 6px 8px; border-radius: 4px;
+            pointer-events: none; max-width: 240px; line-height: 1.3;
             white-space: pre-line;
         }
         #loading {
@@ -67,8 +61,16 @@
         const btnsEl = document.getElementById('btns');
         const loadingEl = document.getElementById('loading');
 
-        // ===== Скины =====
+        // ===== Константы =====
         const ATLAS_SIZE = 2048;
+
+        // Глобальный bbox UV модели AK-47 (из отладки)
+        const UV_MIN_U = 0.00, UV_MAX_U = 0.74;
+        const UV_MIN_V = 0.00, UV_MAX_V = 0.23;
+        const UV_RANGE_U = UV_MAX_U - UV_MIN_U;
+        const UV_RANGE_V = UV_MAX_V - UV_MIN_V;
+
+        // Скины (x/y — в пикселях атласа, координата y — сверху)
         const SKINS = {
             0: { name: '1-0', x: 300, y: 735, w: 128, h: 128 },
             1: { name: '1-1', x: 300, y: 705, w: 128, h: 128 },
@@ -76,10 +78,8 @@
         };
         let currentSkin = 0;
 
-        const PARTS = ['Object001','Object002','Object003','Object004','Object005','Object006','Object007','Object008','Object009'];
-        const meshesByPart = {};
-
-        const TEX_SIZE = 1024;
+        const PARTS = ['Object001','Object002','Object003','Object004','Object005',
+                       'Object006','Object007','Object008','Object009'];
 
         // ===== Сцена =====
         const scene = new THREE.Scene();
@@ -97,36 +97,49 @@
         controls.dampingFactor = 0.1;
         controls.enablePan = false;
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-        const d1 = new THREE.DirectionalLight(0xffffff, 0.7); d1.position.set(2, 3, 2); scene.add(d1);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        const d1 = new THREE.DirectionalLight(0xffffff, 0.6); d1.position.set(2, 3, 2); scene.add(d1);
         const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2, -1, -2); scene.add(d2);
 
-        // ===== Canvas для генерации текстуры =====
-        const bakeCanvas = document.createElement('canvas');
-        bakeCanvas.width = TEX_SIZE;
-        bakeCanvas.height = TEX_SIZE;
-        const bakeCtx = bakeCanvas.getContext('2d', { willReadFrequently: true });
+        // ===== Атлас =====
+        const atlasTex = new THREE.TextureLoader().load('Data/3D/WeaponsAtlas.png');
+        atlasTex.colorSpace = THREE.SRGBColorSpace;
+        atlasTex.flipY = true;                       // дефолт Three.js, совпадает с GL UV
+        atlasTex.wrapS = atlasTex.wrapT = THREE.ClampToEdgeWrapping;
+        atlasTex.minFilter = THREE.LinearFilter;     // без мипмапов — пиксель-арт
+        atlasTex.magFilter = THREE.NearestFilter;
 
-        const bakedTexture = new THREE.CanvasTexture(bakeCanvas);
-        bakedTexture.colorSpace = THREE.SRGBColorSpace;
-        bakedTexture.flipY = false;
-        bakedTexture.minFilter = THREE.LinearFilter;
-        bakedTexture.magFilter = THREE.LinearFilter;
-        bakedTexture.needsUpdate = true;
-
-        // ===== Загрузка атласа как Image =====
-        const atlasImg = new Image();
-        atlasImg.crossOrigin = 'anonymous';
-        atlasImg.src = 'Data/3D/WeaponsAtlas.png';
-
-        let atlasReady = false;
-        atlasImg.onload = () => {
-            atlasReady = true;
-            debugEl.textContent = `Атлас ${atlasImg.width}×${atlasImg.height}`;
+        // ===== Общие uniforms для всех мешей =====
+        const uniforms = {
+            uTiling: { value: new THREE.Vector2(1, 1) },
+            uOffset: { value: new THREE.Vector2(0, 0) },
         };
-        atlasImg.onerror = () => {
-            debugEl.textContent = 'Ошибка атласа';
-        };
+
+        // ===== Материал с патчем шейдера =====
+        function makeMaterial() {
+            const mat = new THREE.MeshStandardMaterial({
+                map: atlasTex,
+                metalness: 0.2,
+                roughness: 0.7,
+                side: THREE.DoubleSide,
+            });
+            mat.onBeforeCompile = (shader) => {
+                shader.uniforms.uTiling = uniforms.uTiling;
+                shader.uniforms.uOffset = uniforms.uOffset;
+
+                shader.fragmentShader = shader.fragmentShader
+                    .replace('#include <common>', `#include <common>
+                        uniform vec2 uTiling;
+                        uniform vec2 uOffset;
+                    `)
+                    .replace('#include <map_fragment>', `
+                        vec2 atlasUv = vMapUv * uTiling + uOffset;
+                        vec4 sampledDiffuseColor = texture2D( map, atlasUv );
+                        diffuseColor *= sampledDiffuseColor;
+                    `);
+            };
+            return mat;
+        }
 
         // ===== Модель =====
         const BASE = 'Data/3D/Weapon/AK-47/';
@@ -140,32 +153,7 @@
                 (obj) => {
                     obj.traverse(child => {
                         if (child.isMesh && child.geometry) {
-                            child.material = new THREE.MeshStandardMaterial({
-                                map: bakedTexture,
-                                metalness: 0.2,
-                                roughness: 0.7,
-                                side: THREE.DoubleSide
-                            });
-                            const uvAttr = child.geometry.attributes.uv;
-                            if (uvAttr) {
-                                child.userData.partName = partName;
-                                let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
-                                const a = uvAttr.array;
-                                for (let i = 0; i < a.length; i += 2) {
-                                    const u = a[i], v = a[i+1];
-                                    if (u < uMin) uMin = u;
-                                    if (u > uMax) uMax = u;
-                                    if (v < vMin) vMin = v;
-                                    if (v > vMax) vMax = v;
-                                }
-                                child.userData.uvBounds = {
-                                    uMin, vMin,
-                                    uRange: (uMax - uMin) || 0.0001,
-                                    vRange: (vMax - vMin) || 0.0001,
-                                };
-                                if (!meshesByPart[partName]) meshesByPart[partName] = [];
-                                meshesByPart[partName].push(child);
-                            }
+                            child.material = makeMaterial();
                         }
                     });
                     group.add(obj);
@@ -189,159 +177,42 @@
             group.position.sub(center);
             group.scale.setScalar(3.0 / maxDim);
             scene.add(group);
+
             camera.position.set(0, 0, 4);
             controls.target.set(0, 0, 0);
             controls.update();
 
-            // Отладка: список частей с UV-диапазонами
-            let dbg = `Частей: ${Object.keys(meshesByPart).length}\n`;
-            Object.entries(meshesByPart).forEach(([name, meshes]) => {
-                meshes.forEach(m => {
-                    const b = m.userData.uvBounds;
-                    if (b) {
-                        dbg += `${name}: U[${b.uMin.toFixed(2)},${(b.uMin+b.uRange).toFixed(2)}] V[${b.vMin.toFixed(2)},${(b.vMin+b.vRange).toFixed(2)}]\n`;
-                    }
-                });
-            });
+            applySkin(SKINS[currentSkin]);
+            buildSkinButtons();
+            resize();
+            loadingEl.style.display = 'none';
+
+            let dbg = `UV модели: U[${UV_MIN_U}, ${UV_MAX_U}] V[${UV_MIN_V}, ${UV_MAX_V}]\n`;
+            dbg += `Спрайт: ${SKINS[currentSkin].name}\n`;
+            dbg += `Tiling: ${uniforms.uTiling.value.x.toFixed(4)}, ${uniforms.uTiling.value.y.toFixed(4)}\n`;
+            dbg += `Offset: ${uniforms.uOffset.value.x.toFixed(4)}, ${uniforms.uOffset.value.y.toFixed(4)}`;
             debugEl.textContent = dbg;
-
-            // Ждём атлас
-            const waitAtlas = setInterval(() => {
-                if (atlasReady) {
-                    clearInterval(waitAtlas);
-                    bakeAllParts();
-                    loadingEl.style.display = 'none';
-                    buildSkinButtons();
-                    resize();
-                }
-            }, 100);
         }
 
-        // ===== Запекание всех частей =====
-        function bakeAllParts() {
-            loadingEl.style.display = 'block';
-            loadingEl.textContent = 'Генерация текстуры...';
-            const t0 = performance.now();
+        // ===== Применение скина =====
+        function applySkin(sprite) {
+            const su = sprite.w / ATLAS_SIZE;
+            const sv = sprite.h / ATLAS_SIZE;
 
-            bakeCtx.fillStyle = '#202126';
-            bakeCtx.fillRect(0, 0, TEX_SIZE, TEX_SIZE);
+            // Tiling: сжимаем диапазон UV модели до размера спрайта
+            const tilingX = su / UV_RANGE_U;
+            const tilingY = sv / UV_RANGE_V;
 
-            const atlasCanvas = document.createElement('canvas');
-            atlasCanvas.width = ATLAS_SIZE;
-            atlasCanvas.height = ATLAS_SIZE;
-            const atlasCtx = atlasCanvas.getContext('2d');
-            atlasCtx.drawImage(atlasImg, 0, 0);
-            const atlasData = atlasCtx.getImageData(0, 0, ATLAS_SIZE, ATLAS_SIZE).data;
+            // Offset: сдвигаем к позиции спрайта
+            // V в GL снизу, спрайт в атласе — сверху, поэтому y инвертируем
+            const offsetX = sprite.x / ATLAS_SIZE - UV_MIN_U * tilingX;
+            const offsetY = (ATLAS_SIZE - sprite.y - sprite.h) / ATLAS_SIZE - UV_MIN_V * tilingY;
 
-            const outData = bakeCtx.getImageData(0, 0, TEX_SIZE, TEX_SIZE);
-            const out = outData.data;
-
-            let totalTriangles = 0;
-            let bakedPixels = 0;
-
-            Object.entries(meshesByPart).forEach(([partName, meshes]) => {
-                meshes.forEach(mesh => {
-                    const res = bakeMesh(mesh, atlasData, out);
-                    totalTriangles += res.triangles;
-                    bakedPixels += res.pixels;
-                });
-            });
-
-            bakeCtx.putImageData(outData, 0, 0);
-            bakedTexture.needsUpdate = true;
-
-            const t1 = performance.now();
-            debugEl.textContent = `Запечено за ${((t1 - t0) / 1000).toFixed(2)}с\nТреугольников: ${totalTriangles}\nПикселей: ${bakedPixels}`;
+            uniforms.uTiling.value.set(tilingX, tilingY);
+            uniforms.uOffset.value.set(offsetX, offsetY);
         }
 
-        // ===== Запекание одного меша =====
-        function bakeMesh(mesh, atlasData, out) {
-            const geom = mesh.geometry;
-            const posAttr = geom.attributes.position;
-            const uvAttr = geom.attributes.uv;
-            const index = geom.index;
-            if (!uvAttr) return { triangles: 0, pixels: 0 };
-
-            const bounds = mesh.userData.uvBounds;
-            if (!bounds) return { triangles: 0, pixels: 0 };
-
-            const sprite = SKINS[currentSkin];
-            const { uMin, vMin, uRange, vRange } = bounds;
-
-            const sprite_u_off = sprite.x / ATLAS_SIZE;
-            const sprite_v_off = (ATLAS_SIZE - sprite.y - sprite.h) / ATLAS_SIZE;
-            const sprite_u_size = sprite.w / ATLAS_SIZE;
-            const sprite_v_size = sprite.h / ATLAS_SIZE;
-
-            const W = TEX_SIZE, H = TEX_SIZE;
-            let pixels = 0;
-
-            const triCount = index ? index.count / 3 : posAttr.count / 3;
-            for (let t = 0; t < triCount; t++) {
-                let i0, i1, i2;
-                if (index) {
-                    i0 = index.getX(t * 3);
-                    i1 = index.getX(t * 3 + 1);
-                    i2 = index.getX(t * 3 + 2);
-                } else {
-                    i0 = t * 3;
-                    i1 = t * 3 + 1;
-                    i2 = t * 3 + 2;
-                }
-
-                const u0 = uvAttr.getX(i0), v0 = uvAttr.getY(i0);
-                const u1 = uvAttr.getX(i1), v1 = uvAttr.getY(i1);
-                const u2 = uvAttr.getX(i2), v2 = uvAttr.getY(i2);
-
-                // НОРМАЛИЗУЕМ UV модели в 0..1
-                const nu0 = (u0 - uMin) / uRange, nv0 = (v0 - vMin) / vRange;
-                const nu1 = (u1 - uMin) / uRange, nv1 = (v1 - vMin) / vRange;
-                const nu2 = (u2 - uMin) / uRange, nv2 = (v2 - vMin) / vRange;
-
-                const x0 = nu0 * W, y0 = nv0 * H;
-                const x1 = nu1 * W, y1 = nv1 * H;
-                const x2 = nu2 * W, y2 = nv2 * H;
-
-                const minX = Math.max(0, Math.floor(Math.min(x0, x1, x2)));
-                const maxX = Math.min(W - 1, Math.ceil(Math.max(x0, x1, x2)));
-                const minY = Math.max(0, Math.floor(Math.min(y0, y1, y2)));
-                const maxY = Math.min(H - 1, Math.ceil(Math.max(y0, y1, y2)));
-
-                const denom = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2);
-                if (Math.abs(denom) < 0.0001) continue;
-
-                for (let py = minY; py <= maxY; py++) {
-                    for (let px = minX; px <= maxX; px++) {
-                        const l0 = ((y1 - y2) * (px - x2) + (x2 - x1) * (py - y2)) / denom;
-                        const l1 = ((y2 - y0) * (px - x2) + (x0 - x2) * (py - y2)) / denom;
-                        const l2 = 1 - l0 - l1;
-                        if (l0 < 0 || l1 < 0 || l2 < 0) continue;
-
-                        const nU = l0 * nu0 + l1 * nu1 + l2 * nu2;
-                        const nV = l0 * nv0 + l1 * nv1 + l2 * nv2;
-
-                        const su = nU * sprite_u_size + sprite_u_off;
-                        const sv = nV * sprite_v_size + sprite_v_off;
-
-                        const ax = Math.floor(su * ATLAS_SIZE);
-                        const ay = Math.floor((1 - sv) * ATLAS_SIZE);
-                        if (ax < 0 || ax >= ATLAS_SIZE || ay < 0 || ay >= ATLAS_SIZE) continue;
-
-                        const ai = (ay * ATLAS_SIZE + ax) * 4;
-                        const oi = (py * W + px) * 4;
-
-                        out[oi] = atlasData[ai];
-                        out[oi+1] = atlasData[ai+1];
-                        out[oi+2] = atlasData[ai+2];
-                        out[oi+3] = 255;
-                        pixels++;
-                    }
-                }
-            }
-            return { triangles: triCount, pixels };
-        }
-
-        // ===== Кнопки скинов =====
+        // ===== Кнопки =====
         function buildSkinButtons() {
             btnsEl.innerHTML = '';
             Object.entries(SKINS).forEach(([idx, skin]) => {
@@ -350,13 +221,14 @@
                 btn.textContent = skin.name;
                 btn.addEventListener('click', () => {
                     currentSkin = parseInt(idx);
+                    applySkin(SKINS[currentSkin]);
                     buildSkinButtons();
-                    loadingEl.style.display = 'block';
-                    loadingEl.textContent = 'Генерация...';
-                    setTimeout(() => {
-                        bakeAllParts();
-                        loadingEl.style.display = 'none';
-                    }, 50);
+
+                    let dbg = `UV модели: U[${UV_MIN_U}, ${UV_MAX_U}] V[${UV_MIN_V}, ${UV_MAX_V}]\n`;
+                    dbg += `Спрайт: ${SKINS[currentSkin].name}\n`;
+                    dbg += `Tiling: ${uniforms.uTiling.value.x.toFixed(4)}, ${uniforms.uTiling.value.y.toFixed(4)}\n`;
+                    dbg += `Offset: ${uniforms.uOffset.value.x.toFixed(4)}, ${uniforms.uOffset.value.y.toFixed(4)}`;
+                    debugEl.textContent = dbg;
                 });
                 btnsEl.appendChild(btn);
             });
@@ -364,8 +236,8 @@
 
         // ===== Ресайз =====
         function resize() {
-            const canvas = document.getElementById('canvas-container');
-            const w = canvas.clientWidth, h = canvas.clientHeight;
+            const c = document.getElementById('canvas-container');
+            const w = c.clientWidth, h = c.clientHeight;
             if (w === 0 || h === 0) return;
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
