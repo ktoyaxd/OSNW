@@ -11,15 +11,20 @@
     #canvas-container { position: fixed; inset: 0; }
     #panel {
         position: fixed; bottom: 0; left: 0; right: 0;
-        background: rgba(0,0,0,0.85); padding: 10px 12px 16px;
+        background: rgba(0,0,0,0.88); padding: 10px 12px 14px;
         z-index: 40; font-size: 11px; font-family: monospace;
-        display: grid; grid-template-columns: 60px 1fr 60px; gap: 4px 8px;
-        align-items: center;
+    }
+    #inputs {
+        display: grid; grid-template-columns: auto 1fr auto 1fr;
+        gap: 6px 8px; align-items: center; margin-bottom: 8px;
     }
     #panel label { color: #6a8aff; }
-    #panel input[type=range] { width: 100%; }
-    #panel .val { color: #FFD700; text-align: right; }
-    #skins { display: flex; gap: 6px; margin-top: 8px; grid-column: 1 / -1; justify-content: center; }
+    #panel input[type=number] {
+        width: 100%; background: #2D3037; color: #FFD700;
+        border: 1px solid #444; padding: 6px 8px;
+        font-family: monospace; font-size: 13px;
+    }
+    #skins { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
     #skins .btn { background: #2D3037; color: #fff; border: 2px solid #444;
         padding: 6px 12px; font-size: 12px; font-family: inherit; cursor: pointer; }
     #skins .btn.active { background: #FFD700; color: #202126; border-color: #FFD700; }
@@ -30,6 +35,7 @@
     #loading { position: fixed; top: 50%; left: 50%;
         transform: translate(-50%,-50%); color: #FFD700; font-size: 14px;
         z-index: 200; text-align: center; }
+    .preset { background: #3a2f00 !important; border-color: #FFD700 !important; color: #FFD700 !important; }
 </style>
 </head>
 <body>
@@ -37,10 +43,12 @@
 <div id="debug"></div>
 <div id="loading">Загрузка...</div>
 <div id="panel">
-    <label>TX</label><input type="range" id="tx" min="0" max="2" step="0.001" value="0.0845"><span class="val" id="txv">0.0845</span>
-    <label>TY</label><input type="range" id="ty" min="0" max="2" step="0.001" value="0.2717"><span class="val" id="tyv">0.2717</span>
-    <label>OX</label><input type="range" id="ox" min="-1" max="1" step="0.001" value="0.1465"><span class="val" id="oxv">0.1465</span>
-    <label>OY</label><input type="range" id="oy" min="-1" max="1" step="0.001" value="0.5786"><span class="val" id="oyv">0.5786</span>
+    <div id="inputs">
+        <label>TX</label><input type="number" id="tx" step="0.0001" value="0.0845">
+        <label>TY</label><input type="number" id="ty" step="0.0001" value="0.2717">
+        <label>OX</label><input type="number" id="ox" step="0.0001" value="0.1465">
+        <label>OY</label><input type="number" id="oy" step="0.0001" value="0.5786">
+    </div>
     <div id="skins"></div>
 </div>
 
@@ -154,52 +162,91 @@ function onAllLoaded() {
 function updateDebug() {
     debugEl.textContent =
         `Скин: ${SKINS[currentSkin].name}\n` +
-        `TX: ${uniforms.uTiling.value.x.toFixed(4)}\n` +
-        `TY: ${uniforms.uTiling.value.y.toFixed(4)}\n` +
-        `OX: ${uniforms.uOffset.value.x.toFixed(4)}\n` +
-        `OY: ${uniforms.uOffset.value.y.toFixed(4)}`;
+        `TX: ${uniforms.uTiling.value.x}\n` +
+        `TY: ${uniforms.uTiling.value.y}\n` +
+        `OX: ${uniforms.uOffset.value.x}\n` +
+        `OY: ${uniforms.uOffset.value.y}`;
 }
 
-function bindSlider(id, valId, uniformKey, axis) {
+// ---- Ввод чисел вручную ----
+function bindInput(id, uniformKey, axis) {
     const el = document.getElementById(id);
-    const v = document.getElementById(valId);
-    el.addEventListener('input', () => {
-        const value = parseFloat(el.value);
-        v.textContent = value.toFixed(4);
-        if (axis === 'x') uniforms[uniformKey].value.x = value;
-        else uniforms[uniformKey].value.y = value;
+    const apply = () => {
+        const v = parseFloat(el.value);
+        if (isNaN(v)) return;
+        if (axis === 'x') uniforms[uniformKey].value.x = v;
+        else uniforms[uniformKey].value.y = v;
         updateDebug();
-    });
+    };
+    el.addEventListener('input', apply);
+    el.addEventListener('change', apply);
 }
-bindSlider('tx', 'txv', 'uTiling', 'x');
-bindSlider('ty', 'tyv', 'uTiling', 'y');
-bindSlider('ox', 'oxv', 'uOffset', 'x');
-bindSlider('oy', 'oyv', 'uOffset', 'y');
+bindInput('tx', 'uTiling', 'x');
+bindInput('ty', 'uTiling', 'y');
+bindInput('ox', 'uOffset', 'x');
+bindInput('oy', 'uOffset', 'y');
+
+function setInputs() {
+    document.getElementById('tx').value = uniforms.uTiling.value.x;
+    document.getElementById('ty').value = uniforms.uTiling.value.y;
+    document.getElementById('ox').value = uniforms.uOffset.value.x;
+    document.getElementById('oy').value = uniforms.uOffset.value.y;
+    updateDebug();
+}
+
+// ---- Автопресеты ----
+function applyPreset(tx, ty, ox, oy) {
+    uniforms.uTiling.value.set(tx, ty);
+    uniforms.uOffset.value.set(ox, oy);
+    setInputs();
+}
+
+// Авто-расчёт offset по спрайту (для кнопок скинов)
+function offsetForSprite(s, tx, ty) {
+    // Хотим, чтобы UV-диапазон модели [0..0.74]x[0..0.23] после tiling+offset
+    // попал в спрайт. Считаем через центр: сдвигаем так, чтобы bbox модели
+    // лёг в нижний-левый угол спрайта.
+    const su = s.w / ATLAS_SIZE;
+    const sv = s.h / ATLAS_SIZE;
+    const U_MIN = 0.0, V_MIN = 0.0;
+    const ox = s.x / ATLAS_SIZE - U_MIN * tx;
+    const oy = (ATLAS_SIZE - s.y - s.h) / ATLAS_SIZE - V_MIN * ty;
+    return { ox, oy };
+}
 
 function buildSkinButtons() {
     const el = document.getElementById('skins');
     el.innerHTML = '';
+
+    // Кнопки скинов
     Object.entries(SKINS).forEach(([idx, s]) => {
         const b = document.createElement('button');
         b.className = 'btn' + (parseInt(idx) === currentSkin ? ' active' : '');
         b.textContent = s.name;
         b.addEventListener('click', () => {
             currentSkin = parseInt(idx);
-            // автоустановка offset по спрайту (tiling оставляем как есть)
             const tx = uniforms.uTiling.value.x;
             const ty = uniforms.uTiling.value.y;
-            const su = s.w / ATLAS_SIZE, sv = s.h / ATLAS_SIZE;
-            // базовый offset такой, чтобы uv=(0,0) попал в нижний-левый угол спрайта
-            uniforms.uOffset.value.x = s.x / ATLAS_SIZE - (su / tx - 0) * 0; // пока просто позиция
-            uniforms.uOffset.value.y = (ATLAS_SIZE - s.y - s.h) / ATLAS_SIZE;
-            // синхронизируем слайдеры
-            document.getElementById('ox').value = uniforms.uOffset.value.x;
-            document.getElementById('oxv').textContent = uniforms.uOffset.value.x.toFixed(4);
-            document.getElementById('oy').value = uniforms.uOffset.value.y;
-            document.getElementById('oyv').textContent = uniforms.uOffset.value.y.toFixed(4);
+            const { ox, oy } = offsetForSprite(s, tx, ty);
+            uniforms.uOffset.value.set(ox, oy);
+            setInputs();
             buildSkinButtons();
-            updateDebug();
         });
+        el.appendChild(b);
+    });
+
+    // Пресеты tiling/offset
+    const presets = [
+        { name: '1:1',      tx: 1,       ty: 1,       ox: 0,    oy: 0 },
+        { name: '1 спрайт', tx: 0.0845,  ty: 0.2717,  ox: 0.1465, oy: 0.5786 },
+        { name: '0.5',      tx: 0.5,     ty: 0.5,     ox: 0,    oy: 0 },
+        { name: '0.25',     tx: 0.25,    ty: 0.25,    ox: 0,    oy: 0 },
+    ];
+    presets.forEach(p => {
+        const b = document.createElement('button');
+        b.className = 'btn preset';
+        b.textContent = p.name;
+        b.addEventListener('click', () => applyPreset(p.tx, p.ty, p.ox, p.oy));
         el.appendChild(b);
     });
 }
