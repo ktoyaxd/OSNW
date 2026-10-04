@@ -6,73 +6,13 @@
     <title>3D Test — OSNW</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            margin: 0;
-            background: #202126;
-            overflow: hidden;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: #fff;
-        }
-        #canvas-container {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw;
-            height: 100vh;
-        }
-        #loading {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: #FFD700;
-            font-size: 16px;
-            z-index: 100;
-            text-align: center;
-        }
-        #debug {
-            position: fixed;
-            top: 16px; left: 16px;
-            color: #6a8aff;
-            font-size: 11px;
-            font-family: monospace;
-            z-index: 100;
-            pointer-events: none;
-            white-space: pre;
-            background: rgba(0,0,0,0.5);
-            padding: 6px 10px;
-            border-radius: 4px;
-        }
-        #skin-bar {
-            position: fixed;
-            bottom: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 8px;
-            z-index: 100;
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 0 16px;
-        }
-        .skin-btn {
-            background: #2D3037;
-            color: #fff;
-            border: 2px solid #444;
-            padding: 8px 16px;
-            font-size: 13px;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.2s;
-            min-width: 90px;
-        }
-        .skin-btn:hover {
-            border-color: #FFD700;
-        }
-        .skin-btn.active {
-            background: #FFD700;
-            color: #202126;
-            border-color: #FFD700;
-            font-weight: 600;
-        }
+        body { margin: 0; background: #202126; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; }
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; }
+        #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #FFD700; font-size: 16px; z-index: 100; text-align: center; }
+        #debug { position: fixed; top: 16px; left: 16px; color: #6a8aff; font-size: 11px; font-family: monospace; z-index: 100; pointer-events: none; white-space: pre; background: rgba(0,0,0,0.5); padding: 6px 10px; border-radius: 4px; max-width: 90vw; max-height: 60vh; overflow: hidden; }
+        #skin-bar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 100; flex-wrap: wrap; justify-content: center; padding: 0 16px; }
+        .skin-btn { background: #2D3037; color: #fff; border: 2px solid #444; padding: 8px 16px; font-size: 13px; font-family: inherit; cursor: pointer; transition: all 0.2s; min-width: 90px; }
+        .skin-btn.active { background: #FFD700; color: #202126; border-color: #FFD700; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -104,153 +44,87 @@
             debugEl.textContent += msg + '\n';
             console.log(msg);
         }
+        function clearLog() { debugEl.textContent = ''; }
 
-        // === Атлас: координаты спрайтов ===
-        // 1-0: x=300, y=735, w=128, h=128
-        // 1-1: x=300, y=705, w=128, h=128
-        // 1-2: x=300, y=675, w=128, h=128
+        // ===== АТЛАС =====
         const ATLAS_SIZE = 2048;
-        const SKINS = [
-            { name: 'Skin 1 (1-0)', x: 300, y: 735, w: 128, h: 128 },
-            { name: 'Skin 2 (1-1)', x: 300, y: 705, w: 128, h: 128 },
-            { name: 'Skin 3 (1-2)', x: 300, y: 675, w: 128, h: 128 },
-        ];
+        const SKINS = {
+            0: { name: '1-0', x: 300, y: 735, w: 128, h: 128 },
+            1: { name: '1-1', x: 300, y: 705, w: 128, h: 128 },
+            2: { name: '1-2', x: 300, y: 675, w: 128, h: 128 },
+        };
 
-        // === Сцена ===
+        // ===== СЦЕНА =====
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x202126);
 
-        // === Камера ===
-        const camera = new THREE.PerspectiveCamera(
-            45,
-            window.innerWidth / window.innerHeight,
-            0.01,
-            1000
-        );
+        const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.01, 1000);
         camera.position.set(0, 0, 4);
 
-        // === Рендерер ===
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(innerWidth, innerHeight);
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        // === Управление ===
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.1;
         controls.enablePan = false;
-        controls.minDistance = 1;
-        controls.maxDistance = 15;
 
-        // === Свет ===
         scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-        const d1 = new THREE.DirectionalLight(0xffffff, 0.7);
-        d1.position.set(2, 3, 2);
-        scene.add(d1);
-        const d2 = new THREE.DirectionalLight(0xffffff, 0.4);
-        d2.position.set(-2, -1, -2);
-        scene.add(d2);
+        const d1 = new THREE.DirectionalLight(0xffffff, 0.7); d1.position.set(2, 3, 2); scene.add(d1);
+        const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2, -1, -2); scene.add(d2);
 
-        // === Атлас ===
+        // ===== АТЛАС =====
         const atlasTexture = new THREE.TextureLoader().load(
             'Data/3D/WeaponsAtlas.png',
-            () => log('Атлас загружен: ' + atlasTexture.image.width + '×' + atlasTexture.image.height),
+            () => log(`Атлас загружен: ${atlasTexture.image.width}×${atlasTexture.image.height}`),
             undefined,
             (err) => log('ОШИБКА атласа: ' + err)
         );
         atlasTexture.colorSpace = THREE.SRGBColorSpace;
-        atlasTexture.wrapS = THREE.ClampToEdgeWrapping;
-        atlasTexture.wrapT = THREE.ClampToEdgeWrapping;
+        atlasTexture.flipY = false;  // ВАЖНО для OBJLoader
+        // UV у модели уже в атласных координатах — не трогаем
 
-        // Применяем смещение для скина
-        function applySkin(index) {
-            const skin = SKINS[index];
-            if (!skin) return;
-
-            // UV модели в диапазоне [0.13, 0.28] по обеим осям
-            // Это ~ 0.15 от всего UV пространства
-            const UV_MIN = 0.13;
-            const UV_MAX = 0.28;
-            const UV_SIZE = UV_MAX - UV_MIN;  // ~0.15
-
-            // Спрайт в атласе в UV-координатах
-            const sprite_u = skin.x / ATLAS_SIZE;
-            const sprite_v = 1.0 - (skin.y + skin.h) / ATLAS_SIZE;  // Y флипаем
-            const sprite_w = skin.w / ATLAS_SIZE;
-            const sprite_h = skin.h / ATLAS_SIZE;
-
-            // Формула: 
-            // final_uv = (uv_model - UV_MIN) * (sprite_size / UV_SIZE) + sprite_offset
-            // В Three.js: texture.repeat = sprite_size / UV_SIZE
-            //             texture.offset = sprite_offset - UV_MIN * repeat
-
-            const repeatX = sprite_w / UV_SIZE;
-            const repeatY = sprite_h / UV_SIZE;
-            const offsetX = sprite_u - UV_MIN * repeatX;
-            const offsetY = sprite_v - UV_MIN * repeatY;
-
-            atlasTexture.repeat.set(repeatX, repeatY);
-            atlasTexture.offset.set(offsetX, offsetY);
-            atlasTexture.needsUpdate = true;
-
-            log(`Скин: ${skin.name}`);
-            log(`  repeat: ${repeatX.toFixed(4)}, ${repeatY.toFixed(4)}`);
-            log(`  offset: ${offsetX.toFixed(4)}, ${offsetY.toFixed(4)}`);
-        }
-
-        // === Модель ===
-        const PARTS = [
-            'Object001.obj', 'Object002.obj', 'Object003.obj',
-            'Object004.obj', 'Object005.obj', 'Object006.obj',
-            'Object007.obj', 'Object008.obj', 'Object009.obj'
-        ];
+        // ===== МОДЕЛЬ =====
+        const PARTS = ['Object001','Object002','Object003','Object004','Object005','Object006','Object007','Object008','Object009'];
         const BASE = 'Data/3D/Weapon/AK-47/';
         const loader = new OBJLoader();
         const group = new THREE.Group();
         let loaded = 0;
 
-        // Собираем все UV из всех частей — для отладки
-        const allUVs = [];
+        // Сохраняем оригинальные UV для каждой части
+        const originalUVs = {};  // key: имя части, value: Float32Array
 
-        PARTS.forEach((filename) => {
+        PARTS.forEach((name) => {
             loader.load(
-                BASE + filename,
+                BASE + name + '.obj',
                 (obj) => {
                     obj.traverse((child) => {
                         if (child.isMesh && child.geometry) {
-                            // Материал с атласом
                             child.material = new THREE.MeshStandardMaterial({
                                 map: atlasTexture,
                                 metalness: 0.2,
                                 roughness: 0.7,
                                 side: THREE.DoubleSide
                             });
-
-                            // Собираем UV для отладки
+                            // Сохраняем UV
                             const uvAttr = child.geometry.attributes.uv;
                             if (uvAttr) {
-                                for (let i = 0; i < uvAttr.count; i++) {
-                                    allUVs.push(uvAttr.getX(i), uvAttr.getY(i));
-                                }
+                                originalUVs[name] = new Float32Array(uvAttr.array);
                             }
                         }
                     });
                     group.add(obj);
                     loaded++;
                     document.getElementById('loading').textContent = `Загрузка: ${loaded}/${PARTS.length}`;
-
-                    if (loaded === PARTS.length) {
-                        onAllLoaded();
-                    }
+                    if (loaded === PARTS.length) onAllLoaded();
                 },
                 undefined,
                 (err) => {
-                    log('ОШИБКА: ' + filename);
+                    log('ОШИБКА: ' + name);
                     loaded++;
-                    if (loaded === PARTS.length) {
-                        onAllLoaded();
-                    }
+                    if (loaded === PARTS.length) onAllLoaded();
                 }
             );
         });
@@ -258,79 +132,108 @@
         function onAllLoaded() {
             document.getElementById('loading').style.display = 'none';
 
-            // Отладка UV
-            if (allUVs.length > 0) {
-                let minU = Infinity, maxU = -Infinity;
-                let minV = Infinity, maxV = -Infinity;
-                for (let i = 0; i < allUVs.length; i += 2) {
-                    const u = allUVs[i];
-                    const v = allUVs[i + 1];
-                    if (u < minU) minU = u;
-                    if (u > maxU) maxU = u;
-                    if (v < minV) minV = v;
-                    if (v > maxV) maxV = v;
-                }
-                log(`UV диапазон: U[${minU.toFixed(4)}, ${maxU.toFixed(4)}] V[${minV.toFixed(4)}, ${maxV.toFixed(4)}]`);
-            }
-
-            // Центрируем всю группу
+            // Центрируем
             const box = new THREE.Box3().setFromObject(group);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
-
-            log(`Размер: ${size.x.toFixed(3)} × ${size.y.toFixed(3)} × ${size.z.toFixed(3)}`);
-
             group.position.sub(center);
             group.scale.setScalar(3.0 / maxDim);
 
-            // === Зеркальные копии ===
-            // Левая копия
-            const leftCopy = group.clone();
-            leftCopy.position.x = -2.5;
-            // Правая копия
-            const rightCopy = group.clone();
-            rightCopy.position.x = 2.5;
-            // Центральная — уже есть (group)
-            group.position.x = 0;
-
-            scene.add(leftCopy);
             scene.add(group);
-            scene.add(rightCopy);
-
-            // Камера под 3 модели
-            camera.position.set(0, 0, 6);
+            camera.position.set(0, 0, 4);
             controls.target.set(0, 0, 0);
             controls.update();
 
-            // Ставим первый скин
             applySkin(0);
         }
 
-        // === Кнопки скинов ===
+        // ===== ПЕРЕСЧЁТ UV =====
+        function applySkin(skinIdx) {
+            clearLog();
+            const sprite = SKINS[skinIdx];
+            if (!sprite) return;
+
+            // Координаты спрайта в UV-пространстве атласа
+            const u_sprite = sprite.x / ATLAS_SIZE;
+            const v_sprite = (sprite.y) / ATLAS_SIZE;  // flipY=false → y сверху
+            const u_size = sprite.w / ATLAS_SIZE;
+            const v_size = sprite.h / ATLAS_SIZE;
+
+            log(`Скин: ${sprite.name}`);
+            log(`sprite UV: u=${u_sprite.toFixed(3)} v=${v_sprite.toFixed(3)} size=${u_size.toFixed(3)}×${v_size.toFixed(3)}`);
+
+            // Перебираем все меши в группе
+            group.traverse((child) => {
+                if (!child.isMesh || !child.geometry) return;
+
+                const name = child.name.replace(/\s+/g, '') || Object.keys(originalUVs).find(k => child.parent.name.includes(k));
+                
+                // Ищем оригинальные UV по имени родителя
+                let origUV = null;
+                for (const key of Object.keys(originalUVs)) {
+                    if (child.parent && child.parent.name && child.parent.name.includes(key)) {
+                        origUV = originalUVs[key];
+                        break;
+                    }
+                }
+                if (!origUV) {
+                    // Фолбэк: ищем первый попавшийся
+                    origUV = originalUVs[Object.keys(originalUVs)[0]];
+                }
+
+                const uvAttr = child.geometry.attributes.uv;
+                if (!uvAttr) return;
+
+                // Считаем min/max UV этой части
+                let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
+                for (let i = 0; i < origUV.length; i += 2) {
+                    const u = origUV[i];
+                    const v = origUV[i + 1];
+                    if (u < uMin) uMin = u;
+                    if (u > uMax) uMax = u;
+                    if (v < vMin) vMin = v;
+                    if (v > vMax) vMax = v;
+                }
+
+                const uRange = uMax - uMin || 0.0001;
+                const vRange = vMax - vMin || 0.0001;
+
+                log(`  ${child.parent?.name || '?'} UV: U[${uMin.toFixed(3)},${uMax.toFixed(3)}] V[${vMin.toFixed(3)},${vMax.toFixed(3)}]`);
+
+                // Пересчитываем
+                for (let i = 0; i < uvAttr.count; i++) {
+                    const u0 = origUV[i * 2];
+                    const v0 = origUV[i * 2 + 1];
+                    const uNorm = (u0 - uMin) / uRange;
+                    const vNorm = (v0 - vMin) / vRange;
+                    uvAttr.setXY(i, uNorm * u_size + u_sprite, vNorm * v_size + v_sprite);
+                }
+                uvAttr.needsUpdate = true;
+            });
+        }
+
+        // ===== КНОПКИ =====
         document.querySelectorAll('.skin-btn').forEach((btn) => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.skin-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                const idx = parseInt(btn.dataset.skin, 10);
-                applySkin(idx);
+                applySkin(parseInt(btn.dataset.skin, 10));
             });
         });
 
-        // === Ресайз ===
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
+        // ===== РЕСАЙЗ И АНИМАЦИЯ =====
+        addEventListener('resize', () => {
+            camera.aspect = innerWidth / innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setSize(innerWidth, innerHeight);
         });
 
-        // === Анимация ===
-        function animate() {
+        (function animate() {
             requestAnimationFrame(animate);
             controls.update();
             renderer.render(scene, camera);
-        }
-        animate();
+        })();
     </script>
 </body>
 </html>
