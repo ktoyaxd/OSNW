@@ -9,7 +9,7 @@
         body { margin: 0; background: #202126; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; }
         #canvas-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; }
         #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #FFD700; font-size: 16px; z-index: 100; text-align: center; }
-        #debug { position: fixed; top: 16px; left: 16px; color: #6a8aff; font-size: 11px; font-family: monospace; z-index: 100; pointer-events: none; white-space: pre; background: rgba(0,0,0,0.5); padding: 6px 10px; border-radius: 4px; max-width: 90vw; max-height: 60vh; overflow: hidden; }
+        #debug { position: fixed; top: 16px; left: 16px; color: #6a8aff; font-size: 10px; font-family: monospace; z-index: 100; pointer-events: none; white-space: pre; background: rgba(0,0,0,0.6); padding: 6px 10px; border-radius: 4px; max-width: 95vw; max-height: 50vh; overflow: hidden; line-height: 1.3; }
         #skin-bar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 100; flex-wrap: wrap; justify-content: center; padding: 0 16px; }
         .skin-btn { background: #2D3037; color: #fff; border: 2px solid #444; padding: 8px 16px; font-size: 13px; font-family: inherit; cursor: pointer; transition: all 0.2s; min-width: 90px; }
         .skin-btn.active { background: #FFD700; color: #202126; border-color: #FFD700; font-weight: 600; }
@@ -78,13 +78,12 @@
         // ===== АТЛАС =====
         const atlasTexture = new THREE.TextureLoader().load(
             'Data/3D/WeaponsAtlas.png',
-            () => log(`Атлас загружен: ${atlasTexture.image.width}×${atlasTexture.image.height}`),
+            () => log(`Атлас: ${atlasTexture.image.width}×${atlasTexture.image.height}`),
             undefined,
             (err) => log('ОШИБКА атласа: ' + err)
         );
         atlasTexture.colorSpace = THREE.SRGBColorSpace;
-        atlasTexture.flipY = false;  // ВАЖНО для OBJLoader
-        // UV у модели уже в атласных координатах — не трогаем
+        atlasTexture.flipY = false;
 
         // ===== МОДЕЛЬ =====
         const PARTS = ['Object001','Object002','Object003','Object004','Object005','Object006','Object007','Object008','Object009'];
@@ -93,12 +92,9 @@
         const group = new THREE.Group();
         let loaded = 0;
 
-        // Сохраняем оригинальные UV для каждой части
-        const originalUVs = {};  // key: имя части, value: Float32Array
-
-        PARTS.forEach((name) => {
+        PARTS.forEach((partName) => {
             loader.load(
-                BASE + name + '.obj',
+                BASE + partName + '.obj',
                 (obj) => {
                     obj.traverse((child) => {
                         if (child.isMesh && child.geometry) {
@@ -108,10 +104,11 @@
                                 roughness: 0.7,
                                 side: THREE.DoubleSide
                             });
-                            // Сохраняем UV
+                            // Сохраняем UV прямо на меш
                             const uvAttr = child.geometry.attributes.uv;
                             if (uvAttr) {
-                                originalUVs[name] = new Float32Array(uvAttr.array);
+                                child.userData.originalUV = new Float32Array(uvAttr.array);
+                                child.userData.partName = partName;
                             }
                         }
                     });
@@ -122,7 +119,7 @@
                 },
                 undefined,
                 (err) => {
-                    log('ОШИБКА: ' + name);
+                    log('ОШИБКА: ' + partName);
                     loaded++;
                     if (loaded === PARTS.length) onAllLoaded();
                 }
@@ -132,7 +129,6 @@
         function onAllLoaded() {
             document.getElementById('loading').style.display = 'none';
 
-            // Центрируем
             const box = new THREE.Box3().setFromObject(group);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
@@ -154,36 +150,24 @@
             const sprite = SKINS[skinIdx];
             if (!sprite) return;
 
-            // Координаты спрайта в UV-пространстве атласа
             const u_sprite = sprite.x / ATLAS_SIZE;
-            const v_sprite = (sprite.y) / ATLAS_SIZE;  // flipY=false → y сверху
+            const v_sprite = sprite.y / ATLAS_SIZE;
             const u_size = sprite.w / ATLAS_SIZE;
             const v_size = sprite.h / ATLAS_SIZE;
 
             log(`Скин: ${sprite.name}`);
-            log(`sprite UV: u=${u_sprite.toFixed(3)} v=${v_sprite.toFixed(3)} size=${u_size.toFixed(3)}×${v_size.toFixed(3)}`);
+            log(`sprite: u=${u_sprite.toFixed(3)} v=${v_sprite.toFixed(3)} size=${u_size.toFixed(3)}×${v_size.toFixed(3)}`);
+            log('---');
 
-            // Перебираем все меши в группе
             group.traverse((child) => {
                 if (!child.isMesh || !child.geometry) return;
 
-                const name = child.name.replace(/\s+/g, '') || Object.keys(originalUVs).find(k => child.parent.name.includes(k));
-                
-                // Ищем оригинальные UV по имени родителя
-                let origUV = null;
-                for (const key of Object.keys(originalUVs)) {
-                    if (child.parent && child.parent.name && child.parent.name.includes(key)) {
-                        origUV = originalUVs[key];
-                        break;
-                    }
-                }
+                const origUV = child.userData.originalUV;
+                const partName = child.userData.partName || '?';
                 if (!origUV) {
-                    // Фолбэк: ищем первый попавшийся
-                    origUV = originalUVs[Object.keys(originalUVs)[0]];
+                    log(`${partName}: нет UV`);
+                    return;
                 }
-
-                const uvAttr = child.geometry.attributes.uv;
-                if (!uvAttr) return;
 
                 // Считаем min/max UV этой части
                 let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
@@ -199,9 +183,10 @@
                 const uRange = uMax - uMin || 0.0001;
                 const vRange = vMax - vMin || 0.0001;
 
-                log(`  ${child.parent?.name || '?'} UV: U[${uMin.toFixed(3)},${uMax.toFixed(3)}] V[${vMin.toFixed(3)},${vMax.toFixed(3)}]`);
+                log(`${partName}: U[${uMin.toFixed(2)},${uMax.toFixed(2)}] V[${vMin.toFixed(2)},${vMax.toFixed(2)}]`);
 
-                // Пересчитываем
+                // Пересчитываем UV
+                const uvAttr = child.geometry.attributes.uv;
                 for (let i = 0; i < uvAttr.count; i++) {
                     const u0 = origUV[i * 2];
                     const v0 = origUV[i * 2 + 1];
