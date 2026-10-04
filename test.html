@@ -1,384 +1,224 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Pixel Bake — OSNW</title>
-    <style>
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            margin: 0; background: #202126; overflow: hidden;
-            font-family: 'Segoe UI', Arial, sans-serif; color: #fff;
-            height: 100vh;
-        }
-        #canvas-container {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
-        }
-        .btns {
-            position: fixed; bottom: 12px; left: 50%;
-            transform: translateX(-50%); display: flex; gap: 8px;
-            z-index: 40; flex-wrap: wrap; justify-content: center;
-            padding: 0 12px;
-        }
-        .btn {
-            background: #2D3037; color: #fff; border: 2px solid #444;
-            padding: 8px 14px; font-size: 12px; font-family: inherit;
-            cursor: pointer;
-        }
-        .btn.active {
-            background: #FFD700; color: #202126; border-color: #FFD700;
-        }
-        #debug {
-            position: fixed; top: 12px; left: 12px;
-            color: #6a8aff; font-size: 10px;
-            font-family: monospace; background: rgba(0,0,0,0.6);
-            padding: 6px 8px; border-radius: 4px;
-            pointer-events: none; max-width: 220px; line-height: 1.3;
-            white-space: pre-line;
-        }
-        #loading {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: #FFD700; font-size: 14px; z-index: 200;
-            text-align: center; line-height: 1.6;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>UV Debug — OSNW</title>
+<style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; background: #202126; overflow: hidden;
+        font-family: 'Segoe UI', Arial, sans-serif; color: #fff; height: 100vh; }
+    #canvas-container { position: fixed; inset: 0; }
+    #panel {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        background: rgba(0,0,0,0.85); padding: 10px 12px 16px;
+        z-index: 40; font-size: 11px; font-family: monospace;
+        display: grid; grid-template-columns: 60px 1fr 60px; gap: 4px 8px;
+        align-items: center;
+    }
+    #panel label { color: #6a8aff; }
+    #panel input[type=range] { width: 100%; }
+    #panel .val { color: #FFD700; text-align: right; }
+    #skins { display: flex; gap: 6px; margin-top: 8px; grid-column: 1 / -1; justify-content: center; }
+    #skins .btn { background: #2D3037; color: #fff; border: 2px solid #444;
+        padding: 6px 12px; font-size: 12px; font-family: inherit; cursor: pointer; }
+    #skins .btn.active { background: #FFD700; color: #202126; border-color: #FFD700; }
+    #debug { position: fixed; top: 12px; left: 12px; color: #6a8aff;
+        font-size: 10px; font-family: monospace; background: rgba(0,0,0,0.6);
+        padding: 6px 8px; border-radius: 4px; pointer-events: none;
+        max-width: 240px; line-height: 1.3; white-space: pre-line; }
+    #loading { position: fixed; top: 50%; left: 50%;
+        transform: translate(-50%,-50%); color: #FFD700; font-size: 14px;
+        z-index: 200; text-align: center; }
+</style>
 </head>
 <body>
-    <div id="canvas-container"></div>
-    <div id="debug"></div>
-    <div id="loading">Загрузка...</div>
-    <div class="btns" id="btns"></div>
+<div id="canvas-container"></div>
+<div id="debug"></div>
+<div id="loading">Загрузка...</div>
+<div id="panel">
+    <label>TX</label><input type="range" id="tx" min="0" max="2" step="0.001" value="0.0845"><span class="val" id="txv">0.0845</span>
+    <label>TY</label><input type="range" id="ty" min="0" max="2" step="0.001" value="0.2717"><span class="val" id="tyv">0.2717</span>
+    <label>OX</label><input type="range" id="ox" min="-1" max="1" step="0.001" value="0.1465"><span class="val" id="oxv">0.1465</span>
+    <label>OY</label><input type="range" id="oy" min="-1" max="1" step="0.001" value="0.5786"><span class="val" id="oyv">0.5786</span>
+    <div id="skins"></div>
+</div>
 
-    <script type="importmap">
-    { "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-    }}
-    </script>
+<script type="importmap">
+{ "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
 
-    <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
-        const debugEl = document.getElementById('debug');
-        const btnsEl = document.getElementById('btns');
-        const loadingEl = document.getElementById('loading');
+const debugEl = document.getElementById('debug');
+const loadingEl = document.getElementById('loading');
 
-        // ===== Скины =====
-        const ATLAS_SIZE = 2048;
-        const SKINS = {
-            0: { name: '1-0', x: 300, y: 735, w: 128, h: 128 },
-            1: { name: '1-1', x: 300, y: 705, w: 128, h: 128 },
-            2: { name: '1-2', x: 300, y: 675, w: 128, h: 128 },
-        };
-        let currentSkin = 0;
+const ATLAS_SIZE = 2048;
+const SKINS = {
+    0: { name: '1-0', x: 300, y: 735, w: 128, h: 128 },
+    1: { name: '1-1', x: 300, y: 705, w: 128, h: 128 },
+    2: { name: '1-2', x: 300, y: 675, w: 128, h: 128 },
+};
+let currentSkin = 0;
 
-        const PARTS = ['Object001','Object002','Object003','Object004','Object005','Object006','Object007','Object008','Object009'];
-        const meshesByPart = {};
+const PARTS = ['Object001','Object002','Object003','Object004','Object005',
+               'Object006','Object007','Object008','Object009'];
 
-        const TEX_SIZE = 1024;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x202126);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
+camera.position.set(0, 0, 4);
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+document.getElementById('canvas-container').appendChild(renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.1; controls.enablePan = false;
 
-        // ===== Сцена =====
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x202126);
+scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+const d1 = new THREE.DirectionalLight(0xffffff, 0.6); d1.position.set(2,3,2); scene.add(d1);
+const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2,-1,-2); scene.add(d2);
 
-        const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
-        camera.position.set(0, 0, 4);
+const atlasTex = new THREE.TextureLoader().load('Data/3D/WeaponsAtlas.png');
+atlasTex.colorSpace = THREE.SRGBColorSpace;
+atlasTex.flipY = true;
+atlasTex.wrapS = atlasTex.wrapT = THREE.ClampToEdgeWrapping;
+atlasTex.minFilter = THREE.LinearFilter;
+atlasTex.magFilter = THREE.NearestFilter;
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-        document.getElementById('canvas-container').appendChild(renderer.domElement);
+const uniforms = {
+    uTiling: { value: new THREE.Vector2(0.0845, 0.2717) },
+    uOffset: { value: new THREE.Vector2(0.1465, 0.5786) },
+};
 
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.1;
-        controls.enablePan = false;
+function makeMaterial() {
+    const mat = new THREE.MeshStandardMaterial({
+        map: atlasTex, metalness: 0.2, roughness: 0.7, side: THREE.DoubleSide,
+    });
+    mat.onBeforeCompile = (shader) => {
+        shader.uniforms.uTiling = uniforms.uTiling;
+        shader.uniforms.uOffset = uniforms.uOffset;
+        shader.fragmentShader = shader.fragmentShader
+            .replace('#include <common>', `#include <common>
+                uniform vec2 uTiling;
+                uniform vec2 uOffset;
+            `)
+            .replace('#include <map_fragment>', `
+                vec2 atlasUv = vMapUv * uTiling + uOffset;
+                vec4 sampledDiffuseColor = texture2D( map, atlasUv );
+                diffuseColor *= sampledDiffuseColor;
+            `);
+    };
+    return mat;
+}
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-        const d1 = new THREE.DirectionalLight(0xffffff, 0.7); d1.position.set(2, 3, 2); scene.add(d1);
-        const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2, -1, -2); scene.add(d2);
+const group = new THREE.Group();
+const loader = new OBJLoader();
+let loaded = 0;
 
-        // ===== Canvas для генерации текстуры =====
-        const bakeCanvas = document.createElement('canvas');
-        bakeCanvas.width = TEX_SIZE;
-        bakeCanvas.height = TEX_SIZE;
-        const bakeCtx = bakeCanvas.getContext('2d', { willReadFrequently: true });
+PARTS.forEach(partName => {
+    loader.load('Data/3D/Weapon/AK-47/' + partName + '.obj',
+        (obj) => {
+            obj.traverse(c => { if (c.isMesh && c.geometry) c.material = makeMaterial(); });
+            group.add(obj);
+            loaded++;
+            loadingEl.textContent = `Загрузка: ${loaded}/${PARTS.length}`;
+            if (loaded === PARTS.length) onAllLoaded();
+        },
+        undefined,
+        () => { loaded++; if (loaded === PARTS.length) onAllLoaded(); }
+    );
+});
 
-        const bakedTexture = new THREE.CanvasTexture(bakeCanvas);
-        bakedTexture.colorSpace = THREE.SRGBColorSpace;
-        bakedTexture.flipY = false;
-        bakedTexture.minFilter = THREE.LinearFilter;
-        bakedTexture.magFilter = THREE.LinearFilter;
-        bakedTexture.needsUpdate = true;
+function onAllLoaded() {
+    const box = new THREE.Box3().setFromObject(group);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+    group.position.sub(center);
+    group.scale.setScalar(3.0 / maxDim);
+    scene.add(group);
+    controls.target.set(0, 0, 0);
+    controls.update();
+    loadingEl.style.display = 'none';
+    buildSkinButtons();
+    resize();
+    updateDebug();
+}
 
-        // ===== Загрузка атласа как Image =====
-        const atlasImg = new Image();
-        atlasImg.crossOrigin = 'anonymous';
-        atlasImg.src = 'Data/3D/WeaponsAtlas.png';
+function updateDebug() {
+    debugEl.textContent =
+        `Скин: ${SKINS[currentSkin].name}\n` +
+        `TX: ${uniforms.uTiling.value.x.toFixed(4)}\n` +
+        `TY: ${uniforms.uTiling.value.y.toFixed(4)}\n` +
+        `OX: ${uniforms.uOffset.value.x.toFixed(4)}\n` +
+        `OY: ${uniforms.uOffset.value.y.toFixed(4)}`;
+}
 
-        let atlasReady = false;
-        atlasImg.onload = () => {
-            atlasReady = true;
-            debugEl.textContent = `Атлас ${atlasImg.width}×${atlasImg.height}`;
-        };
-        atlasImg.onerror = () => {
-            debugEl.textContent = 'Ошибка атласа';
-        };
+function bindSlider(id, valId, uniformKey, axis) {
+    const el = document.getElementById(id);
+    const v = document.getElementById(valId);
+    el.addEventListener('input', () => {
+        const value = parseFloat(el.value);
+        v.textContent = value.toFixed(4);
+        if (axis === 'x') uniforms[uniformKey].value.x = value;
+        else uniforms[uniformKey].value.y = value;
+        updateDebug();
+    });
+}
+bindSlider('tx', 'txv', 'uTiling', 'x');
+bindSlider('ty', 'tyv', 'uTiling', 'y');
+bindSlider('ox', 'oxv', 'uOffset', 'x');
+bindSlider('oy', 'oyv', 'uOffset', 'y');
 
-        // ===== Модель =====
-        const BASE = 'Data/3D/Weapon/AK-47/';
-        const loader = new OBJLoader();
-        const group = new THREE.Group();
-        let loaded = 0;
-
-        PARTS.forEach(partName => {
-            loader.load(
-                BASE + partName + '.obj',
-                (obj) => {
-                    obj.traverse(child => {
-                        if (child.isMesh && child.geometry) {
-                            child.material = new THREE.MeshStandardMaterial({
-                                map: bakedTexture,
-                                metalness: 0.2,
-                                roughness: 0.7,
-                                side: THREE.DoubleSide
-                            });
-                            const uvAttr = child.geometry.attributes.uv;
-                            if (uvAttr) {
-                                child.userData.partName = partName;
-                                let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
-                                const a = uvAttr.array;
-                                for (let i = 0; i < a.length; i += 2) {
-                                    const u = a[i], v = a[i+1];
-                                    if (u < uMin) uMin = u;
-                                    if (u > uMax) uMax = u;
-                                    if (v < vMin) vMin = v;
-                                    if (v > vMax) vMax = v;
-                                }
-                                child.userData.uvBounds = {
-                                    uMin, vMin,
-                                    uRange: (uMax - uMin) || 0.0001,
-                                    vRange: (vMax - vMin) || 0.0001,
-                                };
-                                if (!meshesByPart[partName]) meshesByPart[partName] = [];
-                                meshesByPart[partName].push(child);
-                            }
-                        }
-                    });
-                    group.add(obj);
-                    loaded++;
-                    loadingEl.textContent = `Загрузка модели: ${loaded}/${PARTS.length}`;
-                    if (loaded === PARTS.length) onAllLoaded();
-                },
-                undefined,
-                () => {
-                    loaded++;
-                    if (loaded === PARTS.length) onAllLoaded();
-                }
-            );
+function buildSkinButtons() {
+    const el = document.getElementById('skins');
+    el.innerHTML = '';
+    Object.entries(SKINS).forEach(([idx, s]) => {
+        const b = document.createElement('button');
+        b.className = 'btn' + (parseInt(idx) === currentSkin ? ' active' : '');
+        b.textContent = s.name;
+        b.addEventListener('click', () => {
+            currentSkin = parseInt(idx);
+            // автоустановка offset по спрайту (tiling оставляем как есть)
+            const tx = uniforms.uTiling.value.x;
+            const ty = uniforms.uTiling.value.y;
+            const su = s.w / ATLAS_SIZE, sv = s.h / ATLAS_SIZE;
+            // базовый offset такой, чтобы uv=(0,0) попал в нижний-левый угол спрайта
+            uniforms.uOffset.value.x = s.x / ATLAS_SIZE - (su / tx - 0) * 0; // пока просто позиция
+            uniforms.uOffset.value.y = (ATLAS_SIZE - s.y - s.h) / ATLAS_SIZE;
+            // синхронизируем слайдеры
+            document.getElementById('ox').value = uniforms.uOffset.value.x;
+            document.getElementById('oxv').textContent = uniforms.uOffset.value.x.toFixed(4);
+            document.getElementById('oy').value = uniforms.uOffset.value.y;
+            document.getElementById('oyv').textContent = uniforms.uOffset.value.y.toFixed(4);
+            buildSkinButtons();
+            updateDebug();
         });
+        el.appendChild(b);
+    });
+}
 
-        function onAllLoaded() {
-            const box = new THREE.Box3().setFromObject(group);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3());
-            const maxDim = Math.max(size.x, size.y, size.z);
-            group.position.sub(center);
-            group.scale.setScalar(3.0 / maxDim);
-            scene.add(group);
-            camera.position.set(0, 0, 4);
-            controls.target.set(0, 0, 0);
-            controls.update();
+function resize() {
+    const c = document.getElementById('canvas-container');
+    const w = c.clientWidth, h = c.clientHeight;
+    if (!w || !h) return;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h, false);
+}
+addEventListener('resize', resize);
 
-            // Отладка: список частей с UV-диапазонами
-            let dbg = `Частей: ${Object.keys(meshesByPart).length}\n`;
-            Object.entries(meshesByPart).forEach(([name, meshes]) => {
-                meshes.forEach(m => {
-                    const b = m.userData.uvBounds;
-                    if (b) {
-                        dbg += `${name}: U[${b.uMin.toFixed(2)},${(b.uMin+b.uRange).toFixed(2)}] V[${b.vMin.toFixed(2)},${(b.vMin+b.vRange).toFixed(2)}]\n`;
-                    }
-                });
-            });
-            debugEl.textContent = dbg;
-
-            // Ждём атлас
-            const waitAtlas = setInterval(() => {
-                if (atlasReady) {
-                    clearInterval(waitAtlas);
-                    bakeAllParts();
-                    loadingEl.style.display = 'none';
-                    buildSkinButtons();
-                    resize();
-                }
-            }, 100);
-        }
-
-        // ===== Запекание всех частей =====
-        function bakeAllParts() {
-            loadingEl.style.display = 'block';
-            loadingEl.textContent = 'Генерация текстуры...';
-            const t0 = performance.now();
-
-            bakeCtx.fillStyle = '#202126';
-            bakeCtx.fillRect(0, 0, TEX_SIZE, TEX_SIZE);
-
-            const atlasCanvas = document.createElement('canvas');
-            atlasCanvas.width = ATLAS_SIZE;
-            atlasCanvas.height = ATLAS_SIZE;
-            const atlasCtx = atlasCanvas.getContext('2d');
-            atlasCtx.drawImage(atlasImg, 0, 0);
-            const atlasData = atlasCtx.getImageData(0, 0, ATLAS_SIZE, ATLAS_SIZE).data;
-
-            const outData = bakeCtx.getImageData(0, 0, TEX_SIZE, TEX_SIZE);
-            const out = outData.data;
-
-            let totalTriangles = 0;
-            let bakedPixels = 0;
-
-            Object.entries(meshesByPart).forEach(([partName, meshes]) => {
-                meshes.forEach(mesh => {
-                    const res = bakeMesh(mesh, atlasData, out);
-                    totalTriangles += res.triangles;
-                    bakedPixels += res.pixels;
-                });
-            });
-
-            bakeCtx.putImageData(outData, 0, 0);
-            bakedTexture.needsUpdate = true;
-
-            const t1 = performance.now();
-            debugEl.textContent = `Запечено за ${((t1 - t0) / 1000).toFixed(2)}с\nТреугольников: ${totalTriangles}\nПикселей: ${bakedPixels}`;
-        }
-
-        // ===== Запекание одного меша =====
-        function bakeMesh(mesh, atlasData, out) {
-            const geom = mesh.geometry;
-            const posAttr = geom.attributes.position;
-            const uvAttr = geom.attributes.uv;
-            const index = geom.index;
-            if (!uvAttr) return { triangles: 0, pixels: 0 };
-
-            const bounds = mesh.userData.uvBounds;
-            if (!bounds) return { triangles: 0, pixels: 0 };
-
-            const sprite = SKINS[currentSkin];
-            const { uMin, vMin, uRange, vRange } = bounds;
-
-            const sprite_u_off = sprite.x / ATLAS_SIZE;
-            const sprite_v_off = (ATLAS_SIZE - sprite.y - sprite.h) / ATLAS_SIZE;
-            const sprite_u_size = sprite.w / ATLAS_SIZE;
-            const sprite_v_size = sprite.h / ATLAS_SIZE;
-
-            const W = TEX_SIZE, H = TEX_SIZE;
-            let pixels = 0;
-
-            const triCount = index ? index.count / 3 : posAttr.count / 3;
-            for (let t = 0; t < triCount; t++) {
-                let i0, i1, i2;
-                if (index) {
-                    i0 = index.getX(t * 3);
-                    i1 = index.getX(t * 3 + 1);
-                    i2 = index.getX(t * 3 + 2);
-                } else {
-                    i0 = t * 3;
-                    i1 = t * 3 + 1;
-                    i2 = t * 3 + 2;
-                }
-
-                const u0 = uvAttr.getX(i0), v0 = uvAttr.getY(i0);
-                const u1 = uvAttr.getX(i1), v1 = uvAttr.getY(i1);
-                const u2 = uvAttr.getX(i2), v2 = uvAttr.getY(i2);
-
-                // НОРМАЛИЗУЕМ UV модели в 0..1
-                const nu0 = (u0 - uMin) / uRange, nv0 = (v0 - vMin) / vRange;
-                const nu1 = (u1 - uMin) / uRange, nv1 = (v1 - vMin) / vRange;
-                const nu2 = (u2 - uMin) / uRange, nv2 = (v2 - vMin) / vRange;
-
-                // ФИКС: пишем БЕЗ инверсии Y (было (1 - nv0) * H)
-                const x0 = nu0 * W, y0 = nv0 * H;
-                const x1 = nu1 * W, y1 = nv1 * H;
-                const x2 = nu2 * W, y2 = nv2 * H;
-
-                const minX = Math.max(0, Math.floor(Math.min(x0, x1, x2)));
-                const maxX = Math.min(W - 1, Math.ceil(Math.max(x0, x1, x2)));
-                const minY = Math.max(0, Math.floor(Math.min(y0, y1, y2)));
-                const maxY = Math.min(H - 1, Math.ceil(Math.max(y0, y1, y2)));
-
-                const denom = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2);
-                if (Math.abs(denom) < 0.0001) continue;
-
-                for (let py = minY; py <= maxY; py++) {
-                    for (let px = minX; px <= maxX; px++) {
-                        const l0 = ((y1 - y2) * (px - x2) + (x2 - x1) * (py - y2)) / denom;
-                        const l1 = ((y2 - y0) * (px - x2) + (x0 - x2) * (py - y2)) / denom;
-                        const l2 = 1 - l0 - l1;
-                        if (l0 < 0 || l1 < 0 || l2 < 0) continue;
-
-                        const nU = l0 * nu0 + l1 * nu1 + l2 * nu2;
-                        const nV = l0 * nv0 + l1 * nv1 + l2 * nv2;
-
-                        const su = nU * sprite_u_size + sprite_u_off;
-                        const sv = nV * sprite_v_size + sprite_v_off;
-
-                        const ax = Math.floor(su * ATLAS_SIZE);
-                        const ay = Math.floor((1 - sv) * ATLAS_SIZE);
-                        if (ax < 0 || ax >= ATLAS_SIZE || ay < 0 || ay >= ATLAS_SIZE) continue;
-
-                        const ai = (ay * ATLAS_SIZE + ax) * 4;
-                        const oi = (py * W + px) * 4;
-
-                        out[oi] = atlasData[ai];
-                        out[oi+1] = atlasData[ai+1];
-                        out[oi+2] = atlasData[ai+2];
-                        out[oi+3] = 255;
-                        pixels++;
-                    }
-                }
-            }
-            return { triangles: triCount, pixels };
-        }
-
-        // ===== Кнопки скинов =====
-        function buildSkinButtons() {
-            btnsEl.innerHTML = '';
-            Object.entries(SKINS).forEach(([idx, skin]) => {
-                const btn = document.createElement('button');
-                btn.className = 'btn' + (parseInt(idx) === currentSkin ? ' active' : '');
-                btn.textContent = skin.name;
-                btn.addEventListener('click', () => {
-                    currentSkin = parseInt(idx);
-                    buildSkinButtons();
-                    loadingEl.style.display = 'block';
-                    loadingEl.textContent = 'Генерация...';
-                    setTimeout(() => {
-                        bakeAllParts();
-                        loadingEl.style.display = 'none';
-                    }, 50);
-                });
-                btnsEl.appendChild(btn);
-            });
-        }
-
-        // ===== Ресайз =====
-        function resize() {
-            const canvas = document.getElementById('canvas-container');
-            const w = canvas.clientWidth, h = canvas.clientHeight;
-            if (w === 0 || h === 0) return;
-            camera.aspect = w / h;
-            camera.updateProjectionMatrix();
-            renderer.setSize(w, h, false);
-        }
-        addEventListener('resize', resize);
-
-        (function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        })();
-    </script>
+(function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+})();
+</script>
 </body>
 </html>
