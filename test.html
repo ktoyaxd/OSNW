@@ -3,35 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>3D Test — OSNW</title>
+    <title>UV Tuner — OSNW</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: #202126; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; color: #fff; }
-        #canvas-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; }
-        #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #FFD700; font-size: 16px; z-index: 100; text-align: center; }
-        #debug { position: fixed; top: 16px; left: 16px; color: #6a8aff; font-size: 10px; font-family: monospace; z-index: 100; pointer-events: none; white-space: pre; background: rgba(0,0,0,0.6); padding: 6px 10px; border-radius: 4px; max-width: 95vw; max-height: 50vh; overflow: hidden; line-height: 1.3; }
-        #skin-bar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 100; flex-wrap: wrap; justify-content: center; padding: 0 16px; }
-        .skin-btn { background: #2D3037; color: #fff; border: 2px solid #444; padding: 8px 16px; font-size: 13px; font-family: inherit; cursor: pointer; transition: all 0.2s; min-width: 90px; }
-        .skin-btn.active { background: #FFD700; color: #202126; border-color: #FFD700; font-weight: 600; }
+        body {
+            margin: 0; background: #202126; overflow: hidden;
+            font-family: 'Segoe UI', Arial, sans-serif; color: #fff;
+            display: flex; height: 100vh;
+        }
+        #canvas-container { flex: 1; position: relative; }
+        #panel {
+            width: 260px; background: #18191c; border-left: 2px solid #2D3037;
+            overflow-y: auto; padding: 10px; font-size: 11px;
+        }
+        .part-block {
+            background: #202126; border: 1px solid #2D3037;
+            border-radius: 4px; margin-bottom: 8px; padding: 8px;
+        }
+        .part-title {
+            font-weight: 600; color: #FFD700; margin-bottom: 6px;
+            font-size: 12px; display: flex; justify-content: space-between;
+        }
+        .part-title .toggle { cursor: pointer; color: #6a8aff; }
+        .part-body { display: none; }
+        .part-body.open { display: block; }
+        .row {
+            display: flex; align-items: center; gap: 6px;
+            margin-bottom: 4px;
+        }
+        .row label { width: 30px; color: #888; font-size: 10px; }
+        .row input[type="range"] { flex: 1; height: 16px; }
+        .row .val {
+            width: 48px; text-align: right; font-family: monospace;
+            color: #6a8aff; font-size: 10px;
+        }
+        .btns {
+            position: fixed; bottom: 12px; left: 50%;
+            transform: translateX(-50%); display: flex; gap: 8px;
+            z-index: 100; flex-wrap: wrap; justify-content: center;
+        }
+        .btn {
+            background: #2D3037; color: #fff; border: 2px solid #444;
+            padding: 8px 14px; font-size: 12px; font-family: inherit;
+            cursor: pointer;
+        }
+        .btn.active {
+            background: #FFD700; color: #202126; border-color: #FFD700;
+        }
+        .btn.save {
+            background: #6a8aff; border-color: #6a8aff; color: #202126;
+            font-weight: 600;
+        }
+        #debug {
+            position: fixed; top: 8px; left: 8px;
+            color: #6a8aff; font-size: 10px;
+            font-family: monospace; background: rgba(0,0,0,0.6);
+            padding: 6px 8px; border-radius: 4px;
+            pointer-events: none; max-width: 200px; line-height: 1.3;
+        }
+        #loading {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #FFD700; font-size: 14px; z-index: 200;
+        }
     </style>
 </head>
 <body>
-    <div id="loading">Загрузка...</div>
-    <div id="debug"></div>
     <div id="canvas-container"></div>
-    <div id="skin-bar">
-        <button class="skin-btn active" data-skin="0">Skin 1</button>
-        <button class="skin-btn" data-skin="1">Skin 2</button>
-        <button class="skin-btn" data-skin="2">Skin 3</button>
-    </div>
+    <div id="debug"></div>
+    <div id="loading">Загрузка...</div>
+    <div id="panel"></div>
+    <div class="btns" id="btns"></div>
 
     <script type="importmap">
-    {
-        "imports": {
-            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-        }
-    }
+    { "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }}
     </script>
 
     <script type="module">
@@ -40,29 +88,39 @@
         import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
         const debugEl = document.getElementById('debug');
-        function log(msg) {
-            debugEl.textContent += msg + '\n';
-            console.log(msg);
-        }
-        function clearLog() { debugEl.textContent = ''; }
+        const panelEl = document.getElementById('panel');
+        const btnsEl = document.getElementById('btns');
+        const loadingEl = document.getElementById('loading');
 
-        // ===== АТЛАС =====
+        // ===== Скины (спрайты в атласе) =====
         const ATLAS_SIZE = 2048;
         const SKINS = {
             0: { name: '1-0', x: 300, y: 735, w: 128, h: 128 },
             1: { name: '1-1', x: 300, y: 705, w: 128, h: 128 },
             2: { name: '1-2', x: 300, y: 675, w: 128, h: 128 },
         };
+        let currentSkin = 0;
 
-        // ===== СЦЕНА =====
+        // ===== Параметры UV для каждой части =====
+        // Начальные значения — нейтральные
+        const PARTS = ['Object001','Object002','Object003','Object004','Object005','Object006','Object007','Object008','Object009'];
+        const uvParams = {};
+        PARTS.forEach(name => {
+            uvParams[name] = {
+                tu: 1.0, tv: 1.0,  // Tiling
+                ou: 0.0, ov: 0.0,  // Offset
+                enabled: false,
+            };
+        });
+
+        // ===== Сцена =====
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x202126);
 
-        const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.01, 1000);
+        const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
         camera.position.set(0, 0, 4);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(innerWidth, innerHeight);
         renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
@@ -75,36 +133,33 @@
         const d1 = new THREE.DirectionalLight(0xffffff, 0.7); d1.position.set(2, 3, 2); scene.add(d1);
         const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2, -1, -2); scene.add(d2);
 
-        // ===== АТЛАС =====
+        // ===== Атлас =====
         const atlasTexture = new THREE.TextureLoader().load(
             'Data/3D/WeaponsAtlas.png',
-            () => log(`Атлас: ${atlasTexture.image.width}×${atlasTexture.image.height}`),
+            () => { debugEl.textContent = `Атлас ${atlasTexture.image.width}×${atlasTexture.image.height}`; },
             undefined,
-            (err) => log('ОШИБКА атласа: ' + err)
+            (err) => { debugEl.textContent = 'Ошибка атласа'; }
         );
         atlasTexture.colorSpace = THREE.SRGBColorSpace;
         atlasTexture.flipY = false;
 
-        // ===== МОДЕЛЬ =====
-        const PARTS = ['Object001','Object002','Object003','Object004','Object005','Object006','Object007','Object008','Object009'];
+        // ===== Модель =====
         const BASE = 'Data/3D/Weapon/AK-47/';
         const loader = new OBJLoader();
         const group = new THREE.Group();
         let loaded = 0;
 
-        PARTS.forEach((partName) => {
+        PARTS.forEach(partName => {
             loader.load(
                 BASE + partName + '.obj',
                 (obj) => {
-                    obj.traverse((child) => {
+                    obj.traverse(child => {
                         if (child.isMesh && child.geometry) {
                             child.material = new THREE.MeshStandardMaterial({
                                 map: atlasTexture,
-                                metalness: 0.2,
-                                roughness: 0.7,
+                                metalness: 0.2, roughness: 0.7,
                                 side: THREE.DoubleSide
                             });
-                            // Сохраняем UV прямо на меш
                             const uvAttr = child.geometry.attributes.uv;
                             if (uvAttr) {
                                 child.userData.originalUV = new Float32Array(uvAttr.array);
@@ -114,12 +169,11 @@
                     });
                     group.add(obj);
                     loaded++;
-                    document.getElementById('loading').textContent = `Загрузка: ${loaded}/${PARTS.length}`;
+                    loadingEl.textContent = `Загрузка: ${loaded}/${PARTS.length}`;
                     if (loaded === PARTS.length) onAllLoaded();
                 },
                 undefined,
                 (err) => {
-                    log('ОШИБКА: ' + partName);
                     loaded++;
                     if (loaded === PARTS.length) onAllLoaded();
                 }
@@ -127,98 +181,192 @@
         });
 
         function onAllLoaded() {
-            document.getElementById('loading').style.display = 'none';
-
+            loadingEl.style.display = 'none';
             const box = new THREE.Box3().setFromObject(group);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
             group.position.sub(center);
             group.scale.setScalar(3.0 / maxDim);
-
             scene.add(group);
             camera.position.set(0, 0, 4);
             controls.target.set(0, 0, 0);
             controls.update();
-
-            applySkin(0);
+            applyAllUV();
+            buildPanel();
+            buildSkinButtons();
         }
 
-        // ===== ПЕРЕСЧЁТ UV =====
-        function applySkin(skinIdx) {
-            clearLog();
-            const sprite = SKINS[skinIdx];
-            if (!sprite) return;
-
-            const u_sprite = sprite.x / ATLAS_SIZE;
-            const v_sprite = sprite.y / ATLAS_SIZE;
-            const u_size = sprite.w / ATLAS_SIZE;
-            const v_size = sprite.h / ATLAS_SIZE;
-
-            log(`Скин: ${sprite.name}`);
-            log(`sprite: u=${u_sprite.toFixed(3)} v=${v_sprite.toFixed(3)} size=${u_size.toFixed(3)}×${v_size.toFixed(3)}`);
-            log('---');
-
-            group.traverse((child) => {
+        // ===== Пересчёт UV =====
+        function applyAllUV() {
+            group.traverse(child => {
                 if (!child.isMesh || !child.geometry) return;
-
                 const origUV = child.userData.originalUV;
-                const partName = child.userData.partName || '?';
-                if (!origUV) {
-                    log(`${partName}: нет UV`);
-                    return;
-                }
+                const partName = child.userData.partName;
+                if (!origUV || !partName) return;
 
-                // Считаем min/max UV этой части
-                let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
-                for (let i = 0; i < origUV.length; i += 2) {
-                    const u = origUV[i];
-                    const v = origUV[i + 1];
-                    if (u < uMin) uMin = u;
-                    if (u > uMax) uMax = u;
-                    if (v < vMin) vMin = v;
-                    if (v > vMax) vMax = v;
-                }
-
-                const uRange = uMax - uMin || 0.0001;
-                const vRange = vMax - vMin || 0.0001;
-
-                log(`${partName}: U[${uMin.toFixed(2)},${uMax.toFixed(2)}] V[${vMin.toFixed(2)},${vMax.toFixed(2)}]`);
-
-                // Пересчитываем UV
+                const p = uvParams[partName];
                 const uvAttr = child.geometry.attributes.uv;
-                for (let i = 0; i < uvAttr.count; i++) {
-                    const u0 = origUV[i * 2];
-                    const v0 = origUV[i * 2 + 1];
-                    const uNorm = (u0 - uMin) / uRange;
-                    const vNorm = (v0 - vMin) / vRange;
-                    uvAttr.setXY(i, uNorm * u_size + u_sprite, vNorm * v_size + v_sprite);
+
+                if (!p.enabled) {
+                    // Просто копируем оригинал
+                    for (let i = 0; i < uvAttr.count; i++) {
+                        uvAttr.setXY(i, origUV[i*2], origUV[i*2+1]);
+                    }
+                } else {
+                    // Считаем min/max UV этой части
+                    let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
+                    for (let i = 0; i < origUV.length; i += 2) {
+                        const u = origUV[i], v = origUV[i+1];
+                        if (u < uMin) uMin = u;
+                        if (u > uMax) uMax = u;
+                        if (v < vMin) vMin = v;
+                        if (v > vMax) vMax = v;
+                    }
+                    const uRange = uMax - uMin || 0.0001;
+                    const vRange = vMax - vMin || 0.0001;
+
+                    for (let i = 0; i < uvAttr.count; i++) {
+                        const u0 = (origUV[i*2] - uMin) / uRange;
+                        const v0 = (origUV[i*2+1] - vMin) / vRange;
+                        uvAttr.setXY(i, u0 * p.tu + p.ou, v0 * p.tv + p.ov);
+                    }
                 }
                 uvAttr.needsUpdate = true;
             });
         }
 
-        // ===== КНОПКИ =====
-        document.querySelectorAll('.skin-btn').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.skin-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                applySkin(parseInt(btn.dataset.skin, 10));
+        // ===== Панель со слайдерами =====
+        function buildPanel() {
+            panelEl.innerHTML = '';
+            PARTS.forEach(name => {
+                const p = uvParams[name];
+                const block = document.createElement('div');
+                block.className = 'part-block';
+                block.innerHTML = `
+                    <div class="part-title">
+                        <span>${name}</span>
+                        <span class="toggle">${p.enabled ? '−' : '+'}</span>
+                    </div>
+                    <div class="part-body ${p.enabled ? 'open' : ''}"></div>
+                `;
+                const body = block.querySelector('.part-body');
+
+                const mkRow = (label, key, min, max, step) => {
+                    const row = document.createElement('div');
+                    row.className = 'row';
+                    row.innerHTML = `
+                        <label>${label}</label>
+                        <input type="range" min="${min}" max="${max}" step="${step}" value="${p[key]}">
+                        <span class="val">${p[key].toFixed(3)}</span>
+                    `;
+                    const input = row.querySelector('input');
+                    const val = row.querySelector('.val');
+                    input.addEventListener('input', () => {
+                        p[key] = parseFloat(input.value);
+                        val.textContent = p[key].toFixed(3);
+                        applyAllUV();
+                    });
+                    return row;
+                };
+
+                body.appendChild(mkRow('TU', 'tu', 0, 2, 0.001));
+                body.appendChild(mkRow('TV', 'tv', 0, 2, 0.001));
+                body.appendChild(mkRow('OU', 'ou', -1, 1, 0.001));
+                body.appendChild(mkRow('OV', 'ov', -1, 1, 0.001));
+
+                block.querySelector('.toggle').addEventListener('click', () => {
+                    p.enabled = !p.enabled;
+                    buildPanel();
+                    applyAllUV();
+                });
+
+                panelEl.appendChild(block);
             });
-        });
 
-        // ===== РЕСАЙЗ И АНИМАЦИЯ =====
-        addEventListener('resize', () => {
-            camera.aspect = innerWidth / innerHeight;
+            // Кнопка сброса
+            const resetBtn = document.createElement('button');
+            resetBtn.className = 'btn';
+            resetBtn.textContent = 'Сброс всех';
+            resetBtn.style.width = '100%';
+            resetBtn.style.marginTop = '8px';
+            resetBtn.addEventListener('click', () => {
+                PARTS.forEach(name => {
+                    uvParams[name] = { tu: 1, tv: 1, ou: 0, ov: 0, enabled: false };
+                });
+                buildPanel();
+                applyAllUV();
+            });
+            panelEl.appendChild(resetBtn);
+        }
+
+        // ===== Кнопки скинов =====
+        function buildSkinButtons() {
+            btnsEl.innerHTML = '';
+            Object.entries(SKINS).forEach(([idx, skin]) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn' + (parseInt(idx) === currentSkin ? ' active' : '');
+                btn.textContent = skin.name;
+                btn.addEventListener('click', () => {
+                    currentSkin = parseInt(idx);
+                    buildSkinButtons();
+                    // Обновляем offset, чтобы показать другой спрайт
+                    // Пока просто меняем общий offset в атласе
+                    const sprite = SKINS[currentSkin];
+                    const uOff = sprite.x / ATLAS_SIZE;
+                    const vOff = 1.0 - (sprite.y + sprite.h) / ATLAS_SIZE;
+                    // Пока не трогаем texture.offset — оставим для ручного подбора
+                    applyAllUV();
+                });
+                btnsEl.appendChild(btn);
+            });
+
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'btn save';
+            saveBtn.textContent = 'Сохранить в консоль';
+            saveBtn.addEventListener('click', () => {
+                const dump = {};
+                PARTS.forEach(name => {
+                    const p = uvParams[name];
+                    if (p.enabled) {
+                        dump[name] = {
+                            tu: +p.tu.toFixed(4),
+                            tv: +p.tv.toFixed(4),
+                            ou: +p.ou.toFixed(4),
+                            ov: +p.ov.toFixed(4),
+                        };
+                    }
+                });
+                console.log('=== UV PARAMS ===');
+                console.log(JSON.stringify(dump, null, 2));
+                debugEl.textContent = 'Параметры в консоли';
+                setTimeout(() => {
+                    debugEl.textContent = '';
+                }, 2000);
+            });
+            btnsEl.appendChild(saveBtn);
+        }
+
+        // ===== Ресайз =====
+        function resize() {
+            const canvas = document.getElementById('canvas-container');
+            const w = canvas.clientWidth, h = canvas.clientHeight;
+            camera.aspect = w / h;
             camera.updateProjectionMatrix();
-            renderer.setSize(innerWidth, innerHeight);
-        });
+            renderer.setSize(w, h, false);
+        }
+        addEventListener('resize', resize);
 
+        // ===== Анимация =====
         (function animate() {
             requestAnimationFrame(animate);
             controls.update();
             renderer.render(scene, camera);
         })();
+
+        // Стартовый ресайз после загрузки
+        setTimeout(resize, 100);
+        new ResizeObserver(resize).observe(document.getElementById('canvas-container'));
     </script>
 </body>
 </html>
