@@ -3,269 +3,226 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>UV Debug — OSNW</title>
+<title>AK-47 Skins — OSNW</title>
 <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { margin: 0; background: #202126; overflow: hidden;
         font-family: 'Segoe UI', Arial, sans-serif; color: #fff; height: 100vh; }
     #canvas-container { position: fixed; inset: 0; }
-    #panel {
-        position: fixed; bottom: 0; left: 0; right: 0;
-        background: rgba(0,0,0,0.88); padding: 10px 12px 14px;
-        z-index: 40; font-size: 11px; font-family: monospace;
+    .btns {
+        position: fixed; bottom: 12px; left: 50%;
+        transform: translateX(-50%); display: flex; gap: 8px;
+        z-index: 40; flex-wrap: wrap; justify-content: center;
+        padding: 0 12px;
     }
-    #inputs {
-        display: grid; grid-template-columns: auto 1fr auto 1fr;
-        gap: 6px 8px; align-items: center; margin-bottom: 8px;
+    .btn {
+        background: #2D3037; color: #fff; border: 2px solid #444;
+        padding: 8px 14px; font-size: 12px; font-family: inherit;
+        cursor: pointer;
     }
-    #panel label { color: #6a8aff; }
-    #panel input[type=number] {
-        width: 100%; background: #2D3037; color: #FFD700;
-        border: 1px solid #444; padding: 6px 8px;
-        font-family: monospace; font-size: 13px;
+    .btn.active { background: #FFD700; color: #202126; border-color: #FFD700; }
+    #debug {
+        position: fixed; top: 12px; left: 12px;
+        color: #6a8aff; font-size: 10px; font-family: monospace;
+        background: rgba(0,0,0,0.6); padding: 6px 8px; border-radius: 4px;
+        pointer-events: none; max-width: 240px; line-height: 1.3;
+        white-space: pre-line;
     }
-    #skins { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
-    #skins .btn { background: #2D3037; color: #fff; border: 2px solid #444;
-        padding: 6px 12px; font-size: 12px; font-family: inherit; cursor: pointer; }
-    #skins .btn.active { background: #FFD700; color: #202126; border-color: #FFD700; }
-    #debug { position: fixed; top: 12px; left: 12px; color: #6a8aff;
-        font-size: 10px; font-family: monospace; background: rgba(0,0,0,0.6);
-        padding: 6px 8px; border-radius: 4px; pointer-events: none;
-        max-width: 240px; line-height: 1.3; white-space: pre-line; }
-    #loading { position: fixed; top: 50%; left: 50%;
-        transform: translate(-50%,-50%); color: #FFD700; font-size: 14px;
-        z-index: 200; text-align: center; }
-    .preset { background: #3a2f00 !important; border-color: #FFD700 !important; color: #FFD700 !important; }
+    #loading {
+        position: fixed; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        color: #FFD700; font-size: 14px; z-index: 200;
+        text-align: center; line-height: 1.6;
+    }
 </style>
 </head>
 <body>
-<div id="canvas-container"></div>
-<div id="debug"></div>
-<div id="loading">Загрузка...</div>
-<div id="panel">
-    <div id="inputs">
-        <label>TX</label><input type="number" id="tx" step="0.0001" value="0.0845">
-        <label>TY</label><input type="number" id="ty" step="0.0001" value="0.2717">
-        <label>OX</label><input type="number" id="ox" step="0.0001" value="0.1465">
-        <label>OY</label><input type="number" id="oy" step="0.0001" value="0.5786">
-    </div>
-    <div id="skins"></div>
-</div>
+    <div id="canvas-container"></div>
+    <div id="debug"></div>
+    <div id="loading">Загрузка...</div>
+    <div class="btns" id="btns"></div>
 
-<script type="importmap">
-{ "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-}}
-</script>
+    <script type="importmap">
+    { "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }}
+    </script>
 
-<script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
-const debugEl = document.getElementById('debug');
-const loadingEl = document.getElementById('loading');
+        const debugEl = document.getElementById('debug');
+        const btnsEl = document.getElementById('btns');
+        const loadingEl = document.getElementById('loading');
 
-const ATLAS_SIZE = 2048;
-const SKINS = {
-    0: { name: '1-0', x: 300, y: 735, w: 128, h: 128 },
-    1: { name: '1-1', x: 300, y: 705, w: 128, h: 128 },
-    2: { name: '1-2', x: 300, y: 675, w: 128, h: 128 },
-};
-let currentSkin = 0;
+        // ===== Константы =====
+        const ATLAS_SIZE = 2048;
 
-const PARTS = ['Object001','Object002','Object003','Object004','Object005',
-               'Object006','Object007','Object008','Object009'];
+        // Скины (пока хардкод, потом заменим на загрузку из JSON)
+        const SKINS = {
+            0: { name: '1-0', x: 300, y: 735, w: 128, h: 128 },
+            1: { name: '1-1', x: 300, y: 705, w: 128, h: 128 },
+            2: { name: '1-2', x: 300, y: 675, w: 128, h: 128 },
+        };
+        let currentSkin = 0;
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x202126);
-const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
-camera.position.set(0, 0, 4);
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
-document.getElementById('canvas-container').appendChild(renderer.domElement);
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true; controls.dampingFactor = 0.1; controls.enablePan = false;
+        const PARTS = ['Object001','Object002','Object003','Object004','Object005',
+                       'Object006','Object007','Object008','Object009'];
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-const d1 = new THREE.DirectionalLight(0xffffff, 0.6); d1.position.set(2,3,2); scene.add(d1);
-const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2,-1,-2); scene.add(d2);
+        // ===== Сцена =====
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x202126);
 
-const atlasTex = new THREE.TextureLoader().load('Data/3D/WeaponsAtlas.png');
-atlasTex.colorSpace = THREE.SRGBColorSpace;
-atlasTex.flipY = true;
-atlasTex.wrapS = atlasTex.wrapT = THREE.ClampToEdgeWrapping;
-atlasTex.minFilter = THREE.LinearFilter;
-atlasTex.magFilter = THREE.NearestFilter;
+        const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
+        camera.position.set(0, 0, 4);
 
-const uniforms = {
-    uTiling: { value: new THREE.Vector2(0.0845, 0.2717) },
-    uOffset: { value: new THREE.Vector2(0.1465, 0.5786) },
-};
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-function makeMaterial() {
-    const mat = new THREE.MeshStandardMaterial({
-        map: atlasTex, metalness: 0.2, roughness: 0.7, side: THREE.DoubleSide,
-    });
-    mat.onBeforeCompile = (shader) => {
-        shader.uniforms.uTiling = uniforms.uTiling;
-        shader.uniforms.uOffset = uniforms.uOffset;
-        shader.fragmentShader = shader.fragmentShader
-            .replace('#include <common>', `#include <common>
-                uniform vec2 uTiling;
-                uniform vec2 uOffset;
-            `)
-            .replace('#include <map_fragment>', `
-                vec2 atlasUv = vMapUv * uTiling + uOffset;
-                vec4 sampledDiffuseColor = texture2D( map, atlasUv );
-                diffuseColor *= sampledDiffuseColor;
-            `);
-    };
-    return mat;
-}
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.1;
+        controls.enablePan = false;
 
-const group = new THREE.Group();
-const loader = new OBJLoader();
-let loaded = 0;
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        const d1 = new THREE.DirectionalLight(0xffffff, 0.6); d1.position.set(2, 3, 2); scene.add(d1);
+        const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2, -1, -2); scene.add(d2);
 
-PARTS.forEach(partName => {
-    loader.load('Data/3D/Weapon/AK-47/' + partName + '.obj',
-        (obj) => {
-            obj.traverse(c => { if (c.isMesh && c.geometry) c.material = makeMaterial(); });
-            group.add(obj);
-            loaded++;
-            loadingEl.textContent = `Загрузка: ${loaded}/${PARTS.length}`;
-            if (loaded === PARTS.length) onAllLoaded();
-        },
-        undefined,
-        () => { loaded++; if (loaded === PARTS.length) onAllLoaded(); }
-    );
-});
+        // ===== Атлас =====
+        const atlasTex = new THREE.TextureLoader().load('Data/3D/WeaponsAtlas.png');
+        atlasTex.colorSpace = THREE.SRGBColorSpace;
+        atlasTex.flipY = true;
+        atlasTex.wrapS = atlasTex.wrapT = THREE.ClampToEdgeWrapping;
+        atlasTex.minFilter = THREE.LinearFilter;
+        atlasTex.magFilter = THREE.NearestFilter;
 
-function onAllLoaded() {
-    const box = new THREE.Box3().setFromObject(group);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    const maxDim = Math.max(size.x, size.y, size.z);
-    group.position.sub(center);
-    group.scale.setScalar(3.0 / maxDim);
-    scene.add(group);
-    controls.target.set(0, 0, 0);
-    controls.update();
-    loadingEl.style.display = 'none';
-    buildSkinButtons();
-    resize();
-    updateDebug();
-}
+        // ===== Uniforms (общие для всех мешей) =====
+        const uniforms = {
+            uTiling: { value: new THREE.Vector2(0.0625, 0.0625) },
+            uOffset: { value: new THREE.Vector2(0.14648, 0.57861) },
+        };
 
-function updateDebug() {
-    debugEl.textContent =
-        `Скин: ${SKINS[currentSkin].name}\n` +
-        `TX: ${uniforms.uTiling.value.x}\n` +
-        `TY: ${uniforms.uTiling.value.y}\n` +
-        `OX: ${uniforms.uOffset.value.x}\n` +
-        `OY: ${uniforms.uOffset.value.y}`;
-}
+        // ===== Материал с патчем шейдера =====
+        function makeMaterial() {
+            const mat = new THREE.MeshStandardMaterial({
+                map: atlasTex,
+                metalness: 0.2,
+                roughness: 0.7,
+                side: THREE.DoubleSide,
+            });
+            mat.onBeforeCompile = (shader) => {
+                shader.uniforms.uTiling = uniforms.uTiling;
+                shader.uniforms.uOffset = uniforms.uOffset;
+                shader.fragmentShader = shader.fragmentShader
+                    .replace('#include <common>', `#include <common>
+                        uniform vec2 uTiling;
+                        uniform vec2 uOffset;
+                    `)
+                    .replace('#include <map_fragment>', `
+                        vec2 atlasUv = vMapUv * uTiling + uOffset;
+                        vec4 sampledDiffuseColor = texture2D( map, atlasUv );
+                        diffuseColor *= sampledDiffuseColor;
+                    `);
+            };
+            return mat;
+        }
 
-// ---- Ввод чисел вручную ----
-function bindInput(id, uniformKey, axis) {
-    const el = document.getElementById(id);
-    const apply = () => {
-        const v = parseFloat(el.value);
-        if (isNaN(v)) return;
-        if (axis === 'x') uniforms[uniformKey].value.x = v;
-        else uniforms[uniformKey].value.y = v;
-        updateDebug();
-    };
-    el.addEventListener('input', apply);
-    el.addEventListener('change', apply);
-}
-bindInput('tx', 'uTiling', 'x');
-bindInput('ty', 'uTiling', 'y');
-bindInput('ox', 'uOffset', 'x');
-bindInput('oy', 'uOffset', 'y');
+        // ===== Модель =====
+        const BASE = 'Data/3D/Weapon/AK-47/';
+        const loader = new OBJLoader();
+        const group = new THREE.Group();
+        let loaded = 0;
 
-function setInputs() {
-    document.getElementById('tx').value = uniforms.uTiling.value.x;
-    document.getElementById('ty').value = uniforms.uTiling.value.y;
-    document.getElementById('ox').value = uniforms.uOffset.value.x;
-    document.getElementById('oy').value = uniforms.uOffset.value.y;
-    updateDebug();
-}
-
-// ---- Автопресеты ----
-function applyPreset(tx, ty, ox, oy) {
-    uniforms.uTiling.value.set(tx, ty);
-    uniforms.uOffset.value.set(ox, oy);
-    setInputs();
-}
-
-// Авто-расчёт offset по спрайту (для кнопок скинов)
-function offsetForSprite(s, tx, ty) {
-    // Хотим, чтобы UV-диапазон модели [0..0.74]x[0..0.23] после tiling+offset
-    // попал в спрайт. Считаем через центр: сдвигаем так, чтобы bbox модели
-    // лёг в нижний-левый угол спрайта.
-    const su = s.w / ATLAS_SIZE;
-    const sv = s.h / ATLAS_SIZE;
-    const U_MIN = 0.0, V_MIN = 0.0;
-    const ox = s.x / ATLAS_SIZE - U_MIN * tx;
-    const oy = (ATLAS_SIZE - s.y - s.h) / ATLAS_SIZE - V_MIN * ty;
-    return { ox, oy };
-}
-
-function buildSkinButtons() {
-    const el = document.getElementById('skins');
-    el.innerHTML = '';
-
-    // Кнопки скинов
-    Object.entries(SKINS).forEach(([idx, s]) => {
-        const b = document.createElement('button');
-        b.className = 'btn' + (parseInt(idx) === currentSkin ? ' active' : '');
-        b.textContent = s.name;
-        b.addEventListener('click', () => {
-            currentSkin = parseInt(idx);
-            const tx = uniforms.uTiling.value.x;
-            const ty = uniforms.uTiling.value.y;
-            const { ox, oy } = offsetForSprite(s, tx, ty);
-            uniforms.uOffset.value.set(ox, oy);
-            setInputs();
-            buildSkinButtons();
+        PARTS.forEach(partName => {
+            loader.load(
+                BASE + partName + '.obj',
+                (obj) => {
+                    obj.traverse(c => {
+                        if (c.isMesh && c.geometry) c.material = makeMaterial();
+                    });
+                    group.add(obj);
+                    loaded++;
+                    loadingEl.textContent = `Загрузка: ${loaded}/${PARTS.length}`;
+                    if (loaded === PARTS.length) onAllLoaded();
+                },
+                undefined,
+                () => { loaded++; if (loaded === PARTS.length) onAllLoaded(); }
+            );
         });
-        el.appendChild(b);
-    });
 
-    // Пресеты tiling/offset
-    const presets = [
-        { name: '1:1',      tx: 1,       ty: 1,       ox: 0,    oy: 0 },
-        { name: '1 спрайт', tx: 0.0845,  ty: 0.2717,  ox: 0.1465, oy: 0.5786 },
-        { name: '0.5',      tx: 0.5,     ty: 0.5,     ox: 0,    oy: 0 },
-        { name: '0.25',     tx: 0.25,    ty: 0.25,    ox: 0,    oy: 0 },
-    ];
-    presets.forEach(p => {
-        const b = document.createElement('button');
-        b.className = 'btn preset';
-        b.textContent = p.name;
-        b.addEventListener('click', () => applyPreset(p.tx, p.ty, p.ox, p.oy));
-        el.appendChild(b);
-    });
-}
+        function onAllLoaded() {
+            const box = new THREE.Box3().setFromObject(group);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            group.position.sub(center);
+            group.scale.setScalar(3.0 / maxDim);
+            scene.add(group);
 
-function resize() {
-    const c = document.getElementById('canvas-container');
-    const w = c.clientWidth, h = c.clientHeight;
-    if (!w || !h) return;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h, false);
-}
-addEventListener('resize', resize);
+            camera.position.set(0, 0, 4);
+            controls.target.set(0, 0, 0);
+            controls.update();
 
-(function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-})();
-</script>
+            applySkin(SKINS[currentSkin]);
+            buildSkinButtons();
+            resize();
+            loadingEl.style.display = 'none';
+        }
+
+        // ===== Применение скина =====
+        function applySkin(sprite) {
+            const tx = sprite.w / ATLAS_SIZE;
+            const ty = sprite.h / ATLAS_SIZE;
+            const ox = sprite.x / ATLAS_SIZE;
+            const oy = 1 - (sprite.y + sprite.h) / ATLAS_SIZE;  // GL Y снизу
+
+            uniforms.uTiling.value.set(tx, ty);
+            uniforms.uOffset.value.set(ox, oy);
+
+            debugEl.textContent =
+                `Скин: ${sprite.name}\n` +
+                `TX: ${tx.toFixed(5)}\n` +
+                `TY: ${ty.toFixed(5)}\n` +
+                `OX: ${ox.toFixed(5)}\n` +
+                `OY: ${oy.toFixed(5)}`;
+        }
+
+        // ===== Кнопки =====
+        function buildSkinButtons() {
+            btnsEl.innerHTML = '';
+            Object.entries(SKINS).forEach(([idx, skin]) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn' + (parseInt(idx) === currentSkin ? ' active' : '');
+                btn.textContent = skin.name;
+                btn.addEventListener('click', () => {
+                    currentSkin = parseInt(idx);
+                    applySkin(SKINS[currentSkin]);
+                    buildSkinButtons();
+                });
+                btnsEl.appendChild(btn);
+            });
+        }
+
+        // ===== Ресайз =====
+        function resize() {
+            const c = document.getElementById('canvas-container');
+            const w = c.clientWidth, h = c.clientHeight;
+            if (w === 0 || h === 0) return;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h, false);
+        }
+        addEventListener('resize', resize);
+
+        (function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        })();
+    </script>
 </body>
 </html>
