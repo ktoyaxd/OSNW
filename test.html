@@ -298,10 +298,9 @@
                 const nu1 = (u1 - uMin) / uRange, nv1 = (v1 - vMin) / vRange;
                 const nu2 = (u2 - uMin) / uRange, nv2 = (v2 - vMin) / vRange;
 
-                // Canvas-координаты
-                const x0 = nu0 * W, y0 = (1 - nv0) * H;
-                const x1 = nu1 * W, y1 = (1 - nv1) * H;
-                const x2 = nu2 * W, y2 = (1 - nv2) * H;
+                const x0 = nu0 * W, y0 = nv0 * H;
+                const x1 = nu1 * W, y1 = nv1 * H;
+                const x2 = nu2 * W, y2 = nv2 * H;
 
                 const minX = Math.max(0, Math.floor(Math.min(x0, x1, x2)));
                 const maxX = Math.min(W - 1, Math.ceil(Math.max(x0, x1, x2)));
