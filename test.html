@@ -7,15 +7,33 @@
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-    margin: 0; background: #202126; overflow: hidden;
-    font-family: 'Segoe UI', Arial, sans-serif; color: #fff;
-    display: flex; flex-direction: column; height: 100vh;
-}
-#canvas-container { flex: 1; position: relative; min-height: 0; }
-#panel {
-    height: 40vh; background: #18191c; border-top: 2px solid #2D3037;
-    overflow-y: auto; padding: 8px; font-size: 11px;
-}
+            margin: 0; background: #202126; overflow: hidden;
+            font-family: 'Segoe UI', Arial, sans-serif; color: #fff;
+            height: 100vh;
+        }
+        #canvas-container {
+            position: fixed; top: 0; left: 0;
+            width: 100vw; height: 100vh;
+        }
+        #panel {
+            position: fixed; top: 0; right: 0;
+            width: 260px; height: 100vh;
+            background: #18191c; border-left: 2px solid #2D3037;
+            overflow-y: auto; padding: 8px; font-size: 11px;
+            transform: translateX(100%);
+            transition: transform 0.2s;
+            z-index: 50;
+        }
+        #panel.open { transform: translateX(0); }
+        #panel-toggle {
+            position: fixed; top: 12px; right: 12px;
+            width: 44px; height: 44px;
+            background: #FFD700; color: #202126;
+            border: none; border-radius: 6px;
+            font-size: 22px; font-weight: 600;
+            cursor: pointer; z-index: 60;
+            display: flex; align-items: center; justify-content: center;
+        }
         .part-tabs {
             display: grid; grid-template-columns: repeat(5, 1fr);
             gap: 4px; margin-bottom: 8px;
@@ -33,9 +51,7 @@
             display: flex; align-items: center; gap: 6px;
             margin-bottom: 8px;
         }
-        .row label {
-            width: 32px; color: #888; font-size: 10px;
-        }
+        .row label { width: 32px; color: #888; font-size: 10px; }
         .row input[type="range"] { flex: 1; height: 20px; }
         .row .val {
             width: 50px; text-align: right; font-family: monospace;
@@ -52,10 +68,11 @@
         .btns {
             position: fixed; bottom: 12px; left: 50%;
             transform: translateX(-50%); display: flex; gap: 8px;
-            z-index: 100; flex-wrap: wrap; justify-content: center;
+            z-index: 40; flex-wrap: wrap; justify-content: center;
+            padding: 0 12px;
         }
         #debug {
-            position: fixed; top: 8px; left: 8px;
+            position: fixed; top: 12px; left: 12px;
             color: #6a8aff; font-size: 10px;
             font-family: monospace; background: rgba(0,0,0,0.6);
             padding: 6px 8px; border-radius: 4px;
@@ -70,6 +87,7 @@
 </head>
 <body>
     <div id="canvas-container"></div>
+    <button id="panel-toggle">☰</button>
     <div id="debug"></div>
     <div id="loading">Загрузка...</div>
     <div id="panel"></div>
@@ -91,6 +109,13 @@
         const panelEl = document.getElementById('panel');
         const btnsEl = document.getElementById('btns');
         const loadingEl = document.getElementById('loading');
+        const panelToggle = document.getElementById('panel-toggle');
+
+        // Кнопка открытия/закрытия панели
+        panelToggle.addEventListener('click', () => {
+            panelEl.classList.toggle('open');
+            panelToggle.textContent = panelEl.classList.contains('open') ? '✕' : '☰';
+        });
 
         const ATLAS_SIZE = 2048;
         const SKINS = {
@@ -106,9 +131,7 @@
             uvParams[name] = { tu: 1, tv: 1, ou: 0, ov: 0, enabled: false };
         });
 
-        // Какая часть сейчас редактируется ("ALL" или имя)
         let activePart = 'ALL';
-        // Меши по частям — для быстрого доступа
         const meshesByPart = {};
 
         // ===== Сцена =====
@@ -119,7 +142,7 @@
         camera.position.set(0, 0, 4);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); // снизили до 1.5 — меньше нагрузки
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
@@ -197,7 +220,6 @@
             resize();
         }
 
-        // ===== Пересчёт UV для одной части =====
         function applyUVToMesh(child) {
             const origUV = child.userData.originalUV;
             const partName = child.userData.partName;
@@ -228,7 +250,6 @@
             uvAttr.needsUpdate = true;
         }
 
-        // ===== Пересчёт UV всех видимых частей =====
         function applyAllUV() {
             if (activePart === 'ALL') {
                 group.traverse(child => {
@@ -239,11 +260,9 @@
             }
         }
 
-        // ===== Панель =====
         function buildPanel() {
             panelEl.innerHTML = '';
 
-            // Табы выбора части
             const tabs = document.createElement('div');
             tabs.className = 'part-tabs';
             ['001','002','003','004','005','006','007','008','009','ALL'].forEach(p => {
@@ -252,7 +271,6 @@
                 t.textContent = p;
                 t.addEventListener('click', () => {
                     activePart = (p === 'ALL' ? 'ALL' : 'Object' + p);
-                    // Показать только эту часть (или все)
                     PARTS.forEach(name => {
                         const meshes = meshesByPart[name] || [];
                         meshes.forEach(m => {
@@ -266,7 +284,6 @@
             });
             panelEl.appendChild(tabs);
 
-            // Если ALL — ничего больше не показываем
             if (activePart === 'ALL') {
                 const hint = document.createElement('div');
                 hint.style.color = '#888';
@@ -277,11 +294,9 @@
                 return;
             }
 
-            // Иначе — слайдеры для одной части
             const name = activePart;
             const p = uvParams[name];
 
-            // Кнопка вкл/выкл
             const toggleBtn = document.createElement('button');
             toggleBtn.className = 'btn' + (p.enabled ? ' active' : '');
             toggleBtn.textContent = p.enabled ? 'Включено' : 'Выключено';
@@ -294,19 +309,16 @@
             });
             panelEl.appendChild(toggleBtn);
 
-            // Слайдеры
             const mkRow = (label, key, min, max, step) => {
                 const row = document.createElement('div');
                 row.className = 'row';
-                const valText = p[key].toFixed(3);
                 row.innerHTML = `
                     <label>${label}</label>
                     <input type="range" min="${min}" max="${max}" step="${step}" value="${p[key]}">
-                    <span class="val">${valText}</span>
+                    <span class="val">${p[key].toFixed(3)}</span>
                 `;
                 const input = row.querySelector('input');
                 const val = row.querySelector('.val');
-                // НЕ на input, а на change — чтобы не пересчитывать на каждое движение
                 input.addEventListener('change', () => {
                     p[key] = parseFloat(input.value);
                     val.textContent = p[key].toFixed(3);
@@ -323,7 +335,6 @@
             panelEl.appendChild(mkRow('OU', 'ou', -1, 1, 0.001));
             panelEl.appendChild(mkRow('OV', 'ov', -1, 1, 0.001));
 
-            // Кнопка сброса
             const resetBtn = document.createElement('button');
             resetBtn.className = 'btn';
             resetBtn.textContent = 'Сбросить часть';
@@ -336,7 +347,6 @@
             });
             panelEl.appendChild(resetBtn);
 
-            // Подсказка с текущими значениями
             const hint = document.createElement('div');
             hint.style.marginTop = '8px';
             hint.style.fontSize = '10px';
@@ -347,7 +357,6 @@
             panelEl.appendChild(hint);
         }
 
-        // ===== Кнопки скинов =====
         function buildSkinButtons() {
             btnsEl.innerHTML = '';
             Object.entries(SKINS).forEach(([idx, skin]) => {
@@ -390,7 +399,6 @@
             btnsEl.appendChild(saveBtn);
         }
 
-        // ===== Ресайз =====
         function resize() {
             const canvas = document.getElementById('canvas-container');
             const w = canvas.clientWidth, h = canvas.clientHeight;
@@ -401,7 +409,6 @@
         }
         addEventListener('resize', resize);
 
-        // ===== Анимация =====
         (function animate() {
             requestAnimationFrame(animate);
             controls.update();
