@@ -13,34 +13,33 @@
         }
         #canvas-container { flex: 1; position: relative; }
         #panel {
-            width: 260px; background: #18191c; border-left: 2px solid #2D3037;
-            overflow-y: auto; padding: 10px; font-size: 11px;
+            width: 240px; background: #18191c; border-left: 2px solid #2D3037;
+            overflow-y: auto; padding: 8px; font-size: 11px;
         }
-        .part-block {
+        .part-tabs {
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 4px; margin-bottom: 8px;
+        }
+        .tab {
             background: #202126; border: 1px solid #2D3037;
-            border-radius: 4px; margin-bottom: 8px; padding: 8px;
+            color: #888; padding: 6px 0; text-align: center;
+            font-size: 10px; cursor: pointer; border-radius: 3px;
         }
-        .part-title {
-            font-weight: 600; color: #FFD700; margin-bottom: 6px;
-            font-size: 12px; display: flex; justify-content: space-between;
+        .tab.active {
+            background: #FFD700; color: #202126;
+            border-color: #FFD700; font-weight: 600;
         }
-        .part-title .toggle { cursor: pointer; color: #6a8aff; }
-        .part-body { display: none; }
-        .part-body.open { display: block; }
         .row {
             display: flex; align-items: center; gap: 6px;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
-        .row label { width: 30px; color: #888; font-size: 10px; }
-        .row input[type="range"] { flex: 1; height: 16px; }
+        .row label {
+            width: 32px; color: #888; font-size: 10px;
+        }
+        .row input[type="range"] { flex: 1; height: 20px; }
         .row .val {
-            width: 48px; text-align: right; font-family: monospace;
+            width: 50px; text-align: right; font-family: monospace;
             color: #6a8aff; font-size: 10px;
-        }
-        .btns {
-            position: fixed; bottom: 12px; left: 50%;
-            transform: translateX(-50%); display: flex; gap: 8px;
-            z-index: 100; flex-wrap: wrap; justify-content: center;
         }
         .btn {
             background: #2D3037; color: #fff; border: 2px solid #444;
@@ -50,16 +49,17 @@
         .btn.active {
             background: #FFD700; color: #202126; border-color: #FFD700;
         }
-        .btn.save {
-            background: #6a8aff; border-color: #6a8aff; color: #202126;
-            font-weight: 600;
+        .btns {
+            position: fixed; bottom: 12px; left: 50%;
+            transform: translateX(-50%); display: flex; gap: 8px;
+            z-index: 100; flex-wrap: wrap; justify-content: center;
         }
         #debug {
             position: fixed; top: 8px; left: 8px;
             color: #6a8aff; font-size: 10px;
             font-family: monospace; background: rgba(0,0,0,0.6);
             padding: 6px 8px; border-radius: 4px;
-            pointer-events: none; max-width: 200px; line-height: 1.3;
+            pointer-events: none; max-width: 180px; line-height: 1.3;
         }
         #loading {
             position: fixed; top: 50%; left: 50%;
@@ -92,7 +92,6 @@
         const btnsEl = document.getElementById('btns');
         const loadingEl = document.getElementById('loading');
 
-        // ===== Скины (спрайты в атласе) =====
         const ATLAS_SIZE = 2048;
         const SKINS = {
             0: { name: '1-0', x: 300, y: 735, w: 128, h: 128 },
@@ -101,17 +100,16 @@
         };
         let currentSkin = 0;
 
-        // ===== Параметры UV для каждой части =====
-        // Начальные значения — нейтральные
         const PARTS = ['Object001','Object002','Object003','Object004','Object005','Object006','Object007','Object008','Object009'];
         const uvParams = {};
         PARTS.forEach(name => {
-            uvParams[name] = {
-                tu: 1.0, tv: 1.0,  // Tiling
-                ou: 0.0, ov: 0.0,  // Offset
-                enabled: false,
-            };
+            uvParams[name] = { tu: 1, tv: 1, ou: 0, ov: 0, enabled: false };
         });
+
+        // Какая часть сейчас редактируется ("ALL" или имя)
+        let activePart = 'ALL';
+        // Меши по частям — для быстрого доступа
+        const meshesByPart = {};
 
         // ===== Сцена =====
         const scene = new THREE.Scene();
@@ -120,8 +118,8 @@
         const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
         camera.position.set(0, 0, 4);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); // снизили до 1.5 — меньше нагрузки
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
@@ -133,12 +131,11 @@
         const d1 = new THREE.DirectionalLight(0xffffff, 0.7); d1.position.set(2, 3, 2); scene.add(d1);
         const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2, -1, -2); scene.add(d2);
 
-        // ===== Атлас =====
         const atlasTexture = new THREE.TextureLoader().load(
             'Data/3D/WeaponsAtlas.png',
             () => { debugEl.textContent = `Атлас ${atlasTexture.image.width}×${atlasTexture.image.height}`; },
             undefined,
-            (err) => { debugEl.textContent = 'Ошибка атласа'; }
+            () => { debugEl.textContent = 'Ошибка атласа'; }
         );
         atlasTexture.colorSpace = THREE.SRGBColorSpace;
         atlasTexture.flipY = false;
@@ -164,6 +161,8 @@
                             if (uvAttr) {
                                 child.userData.originalUV = new Float32Array(uvAttr.array);
                                 child.userData.partName = partName;
+                                if (!meshesByPart[partName]) meshesByPart[partName] = [];
+                                meshesByPart[partName].push(child);
                             }
                         }
                     });
@@ -173,7 +172,7 @@
                     if (loaded === PARTS.length) onAllLoaded();
                 },
                 undefined,
-                (err) => {
+                () => {
                     loaded++;
                     if (loaded === PARTS.length) onAllLoaded();
                 }
@@ -195,109 +194,157 @@
             applyAllUV();
             buildPanel();
             buildSkinButtons();
+            resize();
         }
 
-        // ===== Пересчёт UV =====
-        function applyAllUV() {
-            group.traverse(child => {
-                if (!child.isMesh || !child.geometry) return;
-                const origUV = child.userData.originalUV;
-                const partName = child.userData.partName;
-                if (!origUV || !partName) return;
+        // ===== Пересчёт UV для одной части =====
+        function applyUVToMesh(child) {
+            const origUV = child.userData.originalUV;
+            const partName = child.userData.partName;
+            if (!origUV || !partName) return;
+            const p = uvParams[partName];
+            const uvAttr = child.geometry.attributes.uv;
 
-                const p = uvParams[partName];
-                const uvAttr = child.geometry.attributes.uv;
-
-                if (!p.enabled) {
-                    // Просто копируем оригинал
-                    for (let i = 0; i < uvAttr.count; i++) {
-                        uvAttr.setXY(i, origUV[i*2], origUV[i*2+1]);
-                    }
-                } else {
-                    // Считаем min/max UV этой части
-                    let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
-                    for (let i = 0; i < origUV.length; i += 2) {
-                        const u = origUV[i], v = origUV[i+1];
-                        if (u < uMin) uMin = u;
-                        if (u > uMax) uMax = u;
-                        if (v < vMin) vMin = v;
-                        if (v > vMax) vMax = v;
-                    }
-                    const uRange = uMax - uMin || 0.0001;
-                    const vRange = vMax - vMin || 0.0001;
-
-                    for (let i = 0; i < uvAttr.count; i++) {
-                        const u0 = (origUV[i*2] - uMin) / uRange;
-                        const v0 = (origUV[i*2+1] - vMin) / vRange;
-                        uvAttr.setXY(i, u0 * p.tu + p.ou, v0 * p.tv + p.ov);
-                    }
+            if (!p.enabled) {
+                uvAttr.array.set(origUV);
+            } else {
+                let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
+                for (let i = 0; i < origUV.length; i += 2) {
+                    const u = origUV[i], v = origUV[i+1];
+                    if (u < uMin) uMin = u;
+                    if (u > uMax) uMax = u;
+                    if (v < vMin) vMin = v;
+                    if (v > vMax) vMax = v;
                 }
-                uvAttr.needsUpdate = true;
-            });
+                const uRange = uMax - uMin || 0.0001;
+                const vRange = vMax - vMin || 0.0001;
+
+                for (let i = 0; i < uvAttr.count; i++) {
+                    const u0 = (origUV[i*2] - uMin) / uRange;
+                    const v0 = (origUV[i*2+1] - vMin) / vRange;
+                    uvAttr.setXY(i, u0 * p.tu + p.ou, v0 * p.tv + p.ov);
+                }
+            }
+            uvAttr.needsUpdate = true;
         }
 
-        // ===== Панель со слайдерами =====
+        // ===== Пересчёт UV всех видимых частей =====
+        function applyAllUV() {
+            if (activePart === 'ALL') {
+                group.traverse(child => {
+                    if (child.isMesh) applyUVToMesh(child);
+                });
+            } else {
+                (meshesByPart[activePart] || []).forEach(applyUVToMesh);
+            }
+        }
+
+        // ===== Панель =====
         function buildPanel() {
             panelEl.innerHTML = '';
-            PARTS.forEach(name => {
-                const p = uvParams[name];
-                const block = document.createElement('div');
-                block.className = 'part-block';
-                block.innerHTML = `
-                    <div class="part-title">
-                        <span>${name}</span>
-                        <span class="toggle">${p.enabled ? '−' : '+'}</span>
-                    </div>
-                    <div class="part-body ${p.enabled ? 'open' : ''}"></div>
-                `;
-                const body = block.querySelector('.part-body');
 
-                const mkRow = (label, key, min, max, step) => {
-                    const row = document.createElement('div');
-                    row.className = 'row';
-                    row.innerHTML = `
-                        <label>${label}</label>
-                        <input type="range" min="${min}" max="${max}" step="${step}" value="${p[key]}">
-                        <span class="val">${p[key].toFixed(3)}</span>
-                    `;
-                    const input = row.querySelector('input');
-                    const val = row.querySelector('.val');
-                    input.addEventListener('input', () => {
-                        p[key] = parseFloat(input.value);
-                        val.textContent = p[key].toFixed(3);
-                        applyAllUV();
+            // Табы выбора части
+            const tabs = document.createElement('div');
+            tabs.className = 'part-tabs';
+            ['001','002','003','004','005','006','007','008','009','ALL'].forEach(p => {
+                const t = document.createElement('div');
+                t.className = 'tab' + (activePart === (p === 'ALL' ? 'ALL' : 'Object' + p) ? ' active' : '');
+                t.textContent = p;
+                t.addEventListener('click', () => {
+                    activePart = (p === 'ALL' ? 'ALL' : 'Object' + p);
+                    // Показать только эту часть (или все)
+                    PARTS.forEach(name => {
+                        const meshes = meshesByPart[name] || [];
+                        meshes.forEach(m => {
+                            m.visible = (activePart === 'ALL' || name === activePart);
+                        });
                     });
-                    return row;
-                };
-
-                body.appendChild(mkRow('TU', 'tu', 0, 2, 0.001));
-                body.appendChild(mkRow('TV', 'tv', 0, 2, 0.001));
-                body.appendChild(mkRow('OU', 'ou', -1, 1, 0.001));
-                body.appendChild(mkRow('OV', 'ov', -1, 1, 0.001));
-
-                block.querySelector('.toggle').addEventListener('click', () => {
-                    p.enabled = !p.enabled;
+                    applyAllUV();
                     buildPanel();
+                });
+                tabs.appendChild(t);
+            });
+            panelEl.appendChild(tabs);
+
+            // Если ALL — ничего больше не показываем
+            if (activePart === 'ALL') {
+                const hint = document.createElement('div');
+                hint.style.color = '#888';
+                hint.style.fontSize = '11px';
+                hint.style.padding = '8px 4px';
+                hint.textContent = 'Выбери часть (001–009), чтобы настроить её UV.';
+                panelEl.appendChild(hint);
+                return;
+            }
+
+            // Иначе — слайдеры для одной части
+            const name = activePart;
+            const p = uvParams[name];
+
+            // Кнопка вкл/выкл
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'btn' + (p.enabled ? ' active' : '');
+            toggleBtn.textContent = p.enabled ? 'Включено' : 'Выключено';
+            toggleBtn.style.width = '100%';
+            toggleBtn.style.marginBottom = '8px';
+            toggleBtn.addEventListener('click', () => {
+                p.enabled = !p.enabled;
+                applyAllUV();
+                buildPanel();
+            });
+            panelEl.appendChild(toggleBtn);
+
+            // Слайдеры
+            const mkRow = (label, key, min, max, step) => {
+                const row = document.createElement('div');
+                row.className = 'row';
+                const valText = p[key].toFixed(3);
+                row.innerHTML = `
+                    <label>${label}</label>
+                    <input type="range" min="${min}" max="${max}" step="${step}" value="${p[key]}">
+                    <span class="val">${valText}</span>
+                `;
+                const input = row.querySelector('input');
+                const val = row.querySelector('.val');
+                // НЕ на input, а на change — чтобы не пересчитывать на каждое движение
+                input.addEventListener('change', () => {
+                    p[key] = parseFloat(input.value);
+                    val.textContent = p[key].toFixed(3);
                     applyAllUV();
                 });
+                input.addEventListener('input', () => {
+                    val.textContent = parseFloat(input.value).toFixed(3);
+                });
+                return row;
+            };
 
-                panelEl.appendChild(block);
-            });
+            panelEl.appendChild(mkRow('TU', 'tu', 0, 2, 0.001));
+            panelEl.appendChild(mkRow('TV', 'tv', 0, 2, 0.001));
+            panelEl.appendChild(mkRow('OU', 'ou', -1, 1, 0.001));
+            panelEl.appendChild(mkRow('OV', 'ov', -1, 1, 0.001));
 
             // Кнопка сброса
             const resetBtn = document.createElement('button');
             resetBtn.className = 'btn';
-            resetBtn.textContent = 'Сброс всех';
+            resetBtn.textContent = 'Сбросить часть';
             resetBtn.style.width = '100%';
             resetBtn.style.marginTop = '8px';
             resetBtn.addEventListener('click', () => {
-                PARTS.forEach(name => {
-                    uvParams[name] = { tu: 1, tv: 1, ou: 0, ov: 0, enabled: false };
-                });
-                buildPanel();
+                uvParams[name] = { tu: 1, tv: 1, ou: 0, ov: 0, enabled: false };
                 applyAllUV();
+                buildPanel();
             });
             panelEl.appendChild(resetBtn);
+
+            // Подсказка с текущими значениями
+            const hint = document.createElement('div');
+            hint.style.marginTop = '8px';
+            hint.style.fontSize = '10px';
+            hint.style.color = '#6a8aff';
+            hint.style.fontFamily = 'monospace';
+            hint.style.whiteSpace = 'pre-line';
+            hint.textContent = `${name}\ntu=${p.tu.toFixed(4)} tv=${p.tv.toFixed(4)}\nou=${p.ou.toFixed(4)} ov=${p.ov.toFixed(4)}`;
+            panelEl.appendChild(hint);
         }
 
         // ===== Кнопки скинов =====
@@ -310,20 +357,17 @@
                 btn.addEventListener('click', () => {
                     currentSkin = parseInt(idx);
                     buildSkinButtons();
-                    // Обновляем offset, чтобы показать другой спрайт
-                    // Пока просто меняем общий offset в атласе
-                    const sprite = SKINS[currentSkin];
-                    const uOff = sprite.x / ATLAS_SIZE;
-                    const vOff = 1.0 - (sprite.y + sprite.h) / ATLAS_SIZE;
-                    // Пока не трогаем texture.offset — оставим для ручного подбора
-                    applyAllUV();
                 });
                 btnsEl.appendChild(btn);
             });
 
             const saveBtn = document.createElement('button');
-            saveBtn.className = 'btn save';
-            saveBtn.textContent = 'Сохранить в консоль';
+            saveBtn.className = 'btn';
+            saveBtn.style.background = '#6a8aff';
+            saveBtn.style.borderColor = '#6a8aff';
+            saveBtn.style.color = '#202126';
+            saveBtn.style.fontWeight = '600';
+            saveBtn.textContent = 'Save';
             saveBtn.addEventListener('click', () => {
                 const dump = {};
                 PARTS.forEach(name => {
@@ -337,12 +381,11 @@
                         };
                     }
                 });
+                const txt = JSON.stringify(dump, null, 2);
                 console.log('=== UV PARAMS ===');
-                console.log(JSON.stringify(dump, null, 2));
+                console.log(txt);
                 debugEl.textContent = 'Параметры в консоли';
-                setTimeout(() => {
-                    debugEl.textContent = '';
-                }, 2000);
+                setTimeout(() => { debugEl.textContent = ''; }, 2000);
             });
             btnsEl.appendChild(saveBtn);
         }
@@ -351,6 +394,7 @@
         function resize() {
             const canvas = document.getElementById('canvas-container');
             const w = canvas.clientWidth, h = canvas.clientHeight;
+            if (w === 0 || h === 0) return;
             camera.aspect = w / h;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h, false);
@@ -363,10 +407,6 @@
             controls.update();
             renderer.render(scene, camera);
         })();
-
-        // Стартовый ресайз после загрузки
-        setTimeout(resize, 100);
-        new ResizeObserver(resize).observe(document.getElementById('canvas-container'));
     </script>
 </body>
 </html>
