@@ -3,24 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>AK-47 Skins — OSNW</title>
+<title>3D-осмотр — OSNW</title>
 <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { margin: 0; background: #202126; overflow: hidden;
         font-family: 'Segoe UI', Arial, sans-serif; color: #fff; height: 100vh; }
     #canvas-container { position: fixed; inset: 0; }
-    .btns {
-        position: fixed; bottom: 12px; left: 50%;
-        transform: translateX(-50%); display: flex; gap: 8px;
-        z-index: 40; flex-wrap: wrap; justify-content: center;
-        padding: 0 12px;
+    #cards {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        display: flex; gap: 8px; overflow-x: auto;
+        padding: 10px 12px; z-index: 40;
+        background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0));
+        -webkit-overflow-scrolling: touch;
     }
-    .btn {
-        background: #2D3037; color: #fff; border: 2px solid #444;
-        padding: 8px 14px; font-size: 12px; font-family: inherit;
-        cursor: pointer;
+    .card {
+        flex: 0 0 auto; width: 88px; background: #2D3037;
+        border: 2px solid #444; padding: 6px; cursor: pointer;
+        text-align: center; transition: border-color 0.15s;
     }
-    .btn.active { background: #FFD700; color: #202126; border-color: #FFD700; }
+    .card.active { border-color: #FFD700; background: #3a2f00; }
+    .card.disabled { opacity: 0.35; cursor: not-allowed; }
+    .card img {
+        width: 100%; height: 48px; object-fit: contain;
+        image-rendering: pixelated; display: block;
+        margin-bottom: 4px;
+    }
+    .card .name { font-size: 10px; color: #fff; line-height: 1.2;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card .quality { font-size: 9px; color: #6a8aff; text-transform: uppercase; }
     #debug {
         position: fixed; top: 12px; left: 12px;
         color: #6a8aff; font-size: 10px; font-family: monospace;
@@ -40,7 +50,7 @@
     <div id="canvas-container"></div>
     <div id="debug"></div>
     <div id="loading">Загрузка...</div>
-    <div class="btns" id="btns"></div>
+    <div id="cards"></div>
 
     <script type="importmap">
     { "imports": {
@@ -55,19 +65,15 @@
         import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
         const debugEl = document.getElementById('debug');
-        const btnsEl = document.getElementById('btns');
+        const cardsEl = document.getElementById('cards');
         const loadingEl = document.getElementById('loading');
 
-        // ===== Константы =====
         const ATLAS_SIZE = 2048;
 
-        // Скины (пока хардкод, потом заменим на загрузку из JSON)
-        const SKINS = {
-            0: { name: '1-0', x: 300, y: 735, w: 128, h: 128 },
-            1: { name: '1-1', x: 300, y: 705, w: 128, h: 128 },
-            2: { name: '1-2', x: 300, y: 675, w: 128, h: 128 },
-        };
-        let currentSkin = 0;
+        // Каталог и атлас будут загружены с сервера
+        let CATALOG = [];
+        let ATLAS = {};
+        let currentId = null;
 
         const PARTS = ['Object001','Object002','Object003','Object004','Object005',
                        'Object006','Object007','Object008','Object009'];
@@ -100,19 +106,14 @@
         atlasTex.minFilter = THREE.LinearFilter;
         atlasTex.magFilter = THREE.NearestFilter;
 
-        // ===== Uniforms (общие для всех мешей) =====
         const uniforms = {
             uTiling: { value: new THREE.Vector2(0.0625, 0.0625) },
-            uOffset: { value: new THREE.Vector2(0.14648, 0.57861) },
+            uOffset: { value: new THREE.Vector2(0, 0) },
         };
 
-        // ===== Материал с патчем шейдера =====
         function makeMaterial() {
             const mat = new THREE.MeshStandardMaterial({
-                map: atlasTex,
-                metalness: 0.2,
-                roughness: 0.7,
-                side: THREE.DoubleSide,
+                map: atlasTex, metalness: 0.2, roughness: 0.7, side: THREE.DoubleSide,
             });
             mat.onBeforeCompile = (shader) => {
                 shader.uniforms.uTiling = uniforms.uTiling;
@@ -132,29 +133,27 @@
         }
 
         // ===== Модель =====
-        const BASE = 'Data/3D/Weapon/AK-47/';
-        const loader = new OBJLoader();
         const group = new THREE.Group();
-        let loaded = 0;
+        const loader = new OBJLoader();
+        let partsLoaded = 0;
 
-        PARTS.forEach(partName => {
-            loader.load(
-                BASE + partName + '.obj',
-                (obj) => {
-                    obj.traverse(c => {
-                        if (c.isMesh && c.geometry) c.material = makeMaterial();
-                    });
-                    group.add(obj);
-                    loaded++;
-                    loadingEl.textContent = `Загрузка: ${loaded}/${PARTS.length}`;
-                    if (loaded === PARTS.length) onAllLoaded();
-                },
-                undefined,
-                () => { loaded++; if (loaded === PARTS.length) onAllLoaded(); }
-            );
-        });
+        function loadModel() {
+            PARTS.forEach(partName => {
+                loader.load('Data/3D/Weapon/AK-47/' + partName + '.obj',
+                    (obj) => {
+                        obj.traverse(c => { if (c.isMesh && c.geometry) c.material = makeMaterial(); });
+                        group.add(obj);
+                        partsLoaded++;
+                        loadingEl.textContent = `Модель: ${partsLoaded}/${PARTS.length}`;
+                        if (partsLoaded === PARTS.length) onModelLoaded();
+                    },
+                    undefined,
+                    () => { partsLoaded++; if (partsLoaded === PARTS.length) onModelLoaded(); }
+                );
+            });
+        }
 
-        function onAllLoaded() {
+        function onModelLoaded() {
             const box = new THREE.Box3().setFromObject(group);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
@@ -166,48 +165,77 @@
             camera.position.set(0, 0, 4);
             controls.target.set(0, 0, 0);
             controls.update();
-
-            applySkin(SKINS[currentSkin]);
-            buildSkinButtons();
             resize();
+
             loadingEl.style.display = 'none';
+            buildCards();
         }
 
-        // ===== Применение скина =====
-        function applySkin(sprite) {
-            const tx = sprite.w / ATLAS_SIZE;
-            const ty = sprite.h / ATLAS_SIZE;
-            const ox = sprite.x / ATLAS_SIZE;
-            const oy = 1 - (sprite.y + sprite.h) / ATLAS_SIZE;  // GL Y снизу
+        // ===== Применение скина по ID =====
+        function applySkinById(id) {
+            const s = ATLAS[id];
+            if (!s) {
+                debugEl.textContent = `Нет координат для ${id}`;
+                return;
+            }
+            currentId = id;
+
+            const tx = s.w / ATLAS_SIZE;
+            const ty = s.h / ATLAS_SIZE;
+            const ox = s.x / ATLAS_SIZE;
+            const oy = 1 - (s.y + s.h) / ATLAS_SIZE;
 
             uniforms.uTiling.value.set(tx, ty);
             uniforms.uOffset.value.set(ox, oy);
 
             debugEl.textContent =
-                `Скин: ${sprite.name}\n` +
+                `ID: ${id}\n` +
                 `TX: ${tx.toFixed(5)}\n` +
                 `TY: ${ty.toFixed(5)}\n` +
                 `OX: ${ox.toFixed(5)}\n` +
                 `OY: ${oy.toFixed(5)}`;
+
+            buildCards();
         }
 
-        // ===== Кнопки =====
-        function buildSkinButtons() {
-            btnsEl.innerHTML = '';
-            Object.entries(SKINS).forEach(([idx, skin]) => {
-                const btn = document.createElement('button');
-                btn.className = 'btn' + (parseInt(idx) === currentSkin ? ' active' : '');
-                btn.textContent = skin.name;
-                btn.addEventListener('click', () => {
-                    currentSkin = parseInt(idx);
-                    applySkin(SKINS[currentSkin]);
-                    buildSkinButtons();
-                });
-                btnsEl.appendChild(btn);
+        // ===== Карточки =====
+        function buildCards() {
+            cardsEl.innerHTML = '';
+            CATALOG.forEach(item => {
+                const has = !!ATLAS[item.id];
+                const el = document.createElement('div');
+                el.className = 'card' + (item.id === currentId ? ' active' : '') + (has ? '' : ' disabled');
+                el.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" onerror="this.style.visibility='hidden'">
+                    <div class="name">${item.name}</div>
+                    <div class="quality">${item.quality || ''}</div>
+                `;
+                if (has) {
+                    el.addEventListener('click', () => applySkinById(item.id));
+                }
+                cardsEl.appendChild(el);
             });
         }
 
-        // ===== Ресайз =====
+        // ===== Загрузка данных =====
+        async function loadData() {
+            try {
+                const [catRes, atlasRes] = await Promise.all([
+                    fetch('Data/Catalog/Skins/AK-47.json'),
+                    fetch('Data/3D/ak47_atlas.json'),
+                ]);
+                CATALOG = await catRes.json();
+                ATLAS = await atlasRes.json();
+            } catch (e) {
+                debugEl.textContent = 'Ошибка загрузки JSON: ' + e.message;
+                return;
+            }
+            // первая доступная карточка
+            const first = CATALOG.find(i => ATLAS[i.id]);
+            if (first) applySkinById(first.id);
+            loadModel();
+        }
+
         function resize() {
             const c = document.getElementById('canvas-container');
             const w = c.clientWidth, h = c.clientHeight;
@@ -223,6 +251,8 @@
             controls.update();
             renderer.render(scene, camera);
         })();
+
+        loadData();
     </script>
 </body>
 </html>
