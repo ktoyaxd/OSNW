@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>UV Tuner — OSNW</title>
+    <title>Pixel Bake — OSNW</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
@@ -15,47 +15,11 @@
             position: fixed; top: 0; left: 0;
             width: 100vw; height: 100vh;
         }
-        #panel {
-            position: fixed; top: 0; right: 0;
-            width: 260px; height: 100vh;
-            background: #18191c; border-left: 2px solid #2D3037;
-            overflow-y: auto; padding: 8px; font-size: 11px;
-            transform: translateX(100%);
-            transition: transform 0.2s;
-            z-index: 50;
-        }
-        #panel.open { transform: translateX(0); }
-        #panel-toggle {
-            position: fixed; top: 12px; right: 12px;
-            width: 44px; height: 44px;
-            background: #FFD700; color: #202126;
-            border: none; border-radius: 6px;
-            font-size: 22px; font-weight: 600;
-            cursor: pointer; z-index: 60;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .part-tabs {
-            display: grid; grid-template-columns: repeat(5, 1fr);
-            gap: 4px; margin-bottom: 8px;
-        }
-        .tab {
-            background: #202126; border: 1px solid #2D3037;
-            color: #888; padding: 6px 0; text-align: center;
-            font-size: 10px; cursor: pointer; border-radius: 3px;
-        }
-        .tab.active {
-            background: #FFD700; color: #202126;
-            border-color: #FFD700; font-weight: 600;
-        }
-        .row {
-            display: flex; align-items: center; gap: 6px;
-            margin-bottom: 8px;
-        }
-        .row label { width: 32px; color: #888; font-size: 10px; }
-        .row input[type="range"] { flex: 1; height: 20px; }
-        .row .val {
-            width: 50px; text-align: right; font-family: monospace;
-            color: #6a8aff; font-size: 10px;
+        .btns {
+            position: fixed; bottom: 12px; left: 50%;
+            transform: translateX(-50%); display: flex; gap: 8px;
+            z-index: 40; flex-wrap: wrap; justify-content: center;
+            padding: 0 12px;
         }
         .btn {
             background: #2D3037; color: #fff; border: 2px solid #444;
@@ -65,32 +29,25 @@
         .btn.active {
             background: #FFD700; color: #202126; border-color: #FFD700;
         }
-        .btns {
-            position: fixed; bottom: 12px; left: 50%;
-            transform: translateX(-50%); display: flex; gap: 8px;
-            z-index: 40; flex-wrap: wrap; justify-content: center;
-            padding: 0 12px;
-        }
         #debug {
             position: fixed; top: 12px; left: 12px;
             color: #6a8aff; font-size: 10px;
             font-family: monospace; background: rgba(0,0,0,0.6);
             padding: 6px 8px; border-radius: 4px;
-            pointer-events: none; max-width: 180px; line-height: 1.3;
+            pointer-events: none; max-width: 220px; line-height: 1.3;
         }
         #loading {
             position: fixed; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             color: #FFD700; font-size: 14px; z-index: 200;
+            text-align: center; line-height: 1.6;
         }
     </style>
 </head>
 <body>
     <div id="canvas-container"></div>
-    <button id="panel-toggle">☰</button>
     <div id="debug"></div>
     <div id="loading">Загрузка...</div>
-    <div id="panel"></div>
     <div class="btns" id="btns"></div>
 
     <script type="importmap">
@@ -106,17 +63,10 @@
         import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
         const debugEl = document.getElementById('debug');
-        const panelEl = document.getElementById('panel');
         const btnsEl = document.getElementById('btns');
         const loadingEl = document.getElementById('loading');
-        const panelToggle = document.getElementById('panel-toggle');
 
-        // Кнопка открытия/закрытия панели
-        panelToggle.addEventListener('click', () => {
-            panelEl.classList.toggle('open');
-            panelToggle.textContent = panelEl.classList.contains('open') ? '✕' : '☰';
-        });
-
+        // ===== Скины =====
         const ATLAS_SIZE = 2048;
         const SKINS = {
             0: { name: '1-0', x: 300, y: 735, w: 128, h: 128 },
@@ -126,13 +76,10 @@
         let currentSkin = 0;
 
         const PARTS = ['Object001','Object002','Object003','Object004','Object005','Object006','Object007','Object008','Object009'];
-        const uvParams = {};
-        PARTS.forEach(name => {
-            uvParams[name] = { tu: 1, tv: 1, ou: 0, ov: 0, enabled: false };
-        });
-
-        let activePart = 'ALL';
         const meshesByPart = {};
+
+        // ===== Размер выходной текстуры =====
+        const TEX_SIZE = 1024;
 
         // ===== Сцена =====
         const scene = new THREE.Scene();
@@ -154,14 +101,33 @@
         const d1 = new THREE.DirectionalLight(0xffffff, 0.7); d1.position.set(2, 3, 2); scene.add(d1);
         const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2, -1, -2); scene.add(d2);
 
-        const atlasTexture = new THREE.TextureLoader().load(
-            'Data/3D/WeaponsAtlas.png',
-            () => { debugEl.textContent = `Атлас ${atlasTexture.image.width}×${atlasTexture.image.height}`; },
-            undefined,
-            () => { debugEl.textContent = 'Ошибка атласа'; }
-        );
-        atlasTexture.colorSpace = THREE.SRGBColorSpace;
-        atlasTexture.flipY = false;
+        // ===== Canvas для генерации текстуры =====
+        const bakeCanvas = document.createElement('canvas');
+        bakeCanvas.width = TEX_SIZE;
+        bakeCanvas.height = TEX_SIZE;
+        const bakeCtx = bakeCanvas.getContext('2d', { willReadFrequently: true });
+
+        // ===== Итоговая текстура =====
+        const bakedTexture = new THREE.CanvasTexture(bakeCanvas);
+        bakedTexture.colorSpace = THREE.SRGBColorSpace;
+        bakedTexture.flipY = false; // уже правильно ориентирована
+        bakedTexture.minFilter = THREE.LinearFilter;
+        bakedTexture.magFilter = THREE.LinearFilter;
+        bakedTexture.needsUpdate = true;
+
+        // ===== Загрузка атласа как Image =====
+        const atlasImg = new Image();
+        atlasImg.crossOrigin = 'anonymous';
+        atlasImg.src = 'Data/3D/WeaponsAtlas.png';
+
+        let atlasReady = false;
+        atlasImg.onload = () => {
+            atlasReady = true;
+            debugEl.textContent = `Атлас ${atlasImg.width}×${atlasImg.height}`;
+        };
+        atlasImg.onerror = () => {
+            debugEl.textContent = 'Ошибка атласа';
+        };
 
         // ===== Модель =====
         const BASE = 'Data/3D/Weapon/AK-47/';
@@ -175,15 +141,31 @@
                 (obj) => {
                     obj.traverse(child => {
                         if (child.isMesh && child.geometry) {
+                            // Материал с итоговой текстурой
                             child.material = new THREE.MeshStandardMaterial({
-                                map: atlasTexture,
-                                metalness: 0.2, roughness: 0.7,
+                                map: bakedTexture,
+                                metalness: 0.2,
+                                roughness: 0.7,
                                 side: THREE.DoubleSide
                             });
                             const uvAttr = child.geometry.attributes.uv;
                             if (uvAttr) {
-                                child.userData.originalUV = new Float32Array(uvAttr.array);
                                 child.userData.partName = partName;
+                                // Считаем min/max UV этой части
+                                let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
+                                const a = uvAttr.array;
+                                for (let i = 0; i < a.length; i += 2) {
+                                    const u = a[i], v = a[i+1];
+                                    if (u < uMin) uMin = u;
+                                    if (u > uMax) uMax = u;
+                                    if (v < vMin) vMin = v;
+                                    if (v > vMax) vMax = v;
+                                }
+                                child.userData.uvBounds = {
+                                    uMin, vMin,
+                                    uRange: (uMax - uMin) || 0.0001,
+                                    vRange: (vMax - vMin) || 0.0001,
+                                };
                                 if (!meshesByPart[partName]) meshesByPart[partName] = [];
                                 meshesByPart[partName].push(child);
                             }
@@ -191,7 +173,7 @@
                     });
                     group.add(obj);
                     loaded++;
-                    loadingEl.textContent = `Загрузка: ${loaded}/${PARTS.length}`;
+                    loadingEl.textContent = `Загрузка модели: ${loaded}/${PARTS.length}`;
                     if (loaded === PARTS.length) onAllLoaded();
                 },
                 undefined,
@@ -203,7 +185,6 @@
         });
 
         function onAllLoaded() {
-            loadingEl.style.display = 'none';
             const box = new THREE.Box3().setFromObject(group);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
@@ -214,149 +195,143 @@
             camera.position.set(0, 0, 4);
             controls.target.set(0, 0, 0);
             controls.update();
-            applyAllUV();
-            buildPanel();
-            buildSkinButtons();
-            resize();
-        }
 
-        function applyUVToMesh(child) {
-            const origUV = child.userData.originalUV;
-            const partName = child.userData.partName;
-            if (!origUV || !partName) return;
-            const p = uvParams[partName];
-            const uvAttr = child.geometry.attributes.uv;
-
-            if (!p.enabled) {
-                uvAttr.array.set(origUV);
-            } else {
-                let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
-                for (let i = 0; i < origUV.length; i += 2) {
-                    const u = origUV[i], v = origUV[i+1];
-                    if (u < uMin) uMin = u;
-                    if (u > uMax) uMax = u;
-                    if (v < vMin) vMin = v;
-                    if (v > vMax) vMax = v;
+            // Ждём атлас, потом запекаем
+            const waitAtlas = setInterval(() => {
+                if (atlasReady) {
+                    clearInterval(waitAtlas);
+                    bakeAllParts();
+                    loadingEl.style.display = 'none';
+                    buildSkinButtons();
+                    resize();
                 }
-                const uRange = uMax - uMin || 0.0001;
-                const vRange = vMax - vMin || 0.0001;
+            }, 100);
+        }
 
-                for (let i = 0; i < uvAttr.count; i++) {
-                    const u0 = (origUV[i*2] - uMin) / uRange;
-                    const v0 = (origUV[i*2+1] - vMin) / vRange;
-                    uvAttr.setXY(i, u0 * p.tu + p.ou, v0 * p.tv + p.ov);
+        // ===== Запекание всех частей =====
+        function bakeAllParts() {
+            loadingEl.textContent = 'Генерация текстуры...';
+            const t0 = performance.now();
+
+            // Очищаем canvas
+            bakeCtx.fillStyle = '#202126';
+            bakeCtx.fillRect(0, 0, TEX_SIZE, TEX_SIZE);
+
+            // Получаем ImageData атласа один раз
+            const atlasCanvas = document.createElement('canvas');
+            atlasCanvas.width = ATLAS_SIZE;
+            atlasCanvas.height = ATLAS_SIZE;
+            const atlasCtx = atlasCanvas.getContext('2d');
+            atlasCtx.drawImage(atlasImg, 0, 0);
+            const atlasData = atlasCtx.getImageData(0, 0, ATLAS_SIZE, ATLAS_SIZE).data;
+
+            // Буфер вывода
+            const outData = bakeCtx.getImageData(0, 0, TEX_SIZE, TEX_SIZE);
+            const out = outData.data;
+
+            // Проходим по каждой части
+            Object.entries(meshesByPart).forEach(([partName, meshes]) => {
+                meshes.forEach(mesh => {
+                    bakeMesh(mesh, atlasData, out);
+                });
+            });
+
+            bakeCtx.putImageData(outData, 0, 0);
+            bakedTexture.needsUpdate = true;
+
+            const t1 = performance.now();
+            debugEl.textContent = `Запечено за ${((t1 - t0) / 1000).toFixed(2)}с`;
+        }
+
+        // ===== Запекание одного меша =====
+        function bakeMesh(mesh, atlasData, out) {
+            const geom = mesh.geometry;
+            const posAttr = geom.attributes.position;
+            const uvAttr = geom.attributes.uv;
+            const index = geom.index;
+            if (!uvAttr) return;
+
+            const bounds = mesh.userData.uvBounds;
+            if (!bounds) return;
+
+            const sprite = SKINS[currentSkin];
+            const { uMin, vMin, uRange, vRange } = bounds;
+
+            // Функции преобразования
+            const toSpriteU = (u) => ((u - uMin) / uRange) * (sprite.w / ATLAS_SIZE) + sprite.x / ATLAS_SIZE;
+            const toSpriteV = (v) => ((v - vMin) / vRange) * (sprite.h / ATLAS_SIZE) + (ATLAS_SIZE - sprite.y - sprite.h) / ATLAS_SIZE;
+
+            // Выходной размер холста
+            const W = TEX_SIZE, H = TEX_SIZE;
+
+            // Итерируем по треугольникам
+            const triCount = index ? index.count / 3 : posAttr.count / 3;
+            for (let t = 0; t < triCount; t++) {
+                let i0, i1, i2;
+                if (index) {
+                    i0 = index.getX(t * 3);
+                    i1 = index.getX(t * 3 + 1);
+                    i2 = index.getX(t * 3 + 2);
+                } else {
+                    i0 = t * 3;
+                    i1 = t * 3 + 1;
+                    i2 = t * 3 + 2;
+                }
+
+                // UV вершин (0..1)
+                const u0 = uvAttr.getX(i0), v0 = uvAttr.getY(i0);
+                const u1 = uvAttr.getX(i1), v1 = uvAttr.getY(i1);
+                const u2 = uvAttr.getX(i2), v2 = uvAttr.getY(i2);
+
+                // Пиксельные координаты в canvas (UV → canvas)
+                const x0 = u0 * W, y0 = (1 - v0) * H;
+                const x1 = u1 * W, y1 = (1 - v1) * H;
+                const x2 = u2 * W, y2 = (1 - v2) * H;
+
+                // Bounding box
+                const minX = Math.max(0, Math.floor(Math.min(x0, x1, x2)));
+                const maxX = Math.min(W - 1, Math.ceil(Math.max(x0, x1, x2)));
+                const minY = Math.max(0, Math.floor(Math.min(y0, y1, y2)));
+                const maxY = Math.min(H - 1, Math.ceil(Math.max(y0, y1, y2)));
+
+                // Площадь
+                const denom = (y1 - y2) * (x0 - x2) + (x2 - x1) * (y0 - y2);
+                if (Math.abs(denom) < 0.0001) continue;
+
+                for (let py = minY; py <= maxY; py++) {
+                    for (let px = minX; px <= maxX; px++) {
+                        // Barycentric
+                        const l0 = ((y1 - y2) * (px - x2) + (x2 - x1) * (py - y2)) / denom;
+                        const l1 = ((y2 - y0) * (px - x2) + (x0 - x2) * (py - y2)) / denom;
+                        const l2 = 1 - l0 - l1;
+                        if (l0 < 0 || l1 < 0 || l2 < 0) continue;
+
+                        // Интерполируем UV модели
+                        const uM = l0 * u0 + l1 * u1 + l2 * u2;
+                        const vM = l0 * v0 + l1 * v1 + l2 * v2;
+
+                        // В UV спрайта
+                        const su = toSpriteU(uM);
+                        const sv = toSpriteV(vM);
+
+                        // В пиксели атласа
+                        let ax = Math.floor(su * ATLAS_SIZE);
+                        let ay = Math.floor((1 - sv) * ATLAS_SIZE);
+                        if (ax < 0 || ax >= ATLAS_SIZE || ay < 0 || ay >= ATLAS_SIZE) continue;
+
+                        const ai = (ay * ATLAS_SIZE + ax) * 4;
+                        const oi = (py * W + px) * 4;
+
+                        out[oi] = atlasData[ai];
+                        out[oi+1] = atlasData[ai+1];
+                        out[oi+2] = atlasData[ai+2];
+                        out[oi+3] = 255;
+                    }
                 }
             }
-            uvAttr.needsUpdate = true;
         }
 
-        function applyAllUV() {
-            if (activePart === 'ALL') {
-                group.traverse(child => {
-                    if (child.isMesh) applyUVToMesh(child);
-                });
-            } else {
-                (meshesByPart[activePart] || []).forEach(applyUVToMesh);
-            }
-        }
-
-        function buildPanel() {
-            panelEl.innerHTML = '';
-
-            const tabs = document.createElement('div');
-            tabs.className = 'part-tabs';
-            ['001','002','003','004','005','006','007','008','009','ALL'].forEach(p => {
-                const t = document.createElement('div');
-                t.className = 'tab' + (activePart === (p === 'ALL' ? 'ALL' : 'Object' + p) ? ' active' : '');
-                t.textContent = p;
-                t.addEventListener('click', () => {
-                    activePart = (p === 'ALL' ? 'ALL' : 'Object' + p);
-                    PARTS.forEach(name => {
-                        const meshes = meshesByPart[name] || [];
-                        meshes.forEach(m => {
-                            m.visible = (activePart === 'ALL' || name === activePart);
-                        });
-                    });
-                    applyAllUV();
-                    buildPanel();
-                });
-                tabs.appendChild(t);
-            });
-            panelEl.appendChild(tabs);
-
-            if (activePart === 'ALL') {
-                const hint = document.createElement('div');
-                hint.style.color = '#888';
-                hint.style.fontSize = '11px';
-                hint.style.padding = '8px 4px';
-                hint.textContent = 'Выбери часть (001–009), чтобы настроить её UV.';
-                panelEl.appendChild(hint);
-                return;
-            }
-
-            const name = activePart;
-            const p = uvParams[name];
-
-            const toggleBtn = document.createElement('button');
-            toggleBtn.className = 'btn' + (p.enabled ? ' active' : '');
-            toggleBtn.textContent = p.enabled ? 'Включено' : 'Выключено';
-            toggleBtn.style.width = '100%';
-            toggleBtn.style.marginBottom = '8px';
-            toggleBtn.addEventListener('click', () => {
-                p.enabled = !p.enabled;
-                applyAllUV();
-                buildPanel();
-            });
-            panelEl.appendChild(toggleBtn);
-
-            const mkRow = (label, key, min, max, step) => {
-                const row = document.createElement('div');
-                row.className = 'row';
-                row.innerHTML = `
-                    <label>${label}</label>
-                    <input type="range" min="${min}" max="${max}" step="${step}" value="${p[key]}">
-                    <span class="val">${p[key].toFixed(3)}</span>
-                `;
-                const input = row.querySelector('input');
-                const val = row.querySelector('.val');
-                input.addEventListener('change', () => {
-                    p[key] = parseFloat(input.value);
-                    val.textContent = p[key].toFixed(3);
-                    applyAllUV();
-                });
-                input.addEventListener('input', () => {
-                    val.textContent = parseFloat(input.value).toFixed(3);
-                });
-                return row;
-            };
-
-            panelEl.appendChild(mkRow('TU', 'tu', 0, 2, 0.001));
-            panelEl.appendChild(mkRow('TV', 'tv', 0, 2, 0.001));
-            panelEl.appendChild(mkRow('OU', 'ou', -1, 1, 0.001));
-            panelEl.appendChild(mkRow('OV', 'ov', -1, 1, 0.001));
-
-            const resetBtn = document.createElement('button');
-            resetBtn.className = 'btn';
-            resetBtn.textContent = 'Сбросить часть';
-            resetBtn.style.width = '100%';
-            resetBtn.style.marginTop = '8px';
-            resetBtn.addEventListener('click', () => {
-                uvParams[name] = { tu: 1, tv: 1, ou: 0, ov: 0, enabled: false };
-                applyAllUV();
-                buildPanel();
-            });
-            panelEl.appendChild(resetBtn);
-
-            const hint = document.createElement('div');
-            hint.style.marginTop = '8px';
-            hint.style.fontSize = '10px';
-            hint.style.color = '#6a8aff';
-            hint.style.fontFamily = 'monospace';
-            hint.style.whiteSpace = 'pre-line';
-            hint.textContent = `${name}\ntu=${p.tu.toFixed(4)} tv=${p.tv.toFixed(4)}\nou=${p.ou.toFixed(4)} ov=${p.ov.toFixed(4)}`;
-            panelEl.appendChild(hint);
-        }
-
+        // ===== Кнопки скинов =====
         function buildSkinButtons() {
             btnsEl.innerHTML = '';
             Object.entries(SKINS).forEach(([idx, skin]) => {
@@ -366,39 +341,18 @@
                 btn.addEventListener('click', () => {
                     currentSkin = parseInt(idx);
                     buildSkinButtons();
+                    loadingEl.style.display = 'block';
+                    loadingEl.textContent = 'Генерация...';
+                    setTimeout(() => {
+                        bakeAllParts();
+                        loadingEl.style.display = 'none';
+                    }, 50);
                 });
                 btnsEl.appendChild(btn);
             });
-
-            const saveBtn = document.createElement('button');
-            saveBtn.className = 'btn';
-            saveBtn.style.background = '#6a8aff';
-            saveBtn.style.borderColor = '#6a8aff';
-            saveBtn.style.color = '#202126';
-            saveBtn.style.fontWeight = '600';
-            saveBtn.textContent = 'Save';
-            saveBtn.addEventListener('click', () => {
-                const dump = {};
-                PARTS.forEach(name => {
-                    const p = uvParams[name];
-                    if (p.enabled) {
-                        dump[name] = {
-                            tu: +p.tu.toFixed(4),
-                            tv: +p.tv.toFixed(4),
-                            ou: +p.ou.toFixed(4),
-                            ov: +p.ov.toFixed(4),
-                        };
-                    }
-                });
-                const txt = JSON.stringify(dump, null, 2);
-                console.log('=== UV PARAMS ===');
-                console.log(txt);
-                debugEl.textContent = 'Параметры в консоли';
-                setTimeout(() => { debugEl.textContent = ''; }, 2000);
-            });
-            btnsEl.appendChild(saveBtn);
         }
 
+        // ===== Ресайз =====
         function resize() {
             const canvas = document.getElementById('canvas-container');
             const w = canvas.clientWidth, h = canvas.clientHeight;
