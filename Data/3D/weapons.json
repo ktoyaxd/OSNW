@@ -1,0 +1,15 @@
+{
+  "AK-47": {
+    "parts": ["Object001","Object002","Object003","Object004","Object005",
+              "Object006","Object007","Object008","Object009"],
+    "path": "Data/3D/Weapon/AK-47/",
+    "atlas": "Data/3D/ak47_atlas.json",
+    "catalog": "Data/Catalog/Skins/AK-47.json"
+  },
+  "Glock": {
+    "parts": ["Glock","Object001","Object002"],
+    "path": "Data/3D/Weapon/Glock/",
+    "atlas": "Data/3D/glock_atlas.json",
+    "catalog": "Data/Catalog/Skins/Glock.json"
+  }
+}
