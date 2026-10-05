@@ -3,311 +3,319 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Atlas Finder — OSNW</title>
+<title>3D-осмотр — OSNW</title>
 <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; height: 100%; overflow: hidden;
-        background: #202126; color: #fff;
-        font-family: 'Segoe UI', Arial, sans-serif; }
-    #stage { position: fixed; inset: 0; overflow: hidden; touch-action: none; }
-    #stage canvas { position: absolute; top: 0; left: 0; image-rendering: pixelated; }
-    #hud {
-        position: fixed; top: 8px; left: 8px; right: 8px;
-        display: flex; gap: 6px; flex-wrap: wrap; z-index: 20;
-        font-size: 11px; font-family: monospace;
-    }
-    #hud > * { background: rgba(0,0,0,0.75); padding: 5px 8px;
-        border: 1px solid #444; color: #fff; }
-    #hud .gold { color: #FFD700; }
-    #gridSizes button {
-        background: #2D3037; border: 1px solid #444; color: #fff;
-        padding: 4px 8px; margin-right: 4px; cursor: pointer;
-        font-family: inherit; font-size: 11px;
-    }
-    #gridSizes button.active { background: #FFD700; color: #202126; }
-    #bottom {
+    body { margin: 0; background: #202126; overflow: hidden;
+        font-family: 'Segoe UI', Arial, sans-serif; color: #fff; height: 100vh; }
+    #canvas-container { position: fixed; inset: 0; }
+    #cards {
         position: fixed; bottom: 0; left: 0; right: 0;
-        background: rgba(0,0,0,0.9); padding: 8px 10px 12px;
-        z-index: 20; font-size: 12px; font-family: monospace;
-        max-height: 45vh; overflow-y: auto;
+        display: flex; gap: 8px; overflow-x: auto;
+        padding: 10px 12px; z-index: 40;
+        background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0));
+        -webkit-overflow-scrolling: touch;
     }
-    #bottom .row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; }
-    #bottom input {
-        background: #2D3037; color: #FFD700; border: 1px solid #444;
-        padding: 6px 8px; font-family: monospace; font-size: 13px;
-        min-width: 0;
+    .card {
+        flex: 0 0 auto; width: 92px; background: #2D3037;
+        border: 2px solid #444; padding: 6px; cursor: pointer;
+        text-align: center; transition: border-color 0.15s;
     }
-    #bottom input.id { flex: 1; }
-    #bottom input.coord { width: 64px; }
-    #bottom button {
-        background: #2D3037; color: #fff; border: 1px solid #444;
-        padding: 6px 10px; cursor: pointer; font-family: inherit;
-        font-size: 12px;
+    .card.active { border-color: #FFD700; background: #3a2f00; }
+    .card.disabled { opacity: 0.35; cursor: not-allowed; }
+    .card img {
+        width: 100%; height: 48px; object-fit: contain;
+        image-rendering: pixelated; display: block;
+        margin-bottom: 4px;
     }
-    #bottom button.gold { background: #FFD700; color: #202126; border-color: #FFD700; }
-    #bottom button.red { background: #7a1e1e; border-color: #a33; }
-    #list { font-size: 11px; color: #aaa; max-height: 120px; overflow-y: auto;
-        white-space: pre; margin-top: 6px; padding: 4px; background: #111;
-        border: 1px solid #333; }
+    .card .name { font-size: 10px; line-height: 1.2;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .card .quality { font-size: 9px; color: #6a8aff; text-transform: uppercase; }
+    #weaponSwitch {
+        position: fixed; top: 12px; right: 12px; z-index: 40;
+        display: flex; gap: 6px;
+    }
+    #weaponSwitch a {
+        background: #2D3037; color: #fff; border: 2px solid #444;
+        padding: 6px 10px; font-size: 11px; text-decoration: none;
+        font-family: inherit;
+    }
+    #weaponSwitch a.active {
+        background: #FFD700; color: #202126; border-color: #FFD700;
+    }
+    #debug {
+        position: fixed; top: 12px; left: 12px;
+        color: #6a8aff; font-size: 10px; font-family: monospace;
+        background: rgba(0,0,0,0.6); padding: 6px 8px; border-radius: 4px;
+        pointer-events: none; max-width: 220px; line-height: 1.3;
+        white-space: pre-line;
+    }
+    #loading {
+        position: fixed; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        color: #FFD700; font-size: 14px; z-index: 200;
+        text-align: center; line-height: 1.6;
+    }
 </style>
 </head>
 <body>
-<div id="stage"></div>
-<div id="hud">
-    <span>Атлас 2048×2048</span>
-    <span class="gold" id="pos">—</span>
-    <span id="gridSizes">
-        размер:
-        <button data-size="64">64</button>
-        <button data-size="128" class="active">128</button>
-        <button data-size="256">256</button>
-        <button data-size="512">512</button>
-    </span>
-</div>
+    <div id="canvas-container"></div>
+    <div id="debug"></div>
+    <div id="loading">Загрузка...</div>
+    <div id="weaponSwitch"></div>
+    <div id="cards"></div>
 
-<div id="bottom">
-    <div class="row">
-        <input class="id" id="idInput" placeholder="ID скина (напр. ak47chan)">
-        <input class="coord" id="xIn" placeholder="x">
-        <input class="coord" id="yIn" placeholder="y">
-        <input class="coord" id="wIn" placeholder="w" value="128">
-        <input class="coord" id="hIn" placeholder="h" value="128">
-    </div>
-    <div class="row">
-        <button class="gold" id="addBtn">+ Добавить</button>
-        <button id="copyBtn">Скопировать JSON</button>
-        <button class="red" id="clearBtn">Очистить</button>
-    </div>
-    <div id="list">— пусто —</div>
-</div>
+    <script type="importmap">
+    { "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }}
+    </script>
 
-<script>
-// ===== Конфиг =====
-const ATLAS_URL = 'Data/3D/WeaponsAtlas.png';
-const ATLAS_SIZE = 2048;
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
-// ===== Состояние =====
-let gridSize = 128;
-let scale = 1;             // масштаб отображения (пиксель атласа → экран)
-let offsetX = 0, offsetY = 0;
-const stage = document.getElementById('stage');
+        const debugEl = document.getElementById('debug');
+        const cardsEl = document.getElementById('cards');
+        const loadingEl = document.getElementById('loading');
+        const weaponSwitchEl = document.getElementById('weaponSwitch');
 
-const atlasCanvas = document.createElement('canvas');
-atlasCanvas.width = ATLAS_SIZE;
-atlasCanvas.height = ATLAS_SIZE;
-const atlasCtx = atlasCanvas.getContext('2d', { willReadFrequently: true });
+        const ATLAS_SIZE = 2048;
 
-// Слой для сетки и подсветки — перерисовывается поверх атласа
-const overlayCanvas = document.createElement('canvas');
-overlayCanvas.width = ATLAS_SIZE;
-overlayCanvas.height = ATLAS_SIZE;
-const overlayCtx = overlayCanvas.getContext('2d');
-stage.appendChild(atlasCanvas);
-stage.appendChild(overlayCanvas);
+        // ===== Определить оружие из URL =====
+        const params = new URLSearchParams(location.search);
+        const WEAPON = params.get('weapon') || 'AK-47';
 
-// ===== Загрузка атласа =====
-const img = new Image();
-img.crossOrigin = 'anonymous';
-img.onload = () => {
-    atlasCtx.drawImage(img, 0, 0);
-    drawOverlay();
-    fitToScreen();
-};
-img.onerror = () => { alert('Не загрузился атлас: ' + ATLAS_URL); };
-img.src = ATLAS_URL;
+        // ===== Сцена =====
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x202126);
 
-// ===== Вписать атлас в экран =====
-function fitToScreen() {
-    const w = stage.clientWidth, h = stage.clientHeight;
-    const s = Math.min(w / ATLAS_SIZE, h / ATLAS_SIZE);
-    scale = s;
-    offsetX = (w - ATLAS_SIZE * s) / 2;
-    offsetY = (h - ATLAS_SIZE * s) / 2;
-    applyTransform();
-}
-function applyTransform() {
-    const t = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-    atlasCanvas.style.transform = t;
-    atlasCanvas.style.transformOrigin = '0 0';
-    overlayCanvas.style.transform = t;
-    overlayCanvas.style.transformOrigin = '0 0';
-}
+        const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
+        camera.position.set(0, 0, 4);
 
-// ===== Отрисовка сетки и выделения =====
-let selected = null; // {x, y, w, h}
-function drawOverlay() {
-    overlayCtx.clearRect(0, 0, ATLAS_SIZE, ATLAS_SIZE);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-    // Сетка
-    overlayCtx.strokeStyle = 'rgba(255, 215, 0, 0.25)';
-    overlayCtx.lineWidth = 1 / scale;
-    overlayCtx.beginPath();
-    for (let x = 0; x <= ATLAS_SIZE; x += gridSize) {
-        overlayCtx.moveTo(x, 0);
-        overlayCtx.lineTo(x, ATLAS_SIZE);
-    }
-    for (let y = 0; y <= ATLAS_SIZE; y += gridSize) {
-        overlayCtx.moveTo(0, y);
-        overlayCtx.lineTo(ATLAS_SIZE, y);
-    }
-    overlayCtx.stroke();
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.1;
+        controls.enablePan = false;
 
-    // Выделение
-    if (selected) {
-        overlayCtx.strokeStyle = '#ff3b3b';
-        overlayCtx.lineWidth = 3 / scale;
-        overlayCtx.strokeRect(selected.x, selected.y, selected.w, selected.h);
-        overlayCtx.fillStyle = 'rgba(255, 60, 60, 0.15)';
-        overlayCtx.fillRect(selected.x, selected.y, selected.w, selected.h);
-    }
-}
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        const d1 = new THREE.DirectionalLight(0xffffff, 0.6); d1.position.set(2, 3, 2); scene.add(d1);
+        const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2, -1, -2); scene.add(d2);
 
-// ===== Жесты =====
-let pointers = new Map();
-let lastDist = 0;
-let lastMid = null;
+        // ===== Атлас =====
+        const atlasTex = new THREE.TextureLoader().load('Data/3D/WeaponsAtlas.png');
+        atlasTex.colorSpace = THREE.SRGBColorSpace;
+        atlasTex.flipY = true;
+        atlasTex.wrapS = atlasTex.wrapT = THREE.ClampToEdgeWrapping;
+        atlasTex.minFilter = THREE.LinearFilter;
+        atlasTex.magFilter = THREE.NearestFilter;
 
-stage.addEventListener('pointerdown', e => {
-    stage.setPointerCapture(e.pointerId);
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.size === 2) {
-        const [a, b] = [...pointers.values()];
-        lastDist = Math.hypot(a.x - b.x, a.y - b.y);
-        lastMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-    }
-});
-stage.addEventListener('pointermove', e => {
-    if (!pointers.has(e.pointerId)) return;
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        const uniforms = {
+            uTiling: { value: new THREE.Vector2(0.0625, 0.0625) },
+            uOffset: { value: new THREE.Vector2(0, 0) },
+        };
 
-    if (pointers.size === 1) {
-        // панорама
-        const p = pointers.get(e.pointerId);
-        // ничего не делаем — панорама по двум пальцам
-    } else if (pointers.size === 2) {
-        const [a, b] = [...pointers.values()];
-        const dist = Math.hypot(a.x - b.x, a.y - b.y);
-        const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-        const zoom = dist / lastDist;
-        const newScale = Math.min(20, Math.max(0.05, scale * zoom));
+        function makeMaterial() {
+            const mat = new THREE.MeshStandardMaterial({
+                map: atlasTex, metalness: 0.2, roughness: 0.7, side: THREE.DoubleSide,
+            });
+            mat.onBeforeCompile = (shader) => {
+                shader.uniforms.uTiling = uniforms.uTiling;
+                shader.uniforms.uOffset = uniforms.uOffset;
+                shader.fragmentShader = shader.fragmentShader
+                    .replace('#include <common>', `#include <common>
+                        uniform vec2 uTiling;
+                        uniform vec2 uOffset;
+                    `)
+                    .replace('#include <map_fragment>', `
+                        vec2 atlasUv = vMapUv * uTiling + uOffset;
+                        vec4 sampledDiffuseColor = texture2D( map, atlasUv );
+                        diffuseColor *= sampledDiffuseColor;
+                    `);
+            };
+            return mat;
+        }
 
-        // сохранить точку под курсором
-        const rect = stage.getBoundingClientRect();
-        const mx = mid.x - rect.left, my = mid.y - rect.top;
-        const ax = (mx - offsetX) / scale;
-        const ay = (my - offsetY) / scale;
-        scale = newScale;
-        offsetX = mx - ax * scale;
-        offsetY = my - ay * scale;
+        // ===== Состояние =====
+        let CONFIG = null;
+        let CATALOG = [];
+        let ATLAS = {};
+        let currentId = null;
+        const group = new THREE.Group();
 
-        // панорама
-        offsetX += mid.x - lastMid.x;
-        offsetY += mid.y - lastMid.y;
+        // ===== Загрузка =====
+        async function boot() {
+            // 1) загрузить общий конфиг оружий
+            let weapons;
+            try {
+                const r = await fetch('Data/3D/weapons.json');
+                weapons = await r.json();
+            } catch (e) {
+                debugEl.textContent = 'Ошибка weapons.json: ' + e.message;
+                return;
+            }
 
-        lastDist = dist;
-        lastMid = mid;
-        applyTransform();
-    }
-});
-function endPointer(e) {
-    pointers.delete(e.pointerId);
-    if (pointers.size < 2) lastDist = 0;
-}
-stage.addEventListener('pointerup', endPointer);
-stage.addEventListener('pointercancel', endPointer);
-stage.addEventListener('pointerleave', endPointer);
+            CONFIG = weapons[WEAPON];
+            if (!CONFIG) {
+                debugEl.textContent = 'Нет конфига для ' + WEAPON;
+                return;
+            }
+            buildWeaponSwitcher(weapons, WEAPON);
 
-// Тап — выбираем ячейку
-let downAt = null;
-stage.addEventListener('pointerdown', e => { downAt = { t: Date.now(), x: e.clientX, y: e.clientY }; });
-stage.addEventListener('pointerup', e => {
-    if (!downAt) return;
-    const dt = Date.now() - downAt.t;
-    const dd = Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y);
-    downAt = null;
-    if (dt > 250 || dd > 8) return; // это был жест, не тап
-    if (pointers.size > 0) return;
+            // 2) каталог
+            try {
+                if (CONFIG.catalog) {
+                    const r = await fetch(CONFIG.catalog);
+                    CATALOG = await r.json();
+                }
+            } catch (e) { CATALOG = []; }
 
-    const rect = stage.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    const ax = Math.floor((mx - offsetX) / scale);
-    const ay = Math.floor((my - offsetY) / scale);
+            // 3) атлас-координаты
+            try {
+                if (CONFIG.atlas) {
+                    const r = await fetch(CONFIG.atlas);
+                    ATLAS = await r.json();
+                }
+            } catch (e) { ATLAS = {}; }
 
-    if (ax < 0 || ay < 0 || ax >= ATLAS_SIZE || ay >= ATLAS_SIZE) return;
+            // 4) модель
+            loadModel();
+        }
 
-    // привязка к сетке
-    const sx = Math.floor(ax / gridSize) * gridSize;
-    const sy = Math.floor(ay / gridSize) * gridSize;
-    selected = { x: sx, y: sy, w: gridSize, h: gridSize };
+        function loadModel() {
+            const loader = new OBJLoader();
+            let loaded = 0;
+            const total = CONFIG.parts.length;
 
-    document.getElementById('xIn').value = sx;
-    document.getElementById('yIn').value = sy;
-    document.getElementById('wIn').value = gridSize;
-    document.getElementById('hIn').value = gridSize;
-    document.getElementById('pos').textContent = `x=${sx} y=${sy} w=${gridSize} h=${gridSize}`;
-    drawOverlay();
-});
+            CONFIG.parts.forEach(partName => {
+                loader.load(CONFIG.path + partName + '.obj',
+                    (obj) => {
+                        obj.traverse(c => { if (c.isMesh && c.geometry) c.material = makeMaterial(); });
+                        group.add(obj);
+                        loaded++;
+                        loadingEl.textContent = `Модель: ${loaded}/${total}`;
+                        if (loaded === total) onModelLoaded();
+                    },
+                    undefined,
+                    () => { loaded++; if (loaded === total) onModelLoaded(); }
+                );
+            });
+        }
 
-// ===== Сетка размера =====
-document.querySelectorAll('#gridSizes button').forEach(b => {
-    b.addEventListener('click', () => {
-        document.querySelectorAll('#gridSizes button').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-        gridSize = parseInt(b.dataset.size);
-        document.getElementById('wIn').value = gridSize;
-        document.getElementById('hIn').value = gridSize;
-        drawOverlay();
-    });
-});
+        function onModelLoaded() {
+            const box = new THREE.Box3().setFromObject(group);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            group.position.sub(center);
+            group.scale.setScalar(3.0 / maxDim);
+            scene.add(group);
 
-// ===== Список найденных =====
-const list = {}; // id -> {x,y,w,h}
-function renderList() {
-    const el = document.getElementById('list');
-    const keys = Object.keys(list);
-    if (keys.length === 0) { el.textContent = '— пусто —'; return; }
-    el.textContent = keys.map(k =>
-        `${k}: { "x": ${list[k].x}, "y": ${list[k].y}, "w": ${list[k].w}, "h": ${list[k].h} }`
-    ).join('\n');
-}
+            camera.position.set(0, 0, 4);
+            controls.target.set(0, 0, 0);
+            controls.update();
+            resize();
 
-document.getElementById('addBtn').addEventListener('click', () => {
-    const id = document.getElementById('idInput').value.trim();
-    const x = parseInt(document.getElementById('xIn').value);
-    const y = parseInt(document.getElementById('yIn').value);
-    const w = parseInt(document.getElementById('wIn').value);
-    const h = parseInt(document.getElementById('hIn').value);
-    if (!id) { alert('Введи ID'); return; }
-    if ([x,y,w,h].some(v => isNaN(v))) { alert('Неверные координаты'); return; }
-    list[id] = { x, y, w, h };
-    renderList();
-    document.getElementById('idInput').value = '';
-});
+            loadingEl.style.display = 'none';
 
-document.getElementById('copyBtn').addEventListener('click', () => {
-    const json = JSON.stringify(list, null, 2);
-    navigator.clipboard.writeText(json).then(
-        () => alert('JSON скопирован в буфер'),
-        () => prompt('Скопируй вручную:', json)
-    );
-});
+            const first = CATALOG.find(i => ATLAS[i.id]);
+            if (first) applySkinById(first.id);
+            else if (CATALOG[0]) applySkinById(CATALOG[0].id);
 
-document.getElementById('clearBtn').addEventListener('click', () => {
-    if (!confirm('Очистить список?')) return;
-    for (const k in list) delete list[k];
-    renderList();
-    selected = null;
-    drawOverlay();
-});
+            buildCards();
+            updateDebug();
+        }
 
-// ===== Ресайз =====
-addEventListener('resize', () => {
-    fitToScreen();
-    drawOverlay();
-});
+        function applySkinById(id) {
+            const s = ATLAS[id];
+            currentId = id;
+            if (!s) {
+                debugEl.textContent = `Скин: ${id}\n(нет координат в атласе)`;
+                buildCards();
+                return;
+            }
 
-renderList();
-</script>
+            const tx = s.w / ATLAS_SIZE;
+            const ty = s.h / ATLAS_SIZE;
+            const ox = s.x / ATLAS_SIZE;
+            const oy = 1 - (s.y + s.h) / ATLAS_SIZE;
+
+            uniforms.uTiling.value.set(tx, ty);
+            uniforms.uOffset.value.set(ox, oy);
+            updateDebug();
+            buildCards();
+        }
+
+        function updateDebug() {
+            const s = ATLAS[currentId];
+            if (!s) {
+                debugEl.textContent = `${WEAPON}\nID: ${currentId || '—'}\n(нет координат)`;
+                return;
+            }
+            debugEl.textContent =
+                `${WEAPON}\n` +
+                `ID: ${currentId}\n` +
+                `x: ${s.x}  y: ${s.y}\n` +
+                `w: ${s.w}  h: ${s.h}`;
+        }
+
+        function buildCards() {
+            cardsEl.innerHTML = '';
+            if (CATALOG.length === 0) {
+                cardsEl.innerHTML = '<div style="color:#888;padding:10px">Каталог пуст</div>';
+                return;
+            }
+            CATALOG.forEach(item => {
+                const has = !!ATLAS[item.id];
+                const el = document.createElement('div');
+                el.className = 'card' + (item.id === currentId ? ' active' : '') + (has ? '' : ' disabled');
+                const imgSrc = item.image || '';
+                el.innerHTML = `
+                    ${imgSrc ? `<img src="${imgSrc}" onerror="this.style.visibility='hidden'">` : '<div style="height:48px"></div>'}
+                    <div class="name">${item.name || item.id}</div>
+                    <div class="quality">${item.quality || ''}</div>
+                `;
+                if (has) {
+                    el.addEventListener('click', () => applySkinById(item.id));
+                }
+                cardsEl.appendChild(el);
+            });
+        }
+
+        function buildWeaponSwitcher(weapons, current) {
+            weaponSwitchEl.innerHTML = '';
+            Object.keys(weapons).forEach(w => {
+                const a = document.createElement('a');
+                a.textContent = w;
+                a.href = '?weapon=' + encodeURIComponent(w);
+                if (w === current) a.className = 'active';
+                weaponSwitchEl.appendChild(a);
+            });
+        }
+
+        function resize() {
+            const c = document.getElementById('canvas-container');
+            const w = c.clientWidth, h = c.clientHeight;
+            if (w === 0 || h === 0) return;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h, false);
+        }
+        addEventListener('resize', resize);
+
+        (function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        })();
+
+        boot();
+    </script>
 </body>
 </html>
