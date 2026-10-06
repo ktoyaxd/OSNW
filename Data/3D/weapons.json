@@ -13,7 +13,7 @@
     "catalog": "Data/Catalog/Skins/Glock.json"
   },
   "Deagle": {
-    "parts": ["Desert_Deagle","Object001","Object002"],
+    "parts": ["Desert_Eagle","Object001","Object002"],
     "path": "Data/3D/Weapon/Deagle/",
     "atlas": "Data/3D/deagle_atlas.json",
     "catalog": "Data/Catalog/Skins/Deagle.json"
