@@ -11,7 +11,7 @@
     "path": "Data/3D/Weapon/Glock/",
     "atlas": "Data/3D/glock_atlas.json",
     "catalog": "Data/Catalog/Skins/Glock.json"
-  }
+  },
   "Deagle": {
     "parts": ["Desert_Deagle","Object001","Object002"],
     "path": "Data/3D/Weapon/Deagle/",
