@@ -1,5 +1,5 @@
 {
   "deagleAgent":            { "x": 612, "y": 375, "w": 64, "h": 64 },
   "deagleBloodyPink":       { "x": 612, "y": 191, "w": 64, "h": 64 },
-  "deagleWinterAwakening":  { "x": 300, "y": 1134, "w": 64, "h": 64 }
+  "deagleWinterAwakening":  { "x": 612, "y": 1134, "w": 64, "h": 64 }
 }
