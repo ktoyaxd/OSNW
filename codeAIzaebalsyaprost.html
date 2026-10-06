@@ -65,14 +65,33 @@
 
     .plaque {
         position: absolute; border: 3px solid #ff3b3b;
-        background: rgba(255,60,60,0.15); pointer-events: auto;
-        cursor: move; z-index: 10;
+        pointer-events: auto; cursor: move; z-index: 10;
+        box-sizing: border-box;
+    }
+    .plaque .spritePreview {
+        position: absolute; inset: 0; width: 100%; height: 100%;
+        object-fit: fill; image-rendering: pixelated;
+        opacity: 0.75; pointer-events: none;
     }
     .plaque .label {
-        position: absolute; top: -18px; left: 0;
+        position: absolute; top: -20px; left: 0;
         font-size: 10px; color: #fff; background: #ff3b3b;
         padding: 1px 4px; white-space: nowrap;
     }
+    .plaque .handle {
+        position: absolute; width: 22px; height: 22px;
+        background: #ff3b3b; border: 2px solid #fff;
+        border-radius: 50%; z-index: 2;
+    }
+    .plaque .handle.br {
+        right: -11px; bottom: -11px; cursor: nwse-resize;
+    }
+    .plaque .handle.tl {
+        left: -11px; top: -11px; cursor: nwse-resize;
+    }
+
+    /* нижний колонтитул — увеличим отступ, чтобы плашка не проваливалась */
+    #stage { padding-bottom: 0; }
 </style>
 </head>
 <body>
@@ -95,6 +114,7 @@
         <input class="coord" id="wIn" value="128">
         <input class="coord" id="hIn" value="128">
         <button id="applySize">Применить</button>
+        <button id="centerOnSprite">Центр на спрайт</button>
     </div>
     <div class="row">
         <button class="gold" id="saveBtn">💾 Сохранить</button>
@@ -117,10 +137,12 @@ let currentWeapon = 'AK-47';
 // ===== Состояние =====
 let scale = 1, offsetX = 0, offsetY = 0;
 let catalog = [];
-let existing = {};   // существующие координаты из JSON
-let saved = {};      // уже сохранённые сейчас
+let existing = {};
+let saved = {};
 let activeSkin = null;
-let plaque = null;   // { id, x, y, w, h } в пикселях атласа
+let activeItem = null;
+let plaque = null;
+// plaque: { id, x, y, w, h, el, previewEl }
 
 const stage = document.getElementById('stage');
 const coordsEl = document.getElementById('coords');
@@ -132,13 +154,9 @@ atlasCanvas.height = ATLAS_SIZE;
 const atlasCtx = atlasCanvas.getContext('2d', { willReadFrequently: true });
 stage.appendChild(atlasCanvas);
 
-// ===== Загрузка атласа =====
 const img = new Image();
 img.crossOrigin = 'anonymous';
-img.onload = () => {
-    atlasCtx.drawImage(img, 0, 0);
-    fitToScreen();
-};
+img.onload = () => { atlasCtx.drawImage(img, 0, 0); fitToScreen(); };
 img.onerror = () => alert('Не загрузился атлас: ' + ATLAS_URL);
 img.src = ATLAS_URL;
 
@@ -157,12 +175,12 @@ function applyTransform() {
     renderPlaque();
 }
 
-// ===== Жесты: зум/панорама атласа =====
+// ===== Жесты по атласу =====
 let pointers = new Map();
 let lastDist = 0, lastMid = null;
 
 stage.addEventListener('pointerdown', e => {
-    if (e.target !== stage && e.target !== atlasCanvas) return; // не мешать плашке
+    if (e.target !== stage && e.target !== atlasCanvas) return;
     stage.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 2) {
@@ -200,28 +218,31 @@ function endPointer(e) {
 stage.addEventListener('pointerup', endPointer);
 stage.addEventListener('pointercancel', endPointer);
 
-// ===== Плашка-спрайт =====
-function createPlaque(id) {
+// ===== Плашка =====
+function createPlaque(item) {
     if (plaque && plaque.el && plaque.el.parentNode) plaque.el.remove();
-    const initial = existing[id] || saved[id] || { x: 300, y: 735, w: 128, h: 128 };
-    plaque = { id, x: initial.x, y: initial.y, w: initial.w, h: initial.h, el: null };
+    const initial = existing[item.id] || saved[item.id] || { x: 300, y: 735, w: 128, h: 128 };
+    plaque = { id: item.id, x: initial.x, y: initial.y, w: initial.w, h: initial.h, el: null, previewEl: null };
     const el = document.createElement('div');
     el.className = 'plaque';
-    el.innerHTML = `<div class="label"></div>`;
+    el.innerHTML = `
+        <div class="label"></div>
+        ${item.image ? `<img class="spritePreview" src="${item.image}" draggable="false">` : ''}
+        <div class="handle tl" data-handle="tl"></div>
+        <div class="handle br" data-handle="br"></div>
+    `;
     stage.appendChild(el);
     plaque.el = el;
+    plaque.previewEl = el.querySelector('.spritePreview');
 
-    // drag плашки одним пальцем
-    let dragging = false;
-    let startPx = 0, startPy = 0, startX = 0, startY = 0;
-
+    // drag — за тело плашки
+    let dragging = false, startPx = 0, startPy = 0, startX = 0, startY = 0;
     el.addEventListener('pointerdown', e => {
+        if (e.target.classList.contains('handle')) return;
         e.stopPropagation();
         dragging = true;
-        startPx = e.clientX;
-        startPy = e.clientY;
-        startX = plaque.x;
-        startY = plaque.y;
+        startPx = e.clientX; startPy = e.clientY;
+        startX = plaque.x; startY = plaque.y;
         el.setPointerCapture(e.pointerId);
     });
     el.addEventListener('pointermove', e => {
@@ -238,7 +259,44 @@ function createPlaque(id) {
     });
     el.addEventListener('pointercancel', () => { dragging = false; });
 
-    // кнопки сдвига/размер — во ввод
+    // ресайз за углы
+    el.querySelectorAll('.handle').forEach(h => {
+        let resizing = false, startPx = 0, startPy = 0;
+        let sx0 = 0, sy0 = 0, sw0 = 0, sh0 = 0;
+        const side = h.dataset.handle;
+        h.addEventListener('pointerdown', e => {
+            e.stopPropagation();
+            resizing = true;
+            startPx = e.clientX; startPy = e.clientY;
+            sx0 = plaque.x; sy0 = plaque.y; sw0 = plaque.w; sh0 = plaque.h;
+            h.setPointerCapture(e.pointerId);
+        });
+        h.addEventListener('pointermove', e => {
+            if (!resizing) return;
+            const dx = (e.clientX - startPx) / scale;
+            const dy = (e.clientY - startPy) / scale;
+            if (side === 'br') {
+                plaque.w = Math.max(4, Math.round(sw0 + dx));
+                plaque.h = Math.max(4, Math.round(sh0 + dy));
+            } else { // tl
+                const nx = Math.round(sx0 + dx);
+                const ny = Math.round(sy0 + dy);
+                const nw = Math.round(sw0 - dx);
+                const nh = Math.round(sh0 - dy);
+                if (nw >= 4 && nh >= 4) {
+                    plaque.x = nx; plaque.y = ny;
+                    plaque.w = nw; plaque.h = nh;
+                }
+            }
+            renderPlaque();
+        });
+        h.addEventListener('pointerup', e => {
+            resizing = false;
+            h.releasePointerCapture(e.pointerId);
+        });
+        h.addEventListener('pointercancel', () => { resizing = false; });
+    });
+
     document.getElementById('wIn').value = plaque.w;
     document.getElementById('hIn').value = plaque.h;
     renderPlaque();
@@ -255,6 +313,7 @@ function renderPlaque() {
     el.querySelector('.label').textContent =
         `${plaque.id}  x=${plaque.x} y=${plaque.y} ${plaque.w}×${plaque.h}`;
     coordsEl.textContent = `x=${plaque.x} y=${plaque.y} w=${plaque.w} h=${plaque.h}`;
+    // превью масштабируется под рамку автоматически (object-fit: fill)
 }
 
 document.getElementById('applySize').addEventListener('click', () => {
@@ -264,14 +323,23 @@ document.getElementById('applySize').addEventListener('click', () => {
     renderPlaque();
 });
 
+// «Центр на спрайт» — подсказка: центрируем плашку по видимой области в атласе
+// (тут просто центрируем атлас на текущей плашке и слегка приближаем)
+document.getElementById('centerOnSprite').addEventListener('click', () => {
+    if (!plaque) return;
+    const w = stage.clientWidth, h = stage.clientHeight;
+    const zoom = 4;
+    scale = zoom;
+    offsetX = w / 2 - (plaque.x + plaque.w / 2) * scale;
+    offsetY = h / 2 - (plaque.y + plaque.h / 2) * scale;
+    applyTransform();
+});
+
 // ===== Список скинов =====
 function renderSkinList() {
     const el = document.getElementById('skinList');
     el.innerHTML = '';
-    if (catalog.length === 0) {
-        el.textContent = '— пусто —';
-        return;
-    }
+    if (catalog.length === 0) { el.textContent = '— пусто —'; return; }
     catalog.forEach(item => {
         const has = existing[item.id] || saved[item.id];
         const div = document.createElement('div');
@@ -283,7 +351,8 @@ function renderSkinList() {
         `;
         div.addEventListener('click', () => {
             activeSkin = item.id;
-            createPlaque(item.id);
+            activeItem = item;
+            createPlaque(item);
             renderSkinList();
         });
         el.appendChild(div);
@@ -309,6 +378,7 @@ async function loadWeapon(weaponName) {
     try { existing = await (await fetch(cfg.atlas)).json(); } catch(e) { existing = {}; }
     saved = {};
     activeSkin = null;
+    activeItem = null;
     if (plaque && plaque.el) { plaque.el.remove(); plaque = null; }
     renderSkinList();
     renderList();
@@ -344,17 +414,14 @@ document.getElementById('copyBtn').addEventListener('click', () => {
 });
 
 document.getElementById('clearBtn').addEventListener('click', () => {
-    if (!confirm('Очистить все сохранённые координаты (в этом сеансе)?')) return;
+    if (!confirm('Очистить все сохранённые (в этом сеансе)?')) return;
     saved = {};
     renderList();
     renderSkinList();
 });
 
 // ===== Ресайз =====
-addEventListener('resize', () => {
-    fitToScreen();
-    renderPlaque();
-});
+addEventListener('resize', () => { fitToScreen(); renderPlaque(); });
 
 // ===== Старт =====
 loadWeapon('AK-47');
