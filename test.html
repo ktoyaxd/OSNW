@@ -241,13 +241,18 @@
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
-            group.position.sub(center);
+
+            // Центрируем по X и Z, Y поднимаем вверх
+            group.position.x -= center.x;
+            group.position.z -= center.z;
+            group.position.y -= center.y;
             group.scale.setScalar(3.0 / maxDim);
+            group.position.y += 1.2;   // ← подъём модели
+
             scene.add(group);
 
-            // Модель — по центру ВЕРХНЕЙ части экрана (над карточками)
-            camera.position.set(0, 0.6, 4);
-            controls.target.set(0, 0.6, 0);
+            camera.position.set(0, 0, 4);
+            controls.target.set(0, 0, 0);
             controls.update();
             resize();
 
