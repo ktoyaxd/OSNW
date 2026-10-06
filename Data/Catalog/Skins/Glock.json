@@ -1,0 +1,23 @@
+[
+  {
+    "id": "glockGalactic",
+    "name": "Galactic",
+    "weapon": "Glock",
+    "image": "Data/Catalog/Skins/Glock/glockGalactic.png",
+    "quality": "common"
+  },
+  {
+    "id": "glockGalacticFX",
+    "name": "Galactic F X",
+    "weapon": "Glock",
+    "image": "Data/Catalog/Skins/Glock/glockGalacticFX.png",
+    "quality": "common"
+  },
+  {
+    "id": "glockUchi",
+    "name": "Uchi",
+    "weapon": "Glock",
+    "image": "Data/Catalog/Skins/Glock/glockUchi.png",
+    "quality": "common"
+  }
+]
