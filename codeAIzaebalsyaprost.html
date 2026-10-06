@@ -23,7 +23,7 @@
 
     #rightPanel {
         position: fixed; top: 46px; right: 8px; width: 140px;
-        max-height: 60vh; overflow-y: auto; z-index: 20;
+        max-height: 55vh; overflow-y: auto; z-index: 20;
         background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 6px;
     }
     #rightPanel h4 { margin: 0 0 6px; font-size: 11px; color: #6a8aff; }
@@ -46,12 +46,6 @@
         max-height: 40vh; overflow-y: auto;
     }
     #bottom .row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; flex-wrap: wrap; }
-    #bottom input {
-        background: #2D3037; color: #FFD700; border: 1px solid #444;
-        padding: 6px 8px; font-family: monospace; font-size: 13px;
-        min-width: 0;
-    }
-    #bottom input.coord { width: 68px; }
     #bottom button {
         background: #2D3037; color: #fff; border: 1px solid #444;
         padding: 6px 10px; cursor: pointer; font-family: inherit;
@@ -78,20 +72,6 @@
         font-size: 10px; color: #fff; background: #ff3b3b;
         padding: 1px 4px; white-space: nowrap;
     }
-    .plaque .handle {
-        position: absolute; width: 22px; height: 22px;
-        background: #ff3b3b; border: 2px solid #fff;
-        border-radius: 50%; z-index: 2;
-    }
-    .plaque .handle.br {
-        right: -11px; bottom: -11px; cursor: nwse-resize;
-    }
-    .plaque .handle.tl {
-        left: -11px; top: -11px; cursor: nwse-resize;
-    }
-
-    /* нижний колонтитул — увеличим отступ, чтобы плашка не проваливалась */
-    #stage { padding-bottom: 0; }
 </style>
 </head>
 <body>
@@ -110,13 +90,7 @@
 
 <div id="bottom">
     <div class="row">
-        <span>размер:</span>
-        <input class="coord" id="wIn" value="128">
-        <input class="coord" id="hIn" value="128">
-        <button id="applySize">Применить</button>
-        <button id="centerOnSprite">Центр на спрайт</button>
-    </div>
-    <div class="row">
+        <button id="centerOnSprite">🎯 Центр на плашке</button>
         <button class="gold" id="saveBtn">💾 Сохранить</button>
         <button id="copyBtn">📋 Скопировать JSON</button>
         <button class="red" id="clearBtn">Очистить</button>
@@ -134,15 +108,17 @@ const WEAPONS = {
 };
 let currentWeapon = 'AK-47';
 
+// Размер спрайта по умолчанию — 128×128 (для всех скинов)
+const SPRITE_W = 128;
+const SPRITE_H = 128;
+
 // ===== Состояние =====
 let scale = 1, offsetX = 0, offsetY = 0;
 let catalog = [];
 let existing = {};
 let saved = {};
 let activeSkin = null;
-let activeItem = null;
 let plaque = null;
-// plaque: { id, x, y, w, h, el, previewEl }
 
 const stage = document.getElementById('stage');
 const coordsEl = document.getElementById('coords');
@@ -221,24 +197,24 @@ stage.addEventListener('pointercancel', endPointer);
 // ===== Плашка =====
 function createPlaque(item) {
     if (plaque && plaque.el && plaque.el.parentNode) plaque.el.remove();
-    const initial = existing[item.id] || saved[item.id] || { x: 300, y: 735, w: 128, h: 128 };
-    plaque = { id: item.id, x: initial.x, y: initial.y, w: initial.w, h: initial.h, el: null, previewEl: null };
+    const initial = existing[item.id] || saved[item.id] || { x: 300, y: 735, w: SPRITE_W, h: SPRITE_H };
+    plaque = {
+        id: item.id,
+        x: initial.x, y: initial.y,
+        w: SPRITE_W, h: SPRITE_H,
+        el: null,
+    };
     const el = document.createElement('div');
     el.className = 'plaque';
     el.innerHTML = `
         <div class="label"></div>
         ${item.image ? `<img class="spritePreview" src="${item.image}" draggable="false">` : ''}
-        <div class="handle tl" data-handle="tl"></div>
-        <div class="handle br" data-handle="br"></div>
     `;
     stage.appendChild(el);
     plaque.el = el;
-    plaque.previewEl = el.querySelector('.spritePreview');
 
-    // drag — за тело плашки
     let dragging = false, startPx = 0, startPy = 0, startX = 0, startY = 0;
     el.addEventListener('pointerdown', e => {
-        if (e.target.classList.contains('handle')) return;
         e.stopPropagation();
         dragging = true;
         startPx = e.clientX; startPy = e.clientY;
@@ -259,46 +235,6 @@ function createPlaque(item) {
     });
     el.addEventListener('pointercancel', () => { dragging = false; });
 
-    // ресайз за углы
-    el.querySelectorAll('.handle').forEach(h => {
-        let resizing = false, startPx = 0, startPy = 0;
-        let sx0 = 0, sy0 = 0, sw0 = 0, sh0 = 0;
-        const side = h.dataset.handle;
-        h.addEventListener('pointerdown', e => {
-            e.stopPropagation();
-            resizing = true;
-            startPx = e.clientX; startPy = e.clientY;
-            sx0 = plaque.x; sy0 = plaque.y; sw0 = plaque.w; sh0 = plaque.h;
-            h.setPointerCapture(e.pointerId);
-        });
-        h.addEventListener('pointermove', e => {
-            if (!resizing) return;
-            const dx = (e.clientX - startPx) / scale;
-            const dy = (e.clientY - startPy) / scale;
-            if (side === 'br') {
-                plaque.w = Math.max(4, Math.round(sw0 + dx));
-                plaque.h = Math.max(4, Math.round(sh0 + dy));
-            } else { // tl
-                const nx = Math.round(sx0 + dx);
-                const ny = Math.round(sy0 + dy);
-                const nw = Math.round(sw0 - dx);
-                const nh = Math.round(sh0 - dy);
-                if (nw >= 4 && nh >= 4) {
-                    plaque.x = nx; plaque.y = ny;
-                    plaque.w = nw; plaque.h = nh;
-                }
-            }
-            renderPlaque();
-        });
-        h.addEventListener('pointerup', e => {
-            resizing = false;
-            h.releasePointerCapture(e.pointerId);
-        });
-        h.addEventListener('pointercancel', () => { resizing = false; });
-    });
-
-    document.getElementById('wIn').value = plaque.w;
-    document.getElementById('hIn').value = plaque.h;
     renderPlaque();
 }
 
@@ -311,25 +247,15 @@ function renderPlaque() {
     el.style.width  = (plaque.w * s) + 'px';
     el.style.height = (plaque.h * s) + 'px';
     el.querySelector('.label').textContent =
-        `${plaque.id}  x=${plaque.x} y=${plaque.y} ${plaque.w}×${plaque.h}`;
-    coordsEl.textContent = `x=${plaque.x} y=${plaque.y} w=${plaque.w} h=${plaque.h}`;
-    // превью масштабируется под рамку автоматически (object-fit: fill)
+        `${plaque.id}  x=${plaque.x} y=${plaque.y}`;
+    coordsEl.textContent = `x=${plaque.x} y=${plaque.y}`;
 }
 
-document.getElementById('applySize').addEventListener('click', () => {
-    if (!plaque) { alert('Сначала выбери скин справа'); return; }
-    plaque.w = parseInt(document.getElementById('wIn').value) || plaque.w;
-    plaque.h = parseInt(document.getElementById('hIn').value) || plaque.h;
-    renderPlaque();
-});
-
-// «Центр на спрайт» — подсказка: центрируем плашку по видимой области в атласе
-// (тут просто центрируем атлас на текущей плашке и слегка приближаем)
+// «Центр на плашке» — приближает к плашке в 4×
 document.getElementById('centerOnSprite').addEventListener('click', () => {
     if (!plaque) return;
     const w = stage.clientWidth, h = stage.clientHeight;
-    const zoom = 4;
-    scale = zoom;
+    scale = 4;
     offsetX = w / 2 - (plaque.x + plaque.w / 2) * scale;
     offsetY = h / 2 - (plaque.y + plaque.h / 2) * scale;
     applyTransform();
@@ -351,7 +277,6 @@ function renderSkinList() {
         `;
         div.addEventListener('click', () => {
             activeSkin = item.id;
-            activeItem = item;
             createPlaque(item);
             renderSkinList();
         });
@@ -359,7 +284,7 @@ function renderSkinList() {
     });
 }
 
-// ===== Загрузка данных =====
+// ===== Загрузка =====
 async function loadWeapon(weaponName) {
     currentWeapon = weaponName;
     document.getElementById('weaponPicker').innerHTML =
@@ -367,10 +292,7 @@ async function loadWeapon(weaponName) {
             `<a href="#" data-w="${w}" style="color:${w===weaponName?'#FFD700':'#6a8aff'};margin:0 4px">${w}</a>`
         ).join('');
     document.querySelectorAll('#weaponPicker a').forEach(a => {
-        a.addEventListener('click', e => {
-            e.preventDefault();
-            loadWeapon(a.dataset.w);
-        });
+        a.addEventListener('click', e => { e.preventDefault(); loadWeapon(a.dataset.w); });
     });
 
     const cfg = WEAPONS[weaponName];
@@ -378,7 +300,6 @@ async function loadWeapon(weaponName) {
     try { existing = await (await fetch(cfg.atlas)).json(); } catch(e) { existing = {}; }
     saved = {};
     activeSkin = null;
-    activeItem = null;
     if (plaque && plaque.el) { plaque.el.remove(); plaque = null; }
     renderSkinList();
     renderList();
@@ -389,14 +310,14 @@ function renderList() {
     const keys = Object.keys(saved);
     if (keys.length === 0) { el.textContent = '— пусто —'; return; }
     el.textContent = keys.map(k =>
-        `${k}: { "x": ${saved[k].x}, "y": ${saved[k].y}, "w": ${saved[k].w}, "h": ${saved[k].h} }`
+        `${k}: { "x": ${saved[k].x}, "y": ${saved[k].y}, "w": ${SPRITE_W}, "h": ${SPRITE_H} }`
     ).join('\n');
 }
 
-// ===== Сохранить / Копировать / Очистить =====
+// ===== Кнопки =====
 document.getElementById('saveBtn').addEventListener('click', () => {
     if (!plaque) { alert('Сначала выбери скин'); return; }
-    saved[plaque.id] = { x: plaque.x, y: plaque.y, w: plaque.w, h: plaque.h };
+    saved[plaque.id] = { x: plaque.x, y: plaque.y, w: SPRITE_W, h: SPRITE_H };
     renderList();
     renderSkinList();
 });
@@ -420,10 +341,8 @@ document.getElementById('clearBtn').addEventListener('click', () => {
     renderSkinList();
 });
 
-// ===== Ресайз =====
 addEventListener('resize', () => { fitToScreen(); renderPlaque(); });
 
-// ===== Старт =====
 loadWeapon('AK-47');
 </script>
 </body>
