@@ -1,5 +1,5 @@
 {
-  "glockGalactic":            { "x": 300, "y": 675, "w": 128, "h": 128 },
-  "glockGalacticFX":       { "x": 576, "y": 705, "w": 128, "h": 128 },
-  "glockUchi":            { "x": 300, "y": 675, "w": 128, "h": 128 }
+  "glockGalactic":            { "x": 300, "y": 675, "w": 128, "h": 64 },
+  "glockGalacticFX":       { "x": 576, "y": 705, "w": 128, "h": 64 },
+  "glockUchi":            { "x": 300, "y": 675, "w": 128, "h": 64 }
 }
