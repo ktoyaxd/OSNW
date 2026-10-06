@@ -9,28 +9,61 @@
     body { margin: 0; background: #202126; overflow: hidden;
         font-family: 'Segoe UI', Arial, sans-serif; color: #fff; height: 100vh; }
     #canvas-container { position: fixed; inset: 0; }
+
+    /* ===== КАРТОЧКИ (стиль каталога) ===== */
     #cards {
         position: fixed; bottom: 0; left: 0; right: 0;
         display: flex; gap: 8px; overflow-x: auto;
-        padding: 10px 12px; z-index: 40;
+        padding: 10px 12px 14px; z-index: 40;
         background: linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0));
         -webkit-overflow-scrolling: touch;
     }
     .card {
-        flex: 0 0 auto; width: 92px; background: #2D3037;
-        border: 2px solid #444; padding: 6px; cursor: pointer;
-        text-align: center; transition: border-color 0.15s;
+        flex: 0 0 auto; width: 110px; height: 80px;
+        border-radius: 8px; overflow: hidden;
+        display: flex; flex-direction: column;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        cursor: pointer; transition: transform 0.15s;
     }
-    .card.active { border-color: #FFD700; background: #3a2f00; }
+    .card:hover { transform: translateY(-2px); }
+    .card.active { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(255,215,0,0.5); }
     .card.disabled { opacity: 0.35; cursor: not-allowed; }
-    .card img {
-        width: 100%; height: 48px; object-fit: contain;
-        image-rendering: pixelated; display: block;
-        margin-bottom: 4px;
+    .card.disabled:hover { transform: none; }
+
+    .card .top-part {
+        flex: 1;
+        display: flex; align-items: center; justify-content: center;
+        padding: 6px; min-height: 0;
     }
-    .card .name { font-size: 10px; line-height: 1.2;
-        overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .card .quality { font-size: 9px; color: #6a8aff; text-transform: uppercase; }
+    .card .top-part img {
+        max-width: 90%; max-height: 90%;
+        object-fit: contain; image-rendering: pixelated;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+    }
+    .card .bottom-part {
+        background: #2D3037;
+        padding: 4px 8px; min-height: 26px;
+        display: flex; flex-direction: column; justify-content: center;
+    }
+    .card .name {
+        font-size: 11px; font-weight: 700; color: #fff;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        line-height: 1.1;
+    }
+    .card .quality { display: none; }
+
+    /* Качества */
+    .card.quality-common .top-part { background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 30%, #7A7A7A 60%, #3A3F45 100%); }
+    .card.quality-common { border: 2px solid #C0C0C0; }
+    .card.quality-base .top-part { background: linear-gradient(180deg, #6489DA 0%, #5B78BA 30%, #4B5D83 60%, #454C5F 100%); }
+    .card.quality-base { border: 2px solid #5AB0FF; }
+    .card.quality-pro .top-part { background: linear-gradient(180deg, #AA373A 0%, #8C3B44 30%, #6F3D46 60%, #52414B 100%); }
+    .card.quality-pro { border: 2px solid #FF4444; }
+    .card.quality-legend .top-part { background: linear-gradient(180deg, #C9367C 0%, #A13870 30%, #6F3C5D 60%, #514052 100%); }
+    .card.quality-legend { border: 2px solid #A43E70; }
+    .card.quality-myth .top-part { background: linear-gradient(180deg, #F4D74B 0%, #BFAD47 30%, #877D4C 60%, #585951 100%); }
+    .card.quality-myth { border: 2px solid #D2BE4B; }
+
     #weaponSwitch {
         position: fixed; top: 12px; right: 12px; z-index: 40;
         display: flex; gap: 6px;
@@ -84,7 +117,6 @@
 
         const ATLAS_SIZE = 2048;
 
-        // ===== Определить оружие из URL =====
         const params = new URLSearchParams(location.search);
         const WEAPON = params.get('weapon') || 'AK-47';
 
@@ -151,7 +183,6 @@
 
         // ===== Загрузка =====
         async function boot() {
-            // 1) загрузить общий конфиг оружий
             let weapons;
             try {
                 const r = await fetch('Data/3D/weapons.json');
@@ -168,7 +199,6 @@
             }
             buildWeaponSwitcher(weapons, WEAPON);
 
-            // 2) каталог
             try {
                 if (CONFIG.catalog) {
                     const r = await fetch(CONFIG.catalog);
@@ -176,7 +206,6 @@
                 }
             } catch (e) { CATALOG = []; }
 
-            // 3) атлас-координаты
             try {
                 if (CONFIG.atlas) {
                     const r = await fetch(CONFIG.atlas);
@@ -184,7 +213,6 @@
                 }
             } catch (e) { ATLAS = {}; }
 
-            // 4) модель
             loadModel();
         }
 
@@ -217,8 +245,9 @@
             group.scale.setScalar(3.0 / maxDim);
             scene.add(group);
 
-            camera.position.set(0, 0, 4);
-            controls.target.set(0, 0, 0);
+            // Модель — по центру ВЕРХНЕЙ части экрана (над карточками)
+            camera.position.set(0, 0.6, 4);
+            controls.target.set(0, 0.6, 0);
             controls.update();
             resize();
 
@@ -265,6 +294,7 @@
                 `w: ${s.w}  h: ${s.h}`;
         }
 
+        // ===== Карточки (стиль каталога) =====
         function buildCards() {
             cardsEl.innerHTML = '';
             if (CATALOG.length === 0) {
@@ -273,13 +303,21 @@
             }
             CATALOG.forEach(item => {
                 const has = !!ATLAS[item.id];
+                const quality = (item.quality || 'common').toLowerCase();
                 const el = document.createElement('div');
-                el.className = 'card' + (item.id === currentId ? ' active' : '') + (has ? '' : ' disabled');
+                el.className =
+                    'card' +
+                    ' quality-' + quality +
+                    (item.id === currentId ? ' active' : '') +
+                    (has ? '' : ' disabled');
                 const imgSrc = item.image || '';
                 el.innerHTML = `
-                    ${imgSrc ? `<img src="${imgSrc}" onerror="this.style.visibility='hidden'">` : '<div style="height:48px"></div>'}
-                    <div class="name">${item.name || item.id}</div>
-                    <div class="quality">${item.quality || ''}</div>
+                    <div class="top-part">
+                        ${imgSrc ? `<img src="${imgSrc}" onerror="this.style.display='none'">` : ''}
+                    </div>
+                    <div class="bottom-part">
+                        <div class="name">${item.name || item.id}</div>
+                    </div>
                 `;
                 if (has) {
                     el.addEventListener('click', () => applySkinById(item.id));
