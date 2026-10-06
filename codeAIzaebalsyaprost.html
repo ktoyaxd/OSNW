@@ -21,31 +21,20 @@
         border: 1px solid #444; color: #fff; }
     #topHud .gold { color: #FFD700; }
 
-    #rightPanel {
-        position: fixed; top: 46px; right: 8px; width: 140px;
-        max-height: 55vh; overflow-y: auto; z-index: 20;
-        background: rgba(0,0,0,0.85); border: 1px solid #444; padding: 6px;
-    }
-    #rightPanel h4 { margin: 0 0 6px; font-size: 11px; color: #6a8aff; }
-    .skinItem {
-        display: flex; align-items: center; gap: 6px;
-        padding: 4px; cursor: pointer; border: 1px solid transparent;
-        margin-bottom: 3px; background: #1a1b20;
-    }
-    .skinItem:hover, .skinItem.active { border-color: #FFD700; background: #3a2f00; }
-    .skinItem img { width: 32px; height: 24px; object-fit: contain;
-        image-rendering: pixelated; }
-    .skinItem .nm { font-size: 10px; overflow: hidden;
-        text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-    .skinItem .done { color: #4c4; font-size: 10px; }
-
     #bottom {
         position: fixed; bottom: 0; left: 0; right: 0;
         background: rgba(0,0,0,0.92); padding: 8px 10px 12px;
         z-index: 20; font-size: 12px; font-family: monospace;
-        max-height: 40vh; overflow-y: auto;
+        max-height: 45vh; overflow-y: auto;
     }
     #bottom .row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; flex-wrap: wrap; }
+    #bottom input {
+        background: #2D3037; color: #FFD700; border: 1px solid #444;
+        padding: 6px 8px; font-family: monospace; font-size: 13px;
+        min-width: 0;
+    }
+    #bottom input.id { flex: 1; min-width: 120px; }
+    #bottom input.coord { width: 70px; }
     #bottom button {
         background: #2D3037; color: #fff; border: 1px solid #444;
         padding: 6px 10px; cursor: pointer; font-family: inherit;
@@ -60,17 +49,17 @@
     .plaque {
         position: absolute; border: 3px solid #ff3b3b;
         pointer-events: auto; cursor: move; z-index: 10;
-        box-sizing: border-box;
-    }
-    .plaque .spritePreview {
-        position: absolute; inset: 0; width: 100%; height: 100%;
-        object-fit: fill; image-rendering: pixelated;
-        opacity: 0.75; pointer-events: none;
+        box-sizing: border-box; background: transparent;
     }
     .plaque .label {
         position: absolute; top: -20px; left: 0;
         font-size: 10px; color: #fff; background: #ff3b3b;
         padding: 1px 4px; white-space: nowrap;
+    }
+    /* Полупрозрачная заливка, чтобы видеть, что попало внутрь рамки */
+    .plaque::before {
+        content: ''; position: absolute; inset: 0;
+        background: rgba(255, 60, 60, 0.08); pointer-events: none;
     }
 </style>
 </head>
@@ -83,15 +72,21 @@
     <span>атлас 2048×2048</span>
 </div>
 
-<div id="rightPanel">
-    <h4>Скины</h4>
-    <div id="skinList">—</div>
-</div>
-
 <div id="bottom">
     <div class="row">
-        <button id="centerOnSprite">🎯 Центр на плашке</button>
+        <span>рамка:</span>
+        <input class="coord" id="xIn" value="290">
+        <input class="coord" id="yIn" value="812">
+        <input class="coord" id="wIn" value="128">
+        <input class="coord" id="hIn" value="128">
+        <button id="applyPos">Применить</button>
+    </div>
+    <div class="row">
+        <input class="id" id="idInput" placeholder="ID скина (напр. ak47BlueFire)">
         <button class="gold" id="saveBtn">💾 Сохранить</button>
+    </div>
+    <div class="row">
+        <button id="centerOnPlaque">🎯 Центр</button>
         <button id="copyBtn">📋 Скопировать JSON</button>
         <button class="red" id="clearBtn">Очистить</button>
     </div>
@@ -102,23 +97,11 @@
 // ===== Конфиг =====
 const ATLAS_URL = 'Data/3D/WeaponsAtlas.png';
 const ATLAS_SIZE = 2048;
-const WEAPONS = {
-    'AK-47': { catalog: 'Data/Catalog/Skins/AK-47.json', atlas: 'Data/3D/ak47_atlas.json' },
-    'Glock': { catalog: 'Data/Catalog/Skins/Glock.json', atlas: 'Data/3D/glock_atlas.json' },
-};
-let currentWeapon = 'AK-47';
-
-// Размер спрайта по умолчанию — 128×128 (для всех скинов)
-const SPRITE_W = 128;
-const SPRITE_H = 128;
 
 // ===== Состояние =====
 let scale = 1, offsetX = 0, offsetY = 0;
-let catalog = [];
-let existing = {};
 let saved = {};
-let activeSkin = null;
-let plaque = null;
+let plaque = null; // { x, y, w, h, el }
 
 const stage = document.getElementById('stage');
 const coordsEl = document.getElementById('coords');
@@ -132,7 +115,7 @@ stage.appendChild(atlasCanvas);
 
 const img = new Image();
 img.crossOrigin = 'anonymous';
-img.onload = () => { atlasCtx.drawImage(img, 0, 0); fitToScreen(); };
+img.onload = () => { atlasCtx.drawImage(img, 0, 0); fitToScreen(); createPlaque(); };
 img.onerror = () => alert('Не загрузился атлас: ' + ATLAS_URL);
 img.src = ATLAS_URL;
 
@@ -195,21 +178,17 @@ stage.addEventListener('pointerup', endPointer);
 stage.addEventListener('pointercancel', endPointer);
 
 // ===== Плашка =====
-function createPlaque(item) {
+function createPlaque() {
     if (plaque && plaque.el && plaque.el.parentNode) plaque.el.remove();
-    const initial = existing[item.id] || saved[item.id] || { x: 300, y: 735, w: SPRITE_W, h: SPRITE_H };
-    plaque = {
-        id: item.id,
-        x: initial.x, y: initial.y,
-        w: SPRITE_W, h: SPRITE_H,
-        el: null,
-    };
+    const x = parseInt(document.getElementById('xIn').value) || 290;
+    const y = parseInt(document.getElementById('yIn').value) || 812;
+    const w = parseInt(document.getElementById('wIn').value) || 128;
+    const h = parseInt(document.getElementById('hIn').value) || 128;
+    plaque = { x, y, w, h, el: null };
+
     const el = document.createElement('div');
     el.className = 'plaque';
-    el.innerHTML = `
-        <div class="label"></div>
-        ${item.image ? `<img class="spritePreview" src="${item.image}" draggable="false">` : ''}
-    `;
+    el.innerHTML = `<div class="label"></div>`;
     stage.appendChild(el);
     plaque.el = el;
 
@@ -227,6 +206,7 @@ function createPlaque(item) {
         const dy = (e.clientY - startPy) / scale;
         plaque.x = Math.round(startX + dx);
         plaque.y = Math.round(startY + dy);
+        syncInputs();
         renderPlaque();
     });
     el.addEventListener('pointerup', e => {
@@ -238,6 +218,13 @@ function createPlaque(item) {
     renderPlaque();
 }
 
+function syncInputs() {
+    document.getElementById('xIn').value = plaque.x;
+    document.getElementById('yIn').value = plaque.y;
+    document.getElementById('wIn').value = plaque.w;
+    document.getElementById('hIn').value = plaque.h;
+}
+
 function renderPlaque() {
     if (!plaque || !plaque.el) return;
     const s = scale;
@@ -247,12 +234,22 @@ function renderPlaque() {
     el.style.width  = (plaque.w * s) + 'px';
     el.style.height = (plaque.h * s) + 'px';
     el.querySelector('.label').textContent =
-        `${plaque.id}  x=${plaque.x} y=${plaque.y}`;
-    coordsEl.textContent = `x=${plaque.x} y=${plaque.y}`;
+        `x=${plaque.x} y=${plaque.y} ${plaque.w}×${plaque.h}`;
+    coordsEl.textContent = `x=${plaque.x} y=${plaque.y} ${plaque.w}×${plaque.h}`;
 }
 
-// «Центр на плашке» — приближает к плашке в 4×
-document.getElementById('centerOnSprite').addEventListener('click', () => {
+// Ручной ввод координат/размеров
+document.getElementById('applyPos').addEventListener('click', () => {
+    if (!plaque) { createPlaque(); return; }
+    plaque.x = parseInt(document.getElementById('xIn').value) || plaque.x;
+    plaque.y = parseInt(document.getElementById('yIn').value) || plaque.y;
+    plaque.w = parseInt(document.getElementById('wIn').value) || plaque.w;
+    plaque.h = parseInt(document.getElementById('hIn').value) || plaque.h;
+    renderPlaque();
+});
+
+// Центр на плашке
+document.getElementById('centerOnPlaque').addEventListener('click', () => {
     if (!plaque) return;
     const w = stage.clientWidth, h = stage.clientHeight;
     scale = 4;
@@ -261,72 +258,30 @@ document.getElementById('centerOnSprite').addEventListener('click', () => {
     applyTransform();
 });
 
-// ===== Список скинов =====
-function renderSkinList() {
-    const el = document.getElementById('skinList');
-    el.innerHTML = '';
-    if (catalog.length === 0) { el.textContent = '— пусто —'; return; }
-    catalog.forEach(item => {
-        const has = existing[item.id] || saved[item.id];
-        const div = document.createElement('div');
-        div.className = 'skinItem' + (activeSkin === item.id ? ' active' : '');
-        div.innerHTML = `
-            ${item.image ? `<img src="${item.image}" onerror="this.style.visibility='hidden'">` : '<div style="width:32px;height:24px"></div>'}
-            <div class="nm">${item.name || item.id}</div>
-            ${has ? '<div class="done">✓</div>' : ''}
-        `;
-        div.addEventListener('click', () => {
-            activeSkin = item.id;
-            createPlaque(item);
-            renderSkinList();
-        });
-        el.appendChild(div);
-    });
-}
-
-// ===== Загрузка =====
-async function loadWeapon(weaponName) {
-    currentWeapon = weaponName;
-    document.getElementById('weaponPicker').innerHTML =
-        'оружие: ' + Object.keys(WEAPONS).map(w =>
-            `<a href="#" data-w="${w}" style="color:${w===weaponName?'#FFD700':'#6a8aff'};margin:0 4px">${w}</a>`
-        ).join('');
-    document.querySelectorAll('#weaponPicker a').forEach(a => {
-        a.addEventListener('click', e => { e.preventDefault(); loadWeapon(a.dataset.w); });
-    });
-
-    const cfg = WEAPONS[weaponName];
-    try { catalog = await (await fetch(cfg.catalog)).json(); } catch(e) { catalog = []; }
-    try { existing = await (await fetch(cfg.atlas)).json(); } catch(e) { existing = {}; }
-    saved = {};
-    activeSkin = null;
-    if (plaque && plaque.el) { plaque.el.remove(); plaque = null; }
-    renderSkinList();
+// ===== Сохранить =====
+document.getElementById('saveBtn').addEventListener('click', () => {
+    if (!plaque) { alert('Нет плашки'); return; }
+    const id = document.getElementById('idInput').value.trim();
+    if (!id) { alert('Введи ID скина'); return; }
+    saved[id] = { x: plaque.x, y: plaque.y, w: plaque.w, h: plaque.h };
+    document.getElementById('idInput').value = '';
     renderList();
-}
+});
 
 function renderList() {
     const el = document.getElementById('list');
     const keys = Object.keys(saved);
     if (keys.length === 0) { el.textContent = '— пусто —'; return; }
     el.textContent = keys.map(k =>
-        `${k}: { "x": ${saved[k].x}, "y": ${saved[k].y}, "w": ${SPRITE_W}, "h": ${SPRITE_H} }`
+        `${k}: { "x": ${saved[k].x}, "y": ${saved[k].y}, "w": ${saved[k].w}, "h": ${saved[k].h} }`
     ).join('\n');
 }
-
-// ===== Кнопки =====
-document.getElementById('saveBtn').addEventListener('click', () => {
-    if (!plaque) { alert('Сначала выбери скин'); return; }
-    saved[plaque.id] = { x: plaque.x, y: plaque.y, w: SPRITE_W, h: SPRITE_H };
-    renderList();
-    renderSkinList();
-});
 
 document.getElementById('copyBtn').addEventListener('click', () => {
     const json = JSON.stringify(saved, null, 2);
     if (navigator.clipboard) {
         navigator.clipboard.writeText(json).then(
-            () => alert('JSON скопирован в буфер'),
+            () => alert('JSON скопирован'),
             () => prompt('Скопируй вручную:', json)
         );
     } else {
@@ -335,15 +290,12 @@ document.getElementById('copyBtn').addEventListener('click', () => {
 });
 
 document.getElementById('clearBtn').addEventListener('click', () => {
-    if (!confirm('Очистить все сохранённые (в этом сеансе)?')) return;
+    if (!confirm('Очистить список?')) return;
     saved = {};
     renderList();
-    renderSkinList();
 });
 
 addEventListener('resize', () => { fitToScreen(); renderPlaque(); });
-
-loadWeapon('AK-47');
 </script>
 </body>
 </html>
