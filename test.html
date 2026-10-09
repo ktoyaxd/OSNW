@@ -8,7 +8,7 @@
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { margin: 0; background: #202126; overflow: hidden;
         font-family: 'Segoe UI', Arial, sans-serif; color: #fff; height: 100vh; }
-    #canvas-container { position: fixed; inset: 0; }
+    #canvas-container { position: fixed; inset: 0 0 100px 0; }
 
     #cards {
         position: fixed; bottom: 0; left: 0; right: 0;
@@ -45,7 +45,6 @@
         line-height: 1.1;
     }
 
-    /* Качества */
     .card.quality-common .top-part { background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 30%, #7A7A7A 60%, #3A3F45 100%); }
     .card.quality-common { border: 2px solid #C0C0C0; }
     .card.quality-base .top-part { background: linear-gradient(180deg, #6489DA 0%, #5B78BA 30%, #4B5D83 60%, #454C5F 100%); }
@@ -135,7 +134,7 @@
         const d1 = new THREE.DirectionalLight(0xffffff, 0.6); d1.position.set(2, 3, 2); scene.add(d1);
         const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2, -1, -2); scene.add(d2);
 
-        // ===== Атлас (одна текстура на всё) =====
+        // ===== Атлас =====
         const atlasTex = new THREE.TextureLoader().load('Data/3D/WeaponsAtlas.png');
         atlasTex.colorSpace = THREE.SRGBColorSpace;
         atlasTex.flipY = true;
@@ -187,6 +186,7 @@
         // ===== Состояние =====
         let CONFIG = null;
         let ATLAS = {};
+        let DEFAULTS = { w: 128, h: 128 };
         let currentId = null;
         const group = new THREE.Group();
 
@@ -211,7 +211,19 @@
             try {
                 if (CONFIG.atlas) {
                     const r = await fetch(CONFIG.atlas);
-                    ATLAS = await r.json();
+                    const raw = await r.json();
+
+                    // вытаскиваем _defaults и удаляем из карты
+                    if (raw._defaults) {
+                        DEFAULTS = { w: raw._defaults.w || 128, h: raw._defaults.h || 128 };
+                        delete raw._defaults;
+                    }
+                    // применяем defaults к скинам без своих w/h
+                    Object.keys(raw).forEach(id => {
+                        if (raw[id].w === undefined) raw[id].w = DEFAULTS.w;
+                        if (raw[id].h === undefined) raw[id].h = DEFAULTS.h;
+                    });
+                    ATLAS = raw;
                 }
             } catch (e) { ATLAS = {}; }
 
@@ -300,18 +312,23 @@
         }
 
         // ===== Превью из атласа =====
-        function spritePreview(s, boxSize = 64) {
+        function spritePreview(s, boxSize = 96) {
             if (!atlasCanvasReady) return '';
             const c = document.createElement('canvas');
             c.width = boxSize;
             c.height = boxSize;
             const ctx = c.getContext('2d');
             ctx.imageSmoothingEnabled = false;
-            ctx.drawImage(
-                atlasCanvas,
-                s.x, s.y, s.w, s.h,
-                0, 0, boxSize, boxSize
-            );
+
+            const sw = s.w;
+            const sh = s.h;
+            const scale = Math.min(boxSize / sw, boxSize / sh);
+            const dw = sw * scale;
+            const dh = sh * scale;
+            const dx = (boxSize - dw) / 2;
+            const dy = (boxSize - dh) / 2;
+
+            ctx.drawImage(atlasCanvas, s.x, s.y, sw, sh, dx, dy, dw, dh);
             return c.toDataURL();
         }
 
