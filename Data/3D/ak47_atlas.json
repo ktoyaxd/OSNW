@@ -1,11 +1,11 @@
 {
-  "ak47478":            { "x": 588, "y": 1605, "w": 128, "h": 128 },
-  "ak47BlueFire":       { "x": 300, "y": 1155, "w": 128, "h": 128 },
-  "ak47FamiliarSkull":  { "x": 780, "y": 1605, "w": 128, "h": 128 },
-  "ak47Halloween":      { "x": 300, "y": 765, "w": 128, "h": 128 },
-  "ak47HalloweenBurn":  { "x": 300, "y": 1425, "w": 128, "h": 128 },
-  "ak47Revenger":       { "x": 1836, "y": 1635, "w": 128, "h": 128 },
-  "ak47Universe":       { "x": 395, "y": 1575, "w": 128, "h": 128 },
-  "ak47Y65":            { "x": 1068, "y": 1635, "w": 128, "h": 128 },
-  "ak47chan":           { "x": 300, "y": 645, "w": 128, "h": 128 }
+  "ak47478":            { "name": "478",             "quality": "common", "x": 588,  "y": 1605, "w": 128, "h": 128 },
+  "ak47BlueFire":       { "name": "Blue Fire",       "quality": "common", "x": 300,  "y": 1155, "w": 128, "h": 128 },
+  "ak47FamiliarSkull":  { "name": "Familiar Skull",  "quality": "common", "x": 780,  "y": 1605, "w": 128, "h": 128 },
+  "ak47Halloween":      { "name": "Halloween",       "quality": "common", "x": 300,  "y": 765,  "w": 128, "h": 128 },
+  "ak47HalloweenBurn":  { "name": "Halloween Burn",  "quality": "common", "x": 300,  "y": 1425, "w": 128, "h": 128 },
+  "ak47Revenger":       { "name": "Revenger",        "quality": "common", "x": 1836, "y": 1635, "w": 128, "h": 128 },
+  "ak47Universe":       { "name": "Universe",        "quality": "common", "x": 395,  "y": 1575, "w": 128, "h": 128 },
+  "ak47Y65":            { "name": "Y65",             "quality": "common", "x": 1068, "y": 1635, "w": 128, "h": 128 },
+  "ak47chan":           { "name": "Chan",            "quality": "common", "x": 300,  "y": 645,  "w": 128, "h": 128 }
 }
