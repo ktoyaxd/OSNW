@@ -25,7 +25,7 @@
         position: fixed; bottom: 0; left: 0; right: 0;
         background: rgba(0,0,0,0.92); padding: 8px 10px 12px;
         z-index: 20; font-size: 12px; font-family: monospace;
-        max-height: 45vh; overflow-y: auto;
+        max-height: 50vh; overflow-y: auto;
     }
     #bottom .row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; flex-wrap: wrap; }
     #bottom input {
@@ -42,7 +42,7 @@
     }
     #bottom button.gold { background: #FFD700; color: #202126; border-color: #FFD700; }
     #bottom button.red { background: #7a1e1e; border-color: #a33; }
-    #list { font-size: 11px; color: #aaa; max-height: 90px; overflow-y: auto;
+    #list { font-size: 11px; color: #aaa; max-height: 120px; overflow-y: auto;
         white-space: pre; margin-top: 6px; padding: 4px; background: #111;
         border: 1px solid #333; }
 
@@ -56,7 +56,6 @@
         font-size: 10px; color: #fff; background: #ff3b3b;
         padding: 1px 4px; white-space: nowrap;
     }
-    /* Полупрозрачная заливка, чтобы видеть, что попало внутрь рамки */
     .plaque::before {
         content: ''; position: absolute; inset: 0;
         background: rgba(255, 60, 60, 0.08); pointer-events: none;
@@ -74,6 +73,12 @@
 
 <div id="bottom">
     <div class="row">
+        <span>размер оружия:</span>
+        <input class="coord" id="defW" value="128">
+        <input class="coord" id="defH" value="128">
+        <button id="applyDefaults">Применить</button>
+    </div>
+    <div class="row">
         <span>рамка:</span>
         <input class="coord" id="xIn" value="290">
         <input class="coord" id="yIn" value="812">
@@ -82,7 +87,9 @@
         <button id="applyPos">Применить</button>
     </div>
     <div class="row">
-        <input class="id" id="idInput" placeholder="ID скина (напр. ak47BlueFire)">
+        <input class="id" id="idInput" placeholder="ID скина (напр. ak47chan)">
+        <input class="coord" id="nameIn" placeholder="name">
+        <input class="coord" id="qualityIn" placeholder="quality" value="common">
         <button class="gold" id="saveBtn">💾 Сохранить</button>
     </div>
     <div class="row">
@@ -97,16 +104,23 @@
 // ===== Конфиг =====
 const ATLAS_URL = 'Data/3D/WeaponsAtlas.png';
 const ATLAS_SIZE = 2048;
+const WEAPONS = {
+    'AK-47': { atlas: 'Data/3D/ak47_atlas.json' },
+    'Glock': { atlas: 'Data/3D/glock_atlas.json' },
+    'Deagle': { atlas: 'Data/3D/deagle_atlas.json' },
+    'AWP': { atlas: 'Data/3D/awp_atlas.json' },
+    'Knife': { atlas: 'Data/3D/knife_atlas.json' },
+};
+let currentWeapon = 'AK-47';
 
-// ===== Состояние =====
 let scale = 1, offsetX = 0, offsetY = 0;
 let saved = {};
-let plaque = null; // { x, y, w, h, el }
+let defaults = { w: 128, h: 128 };
+let plaque = null;
 
 const stage = document.getElementById('stage');
 const coordsEl = document.getElementById('coords');
 
-// ===== Canvas атласа =====
 const atlasCanvas = document.createElement('canvas');
 atlasCanvas.width = ATLAS_SIZE;
 atlasCanvas.height = ATLAS_SIZE;
@@ -119,7 +133,6 @@ img.onload = () => { atlasCtx.drawImage(img, 0, 0); fitToScreen(); createPlaque(
 img.onerror = () => alert('Не загрузился атлас: ' + ATLAS_URL);
 img.src = ATLAS_URL;
 
-// ===== Трансформация =====
 function fitToScreen() {
     const w = stage.clientWidth, h = stage.clientHeight;
     const s = Math.min(w / ATLAS_SIZE, h / ATLAS_SIZE);
@@ -134,10 +147,8 @@ function applyTransform() {
     renderPlaque();
 }
 
-// ===== Жесты по атласу =====
 let pointers = new Map();
 let lastDist = 0, lastMid = null;
-
 stage.addEventListener('pointerdown', e => {
     if (e.target !== stage && e.target !== atlasCanvas) return;
     stage.setPointerCapture(e.pointerId);
@@ -177,13 +188,12 @@ function endPointer(e) {
 stage.addEventListener('pointerup', endPointer);
 stage.addEventListener('pointercancel', endPointer);
 
-// ===== Плашка =====
 function createPlaque() {
     if (plaque && plaque.el && plaque.el.parentNode) plaque.el.remove();
     const x = parseInt(document.getElementById('xIn').value) || 290;
     const y = parseInt(document.getElementById('yIn').value) || 812;
-    const w = parseInt(document.getElementById('wIn').value) || 128;
-    const h = parseInt(document.getElementById('hIn').value) || 128;
+    const w = parseInt(document.getElementById('wIn').value) || defaults.w;
+    const h = parseInt(document.getElementById('hIn').value) || defaults.h;
     plaque = { x, y, w, h, el: null };
 
     const el = document.createElement('div');
@@ -238,7 +248,18 @@ function renderPlaque() {
     coordsEl.textContent = `x=${plaque.x} y=${plaque.y} ${plaque.w}×${plaque.h}`;
 }
 
-// Ручной ввод координат/размеров
+document.getElementById('applyDefaults').addEventListener('click', () => {
+    defaults.w = parseInt(document.getElementById('defW').value) || 128;
+    defaults.h = parseInt(document.getElementById('defH').value) || 128;
+    if (plaque) {
+        plaque.w = defaults.w;
+        plaque.h = defaults.h;
+        document.getElementById('wIn').value = plaque.w;
+        document.getElementById('hIn').value = plaque.h;
+        renderPlaque();
+    }
+});
+
 document.getElementById('applyPos').addEventListener('click', () => {
     if (!plaque) { createPlaque(); return; }
     plaque.x = parseInt(document.getElementById('xIn').value) || plaque.x;
@@ -248,7 +269,6 @@ document.getElementById('applyPos').addEventListener('click', () => {
     renderPlaque();
 });
 
-// Центр на плашке
 document.getElementById('centerOnPlaque').addEventListener('click', () => {
     if (!plaque) return;
     const w = stage.clientWidth, h = stage.clientHeight;
@@ -258,13 +278,22 @@ document.getElementById('centerOnPlaque').addEventListener('click', () => {
     applyTransform();
 });
 
-// ===== Сохранить =====
 document.getElementById('saveBtn').addEventListener('click', () => {
     if (!plaque) { alert('Нет плашки'); return; }
     const id = document.getElementById('idInput').value.trim();
     if (!id) { alert('Введи ID скина'); return; }
-    saved[id] = { x: plaque.x, y: plaque.y, w: plaque.w, h: plaque.h };
+    const name = document.getElementById('nameIn').value.trim() || id;
+    const quality = document.getElementById('qualityIn').value.trim() || 'common';
+
+    const entry = { name, quality, x: plaque.x, y: plaque.y };
+    // если размер отличается от defaults — пишем w/h у скина
+    if (plaque.w !== defaults.w || plaque.h !== defaults.h) {
+        entry.w = plaque.w;
+        entry.h = plaque.h;
+    }
+    saved[id] = entry;
     document.getElementById('idInput').value = '';
+    document.getElementById('nameIn').value = '';
     renderList();
 });
 
@@ -272,13 +301,15 @@ function renderList() {
     const el = document.getElementById('list');
     const keys = Object.keys(saved);
     if (keys.length === 0) { el.textContent = '— пусто —'; return; }
-    el.textContent = keys.map(k =>
-        `${k}: { "x": ${saved[k].x}, "y": ${saved[k].y}, "w": ${saved[k].w}, "h": ${saved[k].h} }`
-    ).join('\n');
+    el.textContent = keys.map(k => {
+        const s = saved[k];
+        return `${k}: { name: "${s.name}", quality: "${s.quality}", x: ${s.x}, y: ${s.y}${s.w !== undefined ? `, w: ${s.w}, h: ${s.h}` : ''} }`;
+    }).join('\n');
 }
 
 document.getElementById('copyBtn').addEventListener('click', () => {
-    const json = JSON.stringify(saved, null, 2);
+    const out = { _defaults: { w: defaults.w, h: defaults.h }, ...saved };
+    const json = JSON.stringify(out, null, 2);
     if (navigator.clipboard) {
         navigator.clipboard.writeText(json).then(
             () => alert('JSON скопирован'),
