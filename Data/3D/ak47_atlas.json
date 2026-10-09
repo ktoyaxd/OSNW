@@ -1,5 +1,5 @@
 {
-  "_defaults": { "w": 128, "h": 128 },
+  "_defaults": { "w": 95, "h": 29 },
   "ak47478":           { "name": "478",            "quality": "common", "x": 588,  "y": 1605 },
   "ak47BlueFire":      { "name": "Blue Fire",      "quality": "common", "x": 300,  "y": 1155 },
   "ak47FamiliarSkull": { "name": "Familiar Skull", "quality": "common", "x": 780,  "y": 1605 },
