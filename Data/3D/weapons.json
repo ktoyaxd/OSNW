@@ -23,5 +23,11 @@
     "path": "Data/3D/Weapon/AWP/",
     "atlas": "Data/3D/awp_atlas.json",
     "catalog": "Data/Catalog/Skins/AWP.json"
+  },
+  "Knife": {
+    "parts": ["Knife","Object001"],
+    "path": "Data/3D/Weapon/knife/",
+    "atlas": "Data/3D/knife_atlas.json",
+    "catalog": "Data/Catalog/Skins/knife.json"
   }
 }
