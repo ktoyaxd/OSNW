@@ -10,7 +10,6 @@
         font-family: 'Segoe UI', Arial, sans-serif; color: #fff; height: 100vh; }
     #canvas-container { position: fixed; inset: 0; }
 
-    /* ===== КАРТОЧКИ (стиль каталога) ===== */
     #cards {
         position: fixed; bottom: 0; left: 0; right: 0;
         display: flex; gap: 8px; overflow-x: auto;
@@ -25,11 +24,7 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         cursor: pointer; transition: transform 0.15s;
     }
-    .card:hover { transform: translateY(-2px); }
     .card.active { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(255,215,0,0.5); }
-    .card.disabled { opacity: 0.35; cursor: not-allowed; }
-    .card.disabled:hover { transform: none; }
-
     .card .top-part {
         flex: 1;
         display: flex; align-items: center; justify-content: center;
@@ -41,8 +36,7 @@
         filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
     .card .bottom-part {
-        background: #2D3037;
-        padding: 4px 8px; min-height: 26px;
+        background: #2D3037; padding: 4px 8px; min-height: 26px;
         display: flex; flex-direction: column; justify-content: center;
     }
     .card .name {
@@ -50,7 +44,6 @@
         overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         line-height: 1.1;
     }
-    .card .quality { display: none; }
 
     /* Качества */
     .card.quality-common .top-part { background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 30%, #7A7A7A 60%, #3A3F45 100%); }
@@ -65,19 +58,22 @@
     .card.quality-myth { border: 2px solid #D2BE4B; }
 
     #weaponSwitch {
-        position: fixed; top: 12px; right: 12px; z-index: 40;
-        display: flex; gap: 6px;
+        position: fixed; top: 12px; right: 12px; left: 12px;
+        z-index: 40; display: flex; gap: 6px;
+        overflow-x: auto; -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
     }
     #weaponSwitch a {
         background: #2D3037; color: #fff; border: 2px solid #444;
         padding: 6px 10px; font-size: 11px; text-decoration: none;
-        font-family: inherit;
+        font-family: inherit; white-space: nowrap; flex-shrink: 0;
     }
     #weaponSwitch a.active {
         background: #FFD700; color: #202126; border-color: #FFD700;
     }
+
     #debug {
-        position: fixed; top: 12px; left: 12px;
+        position: fixed; top: 56px; left: 12px;
         color: #6a8aff; font-size: 10px; font-family: monospace;
         background: rgba(0,0,0,0.6); padding: 6px 8px; border-radius: 4px;
         pointer-events: none; max-width: 220px; line-height: 1.3;
@@ -116,7 +112,6 @@
         const weaponSwitchEl = document.getElementById('weaponSwitch');
 
         const ATLAS_SIZE = 2048;
-
         const params = new URLSearchParams(location.search);
         const WEAPON = params.get('weapon') || 'AK-47';
 
@@ -140,13 +135,28 @@
         const d1 = new THREE.DirectionalLight(0xffffff, 0.6); d1.position.set(2, 3, 2); scene.add(d1);
         const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2, -1, -2); scene.add(d2);
 
-        // ===== Атлас =====
+        // ===== Атлас (одна текстура на всё) =====
         const atlasTex = new THREE.TextureLoader().load('Data/3D/WeaponsAtlas.png');
         atlasTex.colorSpace = THREE.SRGBColorSpace;
         atlasTex.flipY = true;
         atlasTex.wrapS = atlasTex.wrapT = THREE.ClampToEdgeWrapping;
         atlasTex.minFilter = THREE.LinearFilter;
         atlasTex.magFilter = THREE.NearestFilter;
+
+        // Canvas-версия атласа для превью карточек (Y сверху-вниз)
+        const atlasCanvas = document.createElement('canvas');
+        atlasCanvas.width = ATLAS_SIZE;
+        atlasCanvas.height = ATLAS_SIZE;
+        const atlasCtx = atlasCanvas.getContext('2d');
+        let atlasCanvasReady = false;
+        const atlasImg = new Image();
+        atlasImg.crossOrigin = 'anonymous';
+        atlasImg.onload = () => {
+            atlasCtx.drawImage(atlasImg, 0, 0);
+            atlasCanvasReady = true;
+            buildCards();
+        };
+        atlasImg.src = 'Data/3D/WeaponsAtlas.png';
 
         const uniforms = {
             uTiling: { value: new THREE.Vector2(0.0625, 0.0625) },
@@ -176,7 +186,6 @@
 
         // ===== Состояние =====
         let CONFIG = null;
-        let CATALOG = [];
         let ATLAS = {};
         let currentId = null;
         const group = new THREE.Group();
@@ -198,13 +207,6 @@
                 return;
             }
             buildWeaponSwitcher(weapons, WEAPON);
-
-            try {
-                if (CONFIG.catalog) {
-                    const r = await fetch(CONFIG.catalog);
-                    CATALOG = await r.json();
-                }
-            } catch (e) { CATALOG = []; }
 
             try {
                 if (CONFIG.atlas) {
@@ -242,13 +244,12 @@
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
 
-            // Центрируем по X и Z, Y поднимаем вверх
             group.position.x -= center.x;
             group.position.z -= center.z;
             group.position.y -= center.y;
             group.scale.setScalar(3.0 / maxDim);
-            group.position.y += 0.0;   // ← подъём модели
-            group.position.x += 0.0;
+            group.position.y += 1.2;
+
             scene.add(group);
 
             camera.position.set(0, 0, 4);
@@ -258,9 +259,8 @@
 
             loadingEl.style.display = 'none';
 
-            const first = CATALOG.find(i => ATLAS[i.id]);
-            if (first) applySkinById(first.id);
-            else if (CATALOG[0]) applySkinById(CATALOG[0].id);
+            const ids = Object.keys(ATLAS);
+            if (ids.length > 0) applySkinById(ids[0]);
 
             buildCards();
             updateDebug();
@@ -270,7 +270,7 @@
             const s = ATLAS[id];
             currentId = id;
             if (!s) {
-                debugEl.textContent = `Скин: ${id}\n(нет координат в атласе)`;
+                updateDebug();
                 buildCards();
                 return;
             }
@@ -289,44 +289,59 @@
         function updateDebug() {
             const s = ATLAS[currentId];
             if (!s) {
-                debugEl.textContent = `${WEAPON}\nID: ${currentId || '—'}\n(нет координат)`;
+                debugEl.textContent = `${WEAPON}\nID: ${currentId || '—'}\n(нет скинов)`;
                 return;
             }
             debugEl.textContent =
                 `${WEAPON}\n` +
                 `ID: ${currentId}\n` +
+                `name: ${s.name || '—'}\n` +
                 `x: ${s.x}  y: ${s.y}\n` +
                 `w: ${s.w}  h: ${s.h}`;
         }
 
-        // ===== Карточки (стиль каталога) =====
+        // ===== Превью из атласа =====
+        function spritePreview(s, boxSize = 64) {
+            if (!atlasCanvasReady) return '';
+            const c = document.createElement('canvas');
+            c.width = boxSize;
+            c.height = boxSize;
+            const ctx = c.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(
+                atlasCanvas,
+                s.x, s.y, s.w, s.h,
+                0, 0, boxSize, boxSize
+            );
+            return c.toDataURL();
+        }
+
+        // ===== Карточки =====
         function buildCards() {
             cardsEl.innerHTML = '';
-            if (CATALOG.length === 0) {
-                cardsEl.innerHTML = '<div style="color:#888;padding:10px">Каталог пуст</div>';
+            const ids = Object.keys(ATLAS);
+            if (ids.length === 0) {
+                cardsEl.innerHTML = '<div style="color:#888;padding:10px">Скинов нет</div>';
                 return;
             }
-            CATALOG.forEach(item => {
-                const has = !!ATLAS[item.id];
-                const quality = (item.quality || 'common').toLowerCase();
+            ids.forEach(id => {
+                const s = ATLAS[id];
+                const quality = (s.quality || 'common').toLowerCase();
                 const el = document.createElement('div');
                 el.className =
                     'card' +
                     ' quality-' + quality +
-                    (item.id === currentId ? ' active' : '') +
-                    (has ? '' : ' disabled');
-                const imgSrc = item.image || '';
+                    (id === currentId ? ' active' : '');
+                const preview = spritePreview(s);
                 el.innerHTML = `
                     <div class="top-part">
-                        ${imgSrc ? `<img src="${imgSrc}" onerror="this.style.display='none'">` : ''}
+                        ${preview ? `<img src="${preview}">` : ''}
                     </div>
                     <div class="bottom-part">
-                        <div class="name">${item.name || item.id}</div>
+                        <div class="name">${s.name || id}</div>
                     </div>
                 `;
-                if (has) {
-                    el.addEventListener('click', () => applySkinById(item.id));
-                }
+                el.addEventListener('click', () => applySkinById(id));
                 cardsEl.appendChild(el);
             });
         }
