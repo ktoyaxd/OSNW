@@ -1,20 +1,5 @@
 {
-  "awpSandsOfTime": {
-    "x": 0,
-    "y": 429,
-    "w": 128,
-    "h": 128
-  },
-  "awpPinkyLime": {
-    "x": 678,
-    "y": 1818,
-    "w": 128,
-    "h": 128
-  },
-  "awpchan": {
-    "x": 1130,
-    "y": 1789,
-    "w": 128,
-    "h": 128
-  }
+  "awpSandsOfTime": { "name": "Sands Of Time", "quality": "common", "x": 0,    "y": 429,  "w": 128, "h": 128 },
+  "awpPinkyLime":   { "name": "Pinky Lime",    "quality": "common", "x": 678,  "y": 1818, "w": 128, "h": 128 },
+  "awpchan":        { "name": "Chan",          "quality": "common", "x": 1130, "y": 1789, "w": 128, "h": 128 }
 }
