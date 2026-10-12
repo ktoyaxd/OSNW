@@ -3,6 +3,12 @@
     "w": 32,
     "h": 32
   },
+  "_icons": {
+    "topCut": 21,
+    "bottomCut": 0,
+    "leftCut": 0,
+    "rightCut": 0
+  },
   "karambitUltraviolet": {
     "name": "Ultraviolet",
     "quality": "base",
