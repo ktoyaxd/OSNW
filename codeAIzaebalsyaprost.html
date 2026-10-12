@@ -21,11 +21,22 @@
         border: 1px solid #444; color: #fff; }
     #topHud .gold { color: #FFD700; }
 
+    #iconPreview {
+        position: fixed; top: 40px; right: 8px;
+        width: 96px; height: 96px; z-index: 20;
+        background: #0a0a0a; border: 1px solid #444;
+        display: none; align-items: center; justify-content: center;
+    }
+    #iconPreview img {
+        max-width: 90%; max-height: 90%;
+        image-rendering: pixelated;
+    }
+
     #bottom {
         position: fixed; bottom: 0; left: 0; right: 0;
         background: rgba(0,0,0,0.92); padding: 8px 10px 12px;
         z-index: 20; font-size: 12px; font-family: monospace;
-        max-height: 50vh; overflow-y: auto;
+        max-height: 55vh; overflow-y: auto;
     }
     #bottom .row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; flex-wrap: wrap; }
     #bottom input {
@@ -60,6 +71,16 @@
         content: ''; position: absolute; inset: 0;
         background: rgba(255, 60, 60, 0.08); pointer-events: none;
     }
+    /* Второй прямоугольник — иконка внутри спрайта (жёлтый) */
+    .iconMark {
+        position: absolute; border: 2px dashed #FFD700;
+        pointer-events: none; z-index: 11; box-sizing: border-box;
+    }
+    .iconMark::after {
+        content: 'icon'; position: absolute; top: -16px; left: 0;
+        font-size: 9px; color: #202126; background: #FFD700;
+        padding: 0 4px;
+    }
 </style>
 </head>
 <body>
@@ -71,19 +92,22 @@
     <span>атлас 2048×2048</span>
 </div>
 
+<div id="iconPreview"><img id="iconPreviewImg"></div>
+
 <div id="bottom">
     <div class="row">
-        <span>размер оружия:</span>
+        <span>model:</span>
         <input class="coord" id="defW" value="128">
         <input class="coord" id="defH" value="128">
-        <button id="applyDefaults">Применить</button>
+        <span>icon:</span>
+        <input class="coord" id="iconTopCut" value="0">
+        <input class="coord" id="iconH" value="128">
+        <button id="applyMeta">Применить</button>
     </div>
     <div class="row">
         <span>рамка:</span>
         <input class="coord" id="xIn" value="290">
         <input class="coord" id="yIn" value="812">
-        <input class="coord" id="wIn" value="128">
-        <input class="coord" id="hIn" value="128">
         <button id="applyPos">Применить</button>
     </div>
     <div class="row">
@@ -105,18 +129,20 @@
 const ATLAS_URL = 'Data/3D/WeaponsAtlas.png';
 const ATLAS_SIZE = 2048;
 const WEAPONS = {
-    'AK-47': { atlas: 'Data/3D/ak47_atlas.json' },
-    'Glock': { atlas: 'Data/3D/glock_atlas.json' },
-    'Deagle': { atlas: 'Data/3D/deagle_atlas.json' },
-    'AWP': { atlas: 'Data/3D/awp_atlas.json' },
-    'Knife': { atlas: 'Data/3D/knife_atlas.json' },
+    'AK-47':  { atlas: 'Data/3D/ak47_atlas.json',   w: 128, h: 128, iconTopCut: 0,  iconH: 128 },
+    'Glock':  { atlas: 'Data/3D/glock_atlas.json',  w: 32,  h: 32,  iconTopCut: 18, iconH: 14  },
+    'Deagle': { atlas: 'Data/3D/deagle_atlas.json', w: 64,  h: 64,  iconTopCut: 0,  iconH: 64  },
+    'AWP':    { atlas: 'Data/3D/awp_atlas.json',    w: 128, h: 128, iconTopCut: 0,  iconH: 128 },
+    'Knife':  { atlas: 'Data/3D/knife_atlas.json',  w: 128, h: 128, iconTopCut: 0,  iconH: 128 },
 };
 let currentWeapon = 'AK-47';
 
 let scale = 1, offsetX = 0, offsetY = 0;
 let saved = {};
 let defaults = { w: 128, h: 128 };
+let icons    = { topCut: 0, h: 128 };
 let plaque = null;
+let iconMark = null;
 
 const stage = document.getElementById('stage');
 const coordsEl = document.getElementById('coords');
@@ -145,6 +171,7 @@ function applyTransform() {
     atlasCanvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
     atlasCanvas.style.transformOrigin = '0 0';
     renderPlaque();
+    renderIconMark();
 }
 
 let pointers = new Map();
@@ -192,9 +219,7 @@ function createPlaque() {
     if (plaque && plaque.el && plaque.el.parentNode) plaque.el.remove();
     const x = parseInt(document.getElementById('xIn').value) || 290;
     const y = parseInt(document.getElementById('yIn').value) || 812;
-    const w = parseInt(document.getElementById('wIn').value) || defaults.w;
-    const h = parseInt(document.getElementById('hIn').value) || defaults.h;
-    plaque = { x, y, w, h, el: null };
+    plaque = { x, y, w: defaults.w, h: defaults.h, el: null };
 
     const el = document.createElement('div');
     el.className = 'plaque';
@@ -216,8 +241,10 @@ function createPlaque() {
         const dy = (e.clientY - startPy) / scale;
         plaque.x = Math.round(startX + dx);
         plaque.y = Math.round(startY + dy);
-        syncInputs();
+        document.getElementById('xIn').value = plaque.x;
+        document.getElementById('yIn').value = plaque.y;
         renderPlaque();
+        renderIconMark();
     });
     el.addEventListener('pointerup', e => {
         dragging = false;
@@ -226,13 +253,7 @@ function createPlaque() {
     el.addEventListener('pointercancel', () => { dragging = false; });
 
     renderPlaque();
-}
-
-function syncInputs() {
-    document.getElementById('xIn').value = plaque.x;
-    document.getElementById('yIn').value = plaque.y;
-    document.getElementById('wIn').value = plaque.w;
-    document.getElementById('hIn').value = plaque.h;
+    renderIconMark();
 }
 
 function renderPlaque() {
@@ -248,15 +269,53 @@ function renderPlaque() {
     coordsEl.textContent = `x=${plaque.x} y=${plaque.y} ${plaque.w}×${plaque.h}`;
 }
 
-document.getElementById('applyDefaults').addEventListener('click', () => {
+function renderIconMark() {
+    if (iconMark && iconMark.parentNode) iconMark.remove();
+    iconMark = null;
+    if (!plaque) return;
+
+    const s = scale;
+    const ix = plaque.x;
+    const iy = plaque.y + icons.topCut;
+    const iw = plaque.w;
+    const ih = icons.h;
+
+    const el = document.createElement('div');
+    el.className = 'iconMark';
+    el.style.left = (offsetX + ix * s) + 'px';
+    el.style.top  = (offsetY + iy * s) + 'px';
+    el.style.width  = (iw * s) + 'px';
+    el.style.height = (ih * s) + 'px';
+    stage.appendChild(el);
+    iconMark = el;
+
+    // Обновляем превью иконки
+    if (atlasCanvas.width > 0) {
+        const c = document.createElement('canvas');
+        const box = 96;
+        c.width = box; c.height = box;
+        const ctx = c.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+        const sc = Math.min(box / iw, box / ih);
+        const dw = iw * sc, dh = ih * sc;
+        ctx.drawImage(atlasCanvas, ix, iy, iw, ih,
+            (box - dw) / 2, (box - dh) / 2, dw, dh);
+        const dataUrl = c.toDataURL();
+        document.getElementById('iconPreview').style.display = 'flex';
+        document.getElementById('iconPreviewImg').src = dataUrl;
+    }
+}
+
+document.getElementById('applyMeta').addEventListener('click', () => {
     defaults.w = parseInt(document.getElementById('defW').value) || 128;
     defaults.h = parseInt(document.getElementById('defH').value) || 128;
+    icons.topCut = parseInt(document.getElementById('iconTopCut').value) || 0;
+    icons.h = parseInt(document.getElementById('iconH').value) || defaults.h;
     if (plaque) {
         plaque.w = defaults.w;
         plaque.h = defaults.h;
-        document.getElementById('wIn').value = plaque.w;
-        document.getElementById('hIn').value = plaque.h;
         renderPlaque();
+        renderIconMark();
     }
 });
 
@@ -264,9 +323,8 @@ document.getElementById('applyPos').addEventListener('click', () => {
     if (!plaque) { createPlaque(); return; }
     plaque.x = parseInt(document.getElementById('xIn').value) || plaque.x;
     plaque.y = parseInt(document.getElementById('yIn').value) || plaque.y;
-    plaque.w = parseInt(document.getElementById('wIn').value) || plaque.w;
-    plaque.h = parseInt(document.getElementById('hIn').value) || plaque.h;
     renderPlaque();
+    renderIconMark();
 });
 
 document.getElementById('centerOnPlaque').addEventListener('click', () => {
@@ -285,13 +343,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     const name = document.getElementById('nameIn').value.trim() || id;
     const quality = document.getElementById('qualityIn').value.trim() || 'common';
 
-    const entry = { name, quality, x: plaque.x, y: plaque.y };
-    // если размер отличается от defaults — пишем w/h у скина
-    if (plaque.w !== defaults.w || plaque.h !== defaults.h) {
-        entry.w = plaque.w;
-        entry.h = plaque.h;
-    }
-    saved[id] = entry;
+    saved[id] = { name, quality, x: plaque.x, y: plaque.y };
     document.getElementById('idInput').value = '';
     document.getElementById('nameIn').value = '';
     renderList();
@@ -303,12 +355,16 @@ function renderList() {
     if (keys.length === 0) { el.textContent = '— пусто —'; return; }
     el.textContent = keys.map(k => {
         const s = saved[k];
-        return `${k}: { name: "${s.name}", quality: "${s.quality}", x: ${s.x}, y: ${s.y}${s.w !== undefined ? `, w: ${s.w}, h: ${s.h}` : ''} }`;
+        return `${k}: { name: "${s.name}", quality: "${s.quality}", x: ${s.x}, y: ${s.y} }`;
     }).join('\n');
 }
 
 document.getElementById('copyBtn').addEventListener('click', () => {
-    const out = { _defaults: { w: defaults.w, h: defaults.h }, ...saved };
+    const out = {
+        _defaults: { w: defaults.w, h: defaults.h },
+        _icons:    { topCut: icons.topCut, h: icons.h },
+        ...saved,
+    };
     const json = JSON.stringify(out, null, 2);
     if (navigator.clipboard) {
         navigator.clipboard.writeText(json).then(
@@ -326,7 +382,7 @@ document.getElementById('clearBtn').addEventListener('click', () => {
     renderList();
 });
 
-addEventListener('resize', () => { fitToScreen(); renderPlaque(); });
+addEventListener('resize', () => { fitToScreen(); renderPlaque(); renderIconMark(); });
 </script>
 </body>
 </html>
