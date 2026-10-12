@@ -187,6 +187,7 @@
         let CONFIG = null;
         let ATLAS = {};
         let DEFAULTS = { w: 128, h: 128 };
+        let ICONS    = { w: 128, h: 128 };
         let currentId = null;
         const group = new THREE.Group();
 
@@ -213,15 +214,21 @@
                     const r = await fetch(CONFIG.atlas);
                     const raw = await r.json();
 
-                    // вытаскиваем _defaults и удаляем из карты
                     if (raw._defaults) {
                         DEFAULTS = { w: raw._defaults.w || 128, h: raw._defaults.h || 128 };
                         delete raw._defaults;
                     }
-                    // применяем defaults к скинам без своих w/h
+                    if (raw._icons) {
+                        ICONS = { w: raw._icons.w || 128, h: raw._icons.h || 128 };
+                        delete raw._icons;
+                    }
+
                     Object.keys(raw).forEach(id => {
-                        if (raw[id].w === undefined) raw[id].w = DEFAULTS.w;
-                        if (raw[id].h === undefined) raw[id].h = DEFAULTS.h;
+                        const s = raw[id];
+                        if (s.w === undefined) s.w = DEFAULTS.w;
+                        if (s.h === undefined) s.h = DEFAULTS.h;
+                        if (s.iw === undefined) s.iw = ICONS.w;
+                        if (s.ih === undefined) s.ih = ICONS.h;
                     });
                     ATLAS = raw;
                 }
@@ -307,8 +314,8 @@
                 `${WEAPON}\n` +
                 `ID: ${currentId}\n` +
                 `name: ${s.name || '—'}\n` +
-                `x: ${s.x}  y: ${s.y}\n` +
-                `w: ${s.w}  h: ${s.h}`;
+                `model: ${s.w}×${s.h}  x=${s.x} y=${s.y}\n` +
+                `icon:  ${s.iw}×${s.ih}`;
         }
 
         // ===== Превью из атласа =====
@@ -320,14 +327,15 @@
             const ctx = c.getContext('2d');
             ctx.imageSmoothingEnabled = false;
 
-            const sw = s.w;
-            const sh = s.h;
+            const sw = s.iw;
+            const sh = s.ih;
             const scale = Math.min(boxSize / sw, boxSize / sh);
             const dw = sw * scale;
             const dh = sh * scale;
             const dx = (boxSize - dw) / 2;
             const dy = (boxSize - dh) / 2;
 
+            // общая точка x, y — верхний-левый угол
             ctx.drawImage(atlasCanvas, s.x, s.y, sw, sh, dx, dy, dw, dh);
             return c.toDataURL();
         }
