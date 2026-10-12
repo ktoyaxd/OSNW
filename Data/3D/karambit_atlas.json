@@ -1,1 +1,168 @@
-{}
+{
+  "_defaults": {
+    "w": 32,
+    "h": 32
+  },
+  "karambitUltraviolet": {
+    "name": "Ultraviolet",
+    "quality": "base",
+    "x": 747,
+    "y": 411
+  },
+  "karambitRevenge": {
+    "name": "Revenge",
+    "quality": "pro",
+    "x": 747,
+    "y": 363
+  },
+  "karambitStoimost": {
+    "name": "Stoimost",
+    "quality": "base",
+    "x": 747,
+    "y": 255
+  },
+  "karambitDezertrag": {
+    "name": "Dezertrag",
+    "quality": "pro",
+    "x": 747,
+    "y": 135
+  },
+  "karambitVoidless": {
+    "name": "Voidless",
+    "quality": "legend",
+    "x": 747,
+    "y": 267
+  },
+  "karambitDaddy": {
+    "name": "Daddy",
+    "quality": "pro",
+    "x": 747,
+    "y": 387
+  },
+  "karambitEmeraldWater": {
+    "name": "Emerald Water",
+    "quality": "legend",
+    "x": 747,
+    "y": 147
+  },
+  "karambitTwilightForest": {
+    "name": "Twilight Forest",
+    "quality": "legend",
+    "x": 747,
+    "y": 279
+  },
+  "karambitFirebird": {
+    "name": "Firebird",
+    "quality": "pro",
+    "x": 747,
+    "y": 315
+  },
+  "karambitDora": {
+    "name": "Dora",
+    "quality": "legend",
+    "x": 747,
+    "y": 339
+  },
+  "karambitCrystalCorruption": {
+    "name": "Crystal Corruption",
+    "quality": "legend",
+    "x": 747,
+    "y": 123
+  },
+  "karambitLaminate": {
+    "name": "Laminate",
+    "quality": "base",
+    "x": 747,
+    "y": 399
+  },
+  "karambitBasilisk": {
+    "name": "Basilisk",
+    "quality": "legend",
+    "x": 747,
+    "y": 99
+  },
+  "karambitGON": {
+    "name": "Gift Of New",
+    "quality": "pro",
+    "x": 747,
+    "y": 99
+  },
+  "karambitNightmare": {
+    "name": "Nightmare",
+    "quality": "pro",
+    "x": 747,
+    "y": 75
+  },
+  "karambitMotoran": {
+    "name": "Motoran",
+    "quality": "legend",
+    "x": 747,
+    "y": 171
+  },
+  "karambitEliteColoring": {
+    "name": "Elite Coloring",
+    "quality": "pro",
+    "x": 747,
+    "y": 87
+  },
+  "karambitZeofrox": {
+    "name": "Zeofrox",
+    "quality": "base",
+    "x": 747,
+    "y": 231
+  },
+  "karambitDablae": {
+    "name": "Dablae",
+    "quality": "legend",
+    "x": 747,
+    "y": 207
+  },
+  "karambitFade": {
+    "name": "Fade",
+    "quality": "legend",
+    "x": 747,
+    "y": 195
+  },
+  "karambitRusty": {
+    "name": "Rusty",
+    "quality": "legend",
+    "x": 747,
+    "y": 111
+  },
+  "karambitNanser": {
+    "name": "Nanser",
+    "quality": "pro",
+    "x": 747,
+    "y": 243
+  },
+  "karambitHyperfunk": {
+    "name": "Hyperfunk",
+    "quality": "pro",
+    "x": 747,
+    "y": 159
+  },
+  "karambitNigeyd": {
+    "name": "Nigeyd",
+    "quality": "legend",
+    "x": 747,
+    "y": 219
+  },
+  "karambitFOF": {
+    "name": "Fury of Fire",
+    "quality": "pro",
+    "x": 747,
+    "y": 327
+  },
+  "karambitRanex": {
+    "name": "Ranex",
+    "quality": "legend",
+    "x": 747,
+    "y": 183
+  },
+  "karambitOverflow": {
+    "name": "Overflow",
+    "quality": "legend",
+    "x": 747,
+    "y": 375
+  }
+}
