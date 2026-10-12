@@ -142,7 +142,6 @@
         atlasTex.minFilter = THREE.LinearFilter;
         atlasTex.magFilter = THREE.NearestFilter;
 
-        // Canvas-версия атласа для превью карточек (Y сверху-вниз)
         const atlasCanvas = document.createElement('canvas');
         atlasCanvas.width = ATLAS_SIZE;
         atlasCanvas.height = ATLAS_SIZE;
@@ -187,7 +186,7 @@
         let CONFIG = null;
         let ATLAS = {};
         let DEFAULTS = { w: 128, h: 128 };
-        let ICONS    = { topCut: 0, h: 0 };
+        let ICONS = { topCut: 0, bottomCut: 0, leftCut: 0, rightCut: 0 };
         let currentId = null;
         const group = new THREE.Group();
 
@@ -220,13 +219,12 @@
                     }
                     if (raw._icons) {
                         ICONS = {
-                            topCut: raw._icons.topCut || 0,
-                            h: raw._icons.h || DEFAULTS.h,
+                            topCut:    raw._icons.topCut    || 0,
+                            bottomCut: raw._icons.bottomCut || 0,
+                            leftCut:   raw._icons.leftCut   || 0,
+                            rightCut:  raw._icons.rightCut  || 0,
                         };
                         delete raw._icons;
-                    } else {
-                        // если _icons нет — используем весь спрайт
-                        ICONS = { topCut: 0, h: DEFAULTS.h };
                     }
 
                     Object.keys(raw).forEach(id => {
@@ -319,7 +317,7 @@
                 `ID: ${currentId}\n` +
                 `name: ${s.name || '—'}\n` +
                 `model: ${s.w}×${s.h}  x=${s.x} y=${s.y}\n` +
-                `icon:  topCut=${ICONS.topCut} h=${ICONS.h}`;
+                `icon cuts: L${ICONS.leftCut} T${ICONS.topCut} R${ICONS.rightCut} B${ICONS.bottomCut}`;
         }
 
         // ===== Превью из атласа =====
@@ -331,11 +329,12 @@
             const ctx = c.getContext('2d');
             ctx.imageSmoothingEnabled = false;
 
-            // Иконка: та же точка (x, y), но с обрезкой сверху topCut и высотой ICONS.h
-            const sx = s.x;
+            const sx = s.x + ICONS.leftCut;
             const sy = s.y + ICONS.topCut;
-            const sw = s.w;
-            const sh = ICONS.h;
+            const sw = s.w - ICONS.leftCut - ICONS.rightCut;
+            const sh = s.h - ICONS.topCut    - ICONS.bottomCut;
+
+            if (sw <= 0 || sh <= 0) return '';
 
             const scale = Math.min(boxSize / sw, boxSize / sh);
             const dw = sw * scale;
@@ -347,7 +346,6 @@
             return c.toDataURL();
         }
 
-        // ===== Карточки =====
         function buildCards() {
             cardsEl.innerHTML = '';
             const ids = Object.keys(ATLAS);
