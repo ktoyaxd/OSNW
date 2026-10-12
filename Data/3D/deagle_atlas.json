@@ -1,6 +1,6 @@
 {
   "_defaults": { "w": 64, "h": 64 },
-  "deagleAgent":           { "name": "Agent",            "quality": "common", "x": 612, "y": 375  },
-  "deagleBloodyPink":      { "name": "Bloody Pink",      "quality": "common", "x": 612, "y": 191  },
-  "deagleWinterAwakening": { "name": "Winter Awakening", "quality": "common", "x": 612, "y": 1134 }
+  "deagleAgent":           { "name": "Agent",            "quality": "pro", "x": 612, "y": 375  },
+  "deagleBloodyPink":      { "name": "Bloody Pink",      "quality": "pro", "x": 612, "y": 191  },
+  "deagleWinterAwakening": { "name": "Winter Awakening", "quality": "base", "x": 612, "y": 1134 }
 }
