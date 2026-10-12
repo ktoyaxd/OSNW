@@ -75,7 +75,7 @@
         position: fixed; top: 56px; left: 12px;
         color: #6a8aff; font-size: 10px; font-family: monospace;
         background: rgba(0,0,0,0.6); padding: 6px 8px; border-radius: 4px;
-        pointer-events: none; max-width: 220px; line-height: 1.3;
+        pointer-events: none; max-width: 240px; line-height: 1.3;
         white-space: pre-line;
     }
     #loading {
@@ -187,7 +187,7 @@
         let CONFIG = null;
         let ATLAS = {};
         let DEFAULTS = { w: 128, h: 128 };
-        let ICONS    = { w: 128, h: 128 };
+        let ICONS    = { topCut: 0, h: 0 };
         let currentId = null;
         const group = new THREE.Group();
 
@@ -219,16 +219,20 @@
                         delete raw._defaults;
                     }
                     if (raw._icons) {
-                        ICONS = { w: raw._icons.w || 128, h: raw._icons.h || 128 };
+                        ICONS = {
+                            topCut: raw._icons.topCut || 0,
+                            h: raw._icons.h || DEFAULTS.h,
+                        };
                         delete raw._icons;
+                    } else {
+                        // если _icons нет — используем весь спрайт
+                        ICONS = { topCut: 0, h: DEFAULTS.h };
                     }
 
                     Object.keys(raw).forEach(id => {
                         const s = raw[id];
                         if (s.w === undefined) s.w = DEFAULTS.w;
                         if (s.h === undefined) s.h = DEFAULTS.h;
-                        if (s.iw === undefined) s.iw = ICONS.w;
-                        if (s.ih === undefined) s.ih = ICONS.h;
                     });
                     ATLAS = raw;
                 }
@@ -315,7 +319,7 @@
                 `ID: ${currentId}\n` +
                 `name: ${s.name || '—'}\n` +
                 `model: ${s.w}×${s.h}  x=${s.x} y=${s.y}\n` +
-                `icon:  ${s.iw}×${s.ih}`;
+                `icon:  topCut=${ICONS.topCut} h=${ICONS.h}`;
         }
 
         // ===== Превью из атласа =====
@@ -327,16 +331,19 @@
             const ctx = c.getContext('2d');
             ctx.imageSmoothingEnabled = false;
 
-            const sw = s.iw;
-            const sh = s.ih;
+            // Иконка: та же точка (x, y), но с обрезкой сверху topCut и высотой ICONS.h
+            const sx = s.x;
+            const sy = s.y + ICONS.topCut;
+            const sw = s.w;
+            const sh = ICONS.h;
+
             const scale = Math.min(boxSize / sw, boxSize / sh);
             const dw = sw * scale;
             const dh = sh * scale;
             const dx = (boxSize - dw) / 2;
             const dy = (boxSize - dh) / 2;
 
-            // общая точка x, y — верхний-левый угол
-            ctx.drawImage(atlasCanvas, s.x, s.y, sw, sh, dx, dy, dw, dh);
+            ctx.drawImage(atlasCanvas, sx, sy, sw, sh, dx, dy, dw, dh);
             return c.toDataURL();
         }
 
