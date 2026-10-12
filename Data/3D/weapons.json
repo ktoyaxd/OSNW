@@ -26,4 +26,9 @@
     "path": "Data/3D/Weapon/Knife/",
     "atlas": "Data/3D/knife_atlas.json"
   }
+ "Karambit": {
+    "parts": ["Obj","Obj3","Obj5","Obj6"],
+    "path": "Data/3D/Weapon/Karambit/",
+    "atlas": "Data/3D/karambit_atlas.json"
+  }
 }
