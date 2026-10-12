@@ -23,7 +23,7 @@
   },
   "Knife": {
     "parts": ["Knife","Object001"],
-    "path": "Data/3D/Weapon/knife/",
+    "path": "Data/3D/Weapon/Knife/",
     "atlas": "Data/3D/knife_atlas.json"
   }
 }
