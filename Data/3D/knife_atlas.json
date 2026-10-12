@@ -3,6 +3,12 @@
     "w": 64,
     "h": 64
   },
+  "_icons": {
+    "topCut": 55,
+    "bottomCut": 0,
+    "leftCut": 0,
+    "rightCut": 29
+  },
   "knifeStandard": {
     "name": "Standard",
     "quality": "common",
