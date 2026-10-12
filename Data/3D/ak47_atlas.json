@@ -8,5 +8,35 @@
   "ak47Revenger":      { "name": "Revenger",       "quality": "common", "x": 1836, "y": 1635 },
   "ak47Universe":      { "name": "Universe",       "quality": "common", "x": 395,  "y": 1575 },
   "ak47Y65":           { "name": "Y65",            "quality": "common", "x": 1068, "y": 1635 },
-  "ak47chan":          { "name": "Chan",           "quality": "common", "x": 300,  "y": 645  }
+  "ak47chan":          { "name": "Chan",           "quality": "common", "x": 300,  "y": 645  },
+  "ak47FrostedEdge": {
+    "name": "Frosted Edge",
+    "quality": "pro",
+    "x": 300,
+    "y": 885
+  },
+  "ak47Opressor": {
+    "name": "Opressor",
+    "quality": "legend",
+    "x": 300,
+    "y": 1365
+  },
+  "ak47Zeblue": {
+    "name": "Zeblue",
+    "quality": "base",
+    "x": 588,
+    "y": 1575
+  },
+  "ak47BlackSteel": {
+    "name": "Black Steel",
+    "quality": "base",
+    "x": 1164,
+    "y": 1605
+  },
+  "ak47Orange": {
+    "name": "Orange",
+    "quality": "base",
+    "x": 1932,
+    "y": 1635
+  }
 }
