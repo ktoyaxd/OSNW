@@ -5,55 +5,55 @@
   },
   "ak47478": {
     "name": "478",
-    "quality": "common",
+    "quality": "legend",
     "x": 588,
     "y": 1605
   },
   "ak47BlueFire": {
     "name": "Blue Fire",
-    "quality": "common",
+    "quality": "legend",
     "x": 300,
     "y": 1155
   },
   "ak47FamiliarSkull": {
     "name": "Familiar Skull",
-    "quality": "common",
+    "quality": "legend",
     "x": 780,
     "y": 1605
   },
   "ak47Halloween": {
     "name": "Halloween",
-    "quality": "common",
+    "quality": "legend",
     "x": 300,
     "y": 765
   },
   "ak47HalloweenBurn": {
     "name": "Halloween Burn",
-    "quality": "common",
+    "quality": "legend",
     "x": 300,
     "y": 1425
   },
   "ak47Revenger": {
     "name": "Revenger",
-    "quality": "common",
+    "quality": "pro",
     "x": 1836,
     "y": 1635
   },
   "ak47Universe": {
     "name": "Universe",
-    "quality": "common",
+    "quality": "legend",
     "x": 395,
     "y": 1575
   },
   "ak47Y65": {
     "name": "Y65",
-    "quality": "common",
+    "quality": "legend",
     "x": 1068,
     "y": 1635
   },
   "ak47chan": {
     "name": "Chan",
-    "quality": "common",
+    "quality": "pro",
     "x": 300,
     "y": 645
   },
