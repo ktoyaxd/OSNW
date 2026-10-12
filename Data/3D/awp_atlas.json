@@ -1,5 +1,14 @@
 {
-  "_defaults": { "w": 128, "h": 128 },
+  "_defaults": {
+    "w": 128,
+    "h": 128
+  },
+  "_icons": {
+    "topCut": 106,
+    "bottomCut": 0,
+    "leftCut": 0,
+    "rightCut": 16
+  },
   "awpSandsOfTime": { "name": "Sands Of Time", "quality": "legend", "x": 0,    "y": 429  },
   "awpPinkyLime":   { "name": "Pinky Lime",    "quality": "legend", "x": 678,  "y": 1818 },
   "awpchan":        { "name": "Chan",          "quality": "pro", "x": 1130, "y": 1789 }
