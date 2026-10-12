@@ -1,8 +1,13 @@
 {
-  "_defaults": { "w": 32, "h": 32 },
+  "_defaults": {
+    "w": 32,
+    "h": 32
+  },
   "_icons": {
     "topCut": 16,
-    "h": 16
+    "bottomCut": 0,
+    "leftCut": 0,
+    "rightCut": 9
   },
   "glockGalactic":   { "name": "Galactic",    "quality": "legend", "x": 712, "y": 55  },
   "glockGalacticFX": { "name": "Galactic FX", "quality": "myth", "x": 712, "y": 38  },
