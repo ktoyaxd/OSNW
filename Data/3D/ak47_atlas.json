@@ -86,5 +86,59 @@
     "quality": "base",
     "x": 1932,
     "y": 1635
+  },
+  "ak47Breezy": {
+    "name": "Breezy",
+    "quality": "legend",
+    "x": 1677,
+    "y": 1700
+  },
+  "ak47Noisy": {
+    "name": "Noisy",
+    "quality": "legend",
+    "x": 1773,
+    "y": 1700
+  },
+  "ak47BioWare": {
+    "name": "Bio Ware",
+    "quality": "base",
+    "x": 1581,
+    "y": 1700
+  },
+  "ak47Tokera": {
+    "name": "Tokera",
+    "quality": "legend",
+    "x": 972,
+    "y": 1575
+  },
+  "ak47Hires": {
+    "name": "Hires",
+    "quality": "legend",
+    "x": 300,
+    "y": 1485
+  },
+  "ak47Dissaray": {
+    "name": "Dissaray",
+    "quality": "legend",
+    "x": 300,
+    "y": 1215
+  },
+  "ak47Warrior": {
+    "name": "Warrior",
+    "quality": "legend",
+    "x": 1260,
+    "y": 1575
+  },
+  "ak47Birthday": {
+    "name": "Birthday",
+    "quality": "legend",
+    "x": 1836,
+    "y": 1575
+  },
+  "ak47Suicide": {
+    "name": "Suicide",
+    "quality": "legend",
+    "x": 300,
+    "y": 1125
   }
 }
