@@ -1,3 +1,18 @@
 {
-  "_defaults": { "w": 128, "h": 128 }
+  "_defaults": {
+    "w": 64,
+    "h": 64
+  },
+  "knifeStandard": {
+    "name": "Standard",
+    "quality": "common",
+    "x": 1170,
+    "y": 1168
+  },
+  "knifeGalactic": {
+    "name": "Galactic",
+    "quality": "legend",
+    "x": 1458,
+    "y": 1178
+  }
 }
