@@ -1,5 +1,14 @@
 {
-  "_defaults": { "w": 64, "h": 64 },
+  "_defaults": {
+    "w": 64,
+    "h": 64
+  },
+  "_icons": {
+    "topCut": 46,
+    "bottomCut": 0,
+    "leftCut": 0,
+    "rightCut": 30
+  },
   "deagleAgent":           { "name": "Agent",            "quality": "pro", "x": 612, "y": 375  },
   "deagleBloodyPink":      { "name": "Bloody Pink",      "quality": "pro", "x": 612, "y": 191  },
   "deagleWinterAwakening": { "name": "Winter Awakening", "quality": "base", "x": 612, "y": 1134 }
