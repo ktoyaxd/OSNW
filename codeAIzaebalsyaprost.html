@@ -22,7 +22,7 @@
     #topHud .gold { color: #FFD700; }
 
     #iconPreview {
-        position: fixed; top: 40px; right: 8px;
+        position: fixed; top: 44px; right: 8px;
         width: 96px; height: 96px; z-index: 20;
         background: #0a0a0a; border: 1px solid #444;
         display: none; align-items: center; justify-content: center;
@@ -36,7 +36,7 @@
         position: fixed; bottom: 0; left: 0; right: 0;
         background: rgba(0,0,0,0.92); padding: 8px 10px 12px;
         z-index: 20; font-size: 12px; font-family: monospace;
-        max-height: 55vh; overflow-y: auto;
+        max-height: 60vh; overflow-y: auto;
     }
     #bottom .row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; flex-wrap: wrap; }
     #bottom input {
@@ -45,7 +45,7 @@
         min-width: 0;
     }
     #bottom input.id { flex: 1; min-width: 120px; }
-    #bottom input.coord { width: 70px; }
+    #bottom input.coord { width: 64px; }
     #bottom button {
         background: #2D3037; color: #fff; border: 1px solid #444;
         padding: 6px 10px; cursor: pointer; font-family: inherit;
@@ -71,7 +71,6 @@
         content: ''; position: absolute; inset: 0;
         background: rgba(255, 60, 60, 0.08); pointer-events: none;
     }
-    /* Второй прямоугольник — иконка внутри спрайта (жёлтый) */
     .iconMark {
         position: absolute; border: 2px dashed #FFD700;
         pointer-events: none; z-index: 11; box-sizing: border-box;
@@ -97,17 +96,19 @@
 <div id="bottom">
     <div class="row">
         <span>model:</span>
-        <input class="coord" id="defW" value="128">
-        <input class="coord" id="defH" value="128">
-        <span>icon:</span>
-        <input class="coord" id="iconTopCut" value="0">
-        <input class="coord" id="iconH" value="128">
+        <input class="coord" id="defW" value="128" placeholder="w">
+        <input class="coord" id="defH" value="128" placeholder="h">
+        <span>cuts:</span>
+        <input class="coord" id="iconTop"    value="0" placeholder="top">
+        <input class="coord" id="iconBottom" value="0" placeholder="bottom">
+        <input class="coord" id="iconLeft"   value="0" placeholder="left">
+        <input class="coord" id="iconRight"  value="0" placeholder="right">
         <button id="applyMeta">Применить</button>
     </div>
     <div class="row">
         <span>рамка:</span>
-        <input class="coord" id="xIn" value="290">
-        <input class="coord" id="yIn" value="812">
+        <input class="coord" id="xIn" value="290" placeholder="x">
+        <input class="coord" id="yIn" value="812" placeholder="y">
         <button id="applyPos">Применить</button>
     </div>
     <div class="row">
@@ -125,22 +126,13 @@
 </div>
 
 <script>
-// ===== Конфиг =====
 const ATLAS_URL = 'Data/3D/WeaponsAtlas.png';
 const ATLAS_SIZE = 2048;
-const WEAPONS = {
-    'AK-47':  { atlas: 'Data/3D/ak47_atlas.json',   w: 128, h: 128, iconTopCut: 0,  iconH: 128 },
-    'Glock':  { atlas: 'Data/3D/glock_atlas.json',  w: 32,  h: 32,  iconTopCut: 18, iconH: 14  },
-    'Deagle': { atlas: 'Data/3D/deagle_atlas.json', w: 64,  h: 64,  iconTopCut: 0,  iconH: 64  },
-    'AWP':    { atlas: 'Data/3D/awp_atlas.json',    w: 128, h: 128, iconTopCut: 0,  iconH: 128 },
-    'Knife':  { atlas: 'Data/3D/knife_atlas.json',  w: 128, h: 128, iconTopCut: 0,  iconH: 128 },
-};
-let currentWeapon = 'AK-47';
 
 let scale = 1, offsetX = 0, offsetY = 0;
 let saved = {};
 let defaults = { w: 128, h: 128 };
-let icons    = { topCut: 0, h: 128 };
+let icons    = { topCut: 0, bottomCut: 0, leftCut: 0, rightCut: 0 };
 let plaque = null;
 let iconMark = null;
 
@@ -275,10 +267,12 @@ function renderIconMark() {
     if (!plaque) return;
 
     const s = scale;
-    const ix = plaque.x;
+    const ix = plaque.x + icons.leftCut;
     const iy = plaque.y + icons.topCut;
-    const iw = plaque.w;
-    const ih = icons.h;
+    const iw = plaque.w - icons.leftCut - icons.rightCut;
+    const ih = plaque.h - icons.topCut    - icons.bottomCut;
+
+    if (iw <= 0 || ih <= 0) return;
 
     const el = document.createElement('div');
     el.className = 'iconMark';
@@ -289,28 +283,28 @@ function renderIconMark() {
     stage.appendChild(el);
     iconMark = el;
 
-    // Обновляем превью иконки
-    if (atlasCanvas.width > 0) {
-        const c = document.createElement('canvas');
-        const box = 96;
-        c.width = box; c.height = box;
-        const ctx = c.getContext('2d');
-        ctx.imageSmoothingEnabled = false;
-        const sc = Math.min(box / iw, box / ih);
-        const dw = iw * sc, dh = ih * sc;
-        ctx.drawImage(atlasCanvas, ix, iy, iw, ih,
-            (box - dw) / 2, (box - dh) / 2, dw, dh);
-        const dataUrl = c.toDataURL();
-        document.getElementById('iconPreview').style.display = 'flex';
-        document.getElementById('iconPreviewImg').src = dataUrl;
-    }
+    // превью иконки
+    const c = document.createElement('canvas');
+    const box = 96;
+    c.width = box; c.height = box;
+    const ctx = c.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    const sc = Math.min(box / iw, box / ih);
+    const dw = iw * sc, dh = ih * sc;
+    ctx.drawImage(atlasCanvas, ix, iy, iw, ih,
+        (box - dw) / 2, (box - dh) / 2, dw, dh);
+    const dataUrl = c.toDataURL();
+    document.getElementById('iconPreview').style.display = 'flex';
+    document.getElementById('iconPreviewImg').src = dataUrl;
 }
 
 document.getElementById('applyMeta').addEventListener('click', () => {
     defaults.w = parseInt(document.getElementById('defW').value) || 128;
     defaults.h = parseInt(document.getElementById('defH').value) || 128;
-    icons.topCut = parseInt(document.getElementById('iconTopCut').value) || 0;
-    icons.h = parseInt(document.getElementById('iconH').value) || defaults.h;
+    icons.topCut    = parseInt(document.getElementById('iconTop').value)    || 0;
+    icons.bottomCut = parseInt(document.getElementById('iconBottom').value) || 0;
+    icons.leftCut   = parseInt(document.getElementById('iconLeft').value)   || 0;
+    icons.rightCut  = parseInt(document.getElementById('iconRight').value)  || 0;
     if (plaque) {
         plaque.w = defaults.w;
         plaque.h = defaults.h;
@@ -362,7 +356,12 @@ function renderList() {
 document.getElementById('copyBtn').addEventListener('click', () => {
     const out = {
         _defaults: { w: defaults.w, h: defaults.h },
-        _icons:    { topCut: icons.topCut, h: icons.h },
+        _icons: {
+            topCut:    icons.topCut,
+            bottomCut: icons.bottomCut,
+            leftCut:   icons.leftCut,
+            rightCut:  icons.rightCut,
+        },
         ...saved,
     };
     const json = JSON.stringify(out, null, 2);
