@@ -102,7 +102,7 @@
         transition: transform 0.15s;
     }
     .skin-card:hover { transform: translateY(-2px); }
-    .skin-card.active { outline: 2px solid #FFD700; outline-offset: -2px; }
+    .skin-card.active { outline: 2px solid #FFFFFF; outline-offset: -2px; }
     .skin-card .top-part {
         flex: 1; display: flex; align-items: center; justify-content: center;
         padding: 10px; position: relative; min-height: 0;
@@ -172,7 +172,6 @@
 
     /* ===== ПК-версия (>= 768px) ===== */
     @media (min-width: 768px) {
-        /* Скрываем каталог, показываем обзор на весь экран */
         #screen-catalog { display: none !important; }
         #screen-viewer {
             display: flex !important;
@@ -206,6 +205,10 @@
             aspect-ratio: auto !important;
         }
         #rightCol .skin-card .name { font-size: 12px; }
+        #rightCol .top-bar { margin-bottom: 8px; }
+        #rightCol .catalog-filters { margin-bottom: 8px; }
+        #rightCol .dropdown-toggle { padding: 8px 10px; font-size: 13px; }
+        #rightCol .dropdown-item { padding: 8px 10px; font-size: 13px; }
     }
 
     /* Мобилка */
@@ -216,7 +219,7 @@
 </head>
 <body>
 
-    <!-- ===== ЭКРАН КАТАЛОГА ===== -->
+    <!-- ===== ЭКРАН КАТАЛОГА (мобилка) ===== -->
     <div id="screen-catalog" class="screen active">
         <div class="top-bar">
             <input id="searchBox" class="search-box" placeholder="Поиск...">
@@ -233,9 +236,7 @@
             </div>
         </div>
 
-        <div class="catalog-grid" id="catalogGrid">
-            <div class="no-data" style="color:#888;padding:20px;text-align:center;grid-column:1/-1;">Загрузка...</div>
-        </div>
+        <div class="catalog-grid" id="catalogGrid"></div>
     </div>
 
     <!-- ===== ЭКРАН ОБЗОРА ===== -->
@@ -292,6 +293,7 @@
 
         const ATLAS_SIZE = 2048;
 
+        // ===== Сцена =====
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x202126);
 
@@ -383,21 +385,26 @@
             atlasImg.onload = () => {
                 atlasCtx.drawImage(atlasImg, 0, 0);
                 atlasCanvasReady = true;
+                // Пересчитать превью, если атлас-данные уже есть
                 if (Object.keys(ATLAS).length) {
                     Object.keys(ATLAS).forEach(id => {
                         previewCache[id] = spritePreview(ATLAS[id]);
                     });
                 }
                 renderCatalog();
+                if (window.innerWidth >= 768) renderRightPanel();
             };
 
             buildWeaponDropdown();
             buildQualityDropdown();
+
             searchEl.addEventListener('input', () => {
                 searchQuery = searchEl.value.toLowerCase().trim();
                 renderCatalog();
+                if (window.innerWidth >= 768) renderRightGrid();
             });
 
+            // Обработчик кликов для дропдаунов на мобилке
             document.addEventListener('click', function(e) {
                 const toggle = e.target.closest('.dropdown-toggle');
                 if (toggle) {
@@ -410,16 +417,32 @@
                 const item = e.target.closest('.dropdown-item');
                 if (item) {
                     const d = item.closest('.dropdown');
-                    if (d.id === 'weaponDropdown') {
+                    if (!d) return;
+                    
+                    if (d.id === 'weaponDropdown' || d.id === 'weaponDropdownRight') {
                         currentWeaponFilter = item.dataset.value;
-                        weaponToggle.textContent = item.textContent;
-                        buildWeaponDropdown();
                         selectWeapon(currentWeaponFilter);
-                    } else if (d.id === 'qualityDropdown') {
+                        // Обновить оба дропдауна
+                        weaponToggle.textContent = item.textContent;
+                        const rightToggle = document.getElementById('weaponToggleRight');
+                        if (rightToggle) rightToggle.textContent = item.textContent;
+                        buildWeaponDropdown();
+                        if (window.innerWidth >= 768) {
+                            const wm = document.getElementById('weaponMenuRight');
+                            if (wm) {
+                                wm.querySelectorAll('.dropdown-item').forEach(x => {
+                                    x.classList.toggle('active', x.dataset.value === currentWeaponFilter);
+                                });
+                            }
+                        }
+                    } else if (d.id === 'qualityDropdown' || d.id === 'qualityDropdownRight') {
                         currentQualityFilter = item.dataset.value;
                         qualityToggle.textContent = item.textContent;
+                        const rightToggle = document.getElementById('qualityToggleRight');
+                        if (rightToggle) rightToggle.textContent = item.textContent;
                         buildQualityDropdown();
                         renderCatalog();
+                        if (window.innerWidth >= 768) renderRightGrid();
                     }
                     d.classList.remove('open');
                     return;
@@ -546,6 +569,7 @@
 
             modelLoaded = true;
             renderCatalog();
+            if (window.innerWidth >= 768) renderRightPanel();
 
             const ids = Object.keys(ATLAS);
             if (ids.length > 0) applySkinById(ids[0]);
@@ -588,13 +612,98 @@
             } else {
                 ids.forEach(id => catalogGrid.appendChild(buildCard(id)));
             }
+        }
+
+        // ===== ПК правый столбец =====
+        function renderRightPanel() {
+            // Не перерисовываем, если уже есть контейнер
+            if (document.getElementById('rightGrid')) {
+                renderRightGrid();
+                return;
+            }
 
             rightCol.innerHTML = '';
+
+            // Поиск
+            const topBar = document.createElement('div');
+            topBar.className = 'top-bar';
+            topBar.innerHTML = `<input id="searchBoxRight" class="search-box" placeholder="Поиск...">`;
+            rightCol.appendChild(topBar);
+
+            // Фильтры
+            const filters = document.createElement('div');
+            filters.className = 'catalog-filters';
+
+            const wd = document.createElement('div');
+            wd.className = 'dropdown'; wd.id = 'weaponDropdownRight';
+            wd.innerHTML = `<button class="dropdown-toggle" id="weaponToggleRight">${currentWeaponFilter}</button>
+                            <div class="dropdown-menu" id="weaponMenuRight"></div>`;
+            filters.appendChild(wd);
+
+            const qd = document.createElement('div');
+            qd.className = 'dropdown'; qd.id = 'qualityDropdownRight';
+            const qName = QUALITIES.find(q => q.id === currentQualityFilter).name;
+            qd.innerHTML = `<button class="dropdown-toggle" id="qualityToggleRight">${qName}</button>
+                            <div class="dropdown-menu" id="qualityMenuRight"></div>`;
+            filters.appendChild(qd);
+
+            rightCol.appendChild(filters);
+
+            // Контейнер карточек
+            const grid = document.createElement('div');
+            grid.id = 'rightGrid';
+            grid.style.display = 'flex';
+            grid.style.flexDirection = 'column';
+            grid.style.gap = '8px';
+            rightCol.appendChild(grid);
+
+            // Заполнить дропдауны
+            const wm = document.getElementById('weaponMenuRight');
+            Object.keys(WEAPONS).forEach(w => {
+                const it = document.createElement('div');
+                it.className = 'dropdown-item' + (w === currentWeaponFilter ? ' active' : '');
+                it.textContent = w;
+                it.dataset.value = w;
+                wm.appendChild(it);
+            });
+
+            const qm = document.getElementById('qualityMenuRight');
+            QUALITIES.forEach(q => {
+                const it = document.createElement('div');
+                it.className = 'dropdown-item' + (q.id === currentQualityFilter ? ' active' : '');
+                it.textContent = q.name;
+                it.dataset.value = q.id;
+                qm.appendChild(it);
+            });
+
+            // Обработчики для правого поиска
+            document.getElementById('searchBoxRight').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase().trim();
+                renderRightGrid();
+            });
+
+            renderRightGrid();
+        }
+
+        function renderRightGrid() {
+            const grid = document.getElementById('rightGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const ids = Object.keys(ATLAS).filter(id => {
+                const s = ATLAS[id];
+                if (searchQuery && !(s.name || id).toLowerCase().includes(searchQuery)) return false;
+                if (currentQualityFilter !== 'all' && (s.quality || 'common').toLowerCase() !== currentQualityFilter) return false;
+                return true;
+            });
+
             if (ids.length === 0) {
-                rightCol.innerHTML = '<div style="color:#888;padding:20px;text-align:center;">Ничего не найдено</div>';
-            } else {
-                ids.forEach(id => rightCol.appendChild(buildCard(id)));
+                grid.innerHTML = '<div style="color:#888;padding:20px;text-align:center;">Ничего не найдено</div>';
+                return;
             }
+            ids.forEach(id => {
+                grid.appendChild(buildCard(id));
+            });
         }
 
         function applySkinById(id) {
