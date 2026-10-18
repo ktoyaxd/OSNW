@@ -29,7 +29,7 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ===== СТИЛЬ КАТАЛОГА ===== */
+    /* ===== КАТАЛОГ ===== */
     .top-bar {
         display: flex; align-items: center; gap: 12px;
         margin-bottom: 20px; flex-wrap: nowrap;
@@ -110,10 +110,12 @@
         flex: 1; display: flex; align-items: center; justify-content: center;
         padding: 10px; position: relative; min-height: 0;
     }
-    .skin-card .top-part img {
+    /* Тут теперь не img, а canvas */
+    .skin-card .top-part canvas {
         max-width: 90%; max-height: 90%;
         object-fit: contain; image-rendering: pixelated;
         filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+        display: block;
     }
     .skin-card .bottom-part {
         background: #2D3037; padding: 8px 12px; min-height: 46px;
@@ -140,7 +142,7 @@
     .quality-myth .top-part { background: linear-gradient(180deg, #F4D74B 0%, #BFAD47 30%, #877D4C 60%, #585951 100%); }
     .quality-myth { border: 2px solid #D2BE4B; }
 
-    /* ===== Экраны ===== */
+    /* ===== ЭКРАНЫ ===== */
     .screen { display: none; height: 100vh; position: relative; z-index: 1; overflow-y: auto; }
     .screen.active { display: flex; flex-direction: column; }
     #screen-catalog { padding: 20px; }
@@ -171,7 +173,6 @@
         z-index: 200; text-align: center;
     }
 
-    /* ===== Адаптив ===== */
     @media (max-width: 767px) {
         .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
         #screen-catalog { padding: 12px; }
@@ -180,7 +181,6 @@
 </head>
 <body>
 
-    <!-- ===== ЭКРАН КАТАЛОГА ===== -->
     <div id="screen-catalog" class="screen active">
         <div class="top-bar">
             <input id="searchBox" class="search-box" placeholder="Поиск...">
@@ -200,7 +200,6 @@
         <div class="catalog-grid" id="catalogGrid"></div>
     </div>
 
-    <!-- ===== ЭКРАН ОБЗОРА ===== -->
     <div id="screen-viewer" class="screen">
         <div id="viewerTop">
             <button id="backBtn" class="back-btn">← Назад</button>
@@ -233,10 +232,8 @@
 
         const weaponToggle = document.getElementById('weaponToggle');
         const weaponMenu = document.getElementById('weaponMenu');
-        const weaponDropdown = document.getElementById('weaponDropdown');
         const qualityToggle = document.getElementById('qualityToggle');
         const qualityMenu = document.getElementById('qualityMenu');
-        const qualityDropdown = document.getElementById('qualityDropdown');
 
         let currentWeaponFilter = 'all';
         let currentQualityFilter = 'all';
@@ -252,16 +249,14 @@
 
         const ATLAS_SIZE = 2048;
 
-        // ===== Сцена =====
+        // ===== 3D Сцена =====
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x202126);
 
         const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
         camera.position.set(0, 0, 4);
 
-        const renderer = new THREE.WebGLRenderer({
-            antialias: true, powerPreference: 'high-performance'
-        });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
         renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
         renderer.setClearColor(0x202126, 1);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
@@ -275,22 +270,28 @@
         const d1 = new THREE.DirectionalLight(0xffffff, 0.6); d1.position.set(2, 3, 2); scene.add(d1);
         const d2 = new THREE.DirectionalLight(0xffffff, 0.4); d2.position.set(-2, -1, -2); scene.add(d2);
 
-        // ===== Атлас =====
+        // ===== Текстуры =====
         const atlasTex = new THREE.TextureLoader().load('Data/3D/WeaponsAtlas.png');
         atlasTex.colorSpace = THREE.SRGBColorSpace;
         atlasTex.flipY = true;
-        atlasTex.wrapS = atlasTex.wrapT = THREE.ClampToEdgeWrapping;
         atlasTex.minFilter = THREE.LinearFilter;
         atlasTex.magFilter = THREE.NearestFilter;
 
+        // Canvas атласа для карточек (рисуем 1 раз)
         const atlasCanvas = document.createElement('canvas');
         atlasCanvas.width = ATLAS_SIZE;
         atlasCanvas.height = ATLAS_SIZE;
         const atlasCtx = atlasCanvas.getContext('2d');
         let atlasCanvasReady = false;
+        
         const atlasImg = new Image();
         atlasImg.crossOrigin = 'anonymous';
         atlasImg.src = 'Data/3D/WeaponsAtlas.png';
+        atlasImg.onload = () => {
+            atlasCtx.drawImage(atlasImg, 0, 0);
+            atlasCanvasReady = true;
+            renderCatalog(); // перерисовываем, когда атлас загрузился
+        };
 
         const uniforms = {
             uTiling: { value: new THREE.Vector2(0.0625, 0.0625) },
@@ -328,11 +329,11 @@
         let currentId = null;
         let searchQuery = '';
 
-        const previewCache = {};
+        // Кэш готовых canvas'ов для карточек
+        const previewCanvasCache = {};
         const group = new THREE.Group();
-        let modelLoaded = false;
 
-        // ===== Загрузка =====
+        // ===== Запуск =====
         async function boot() {
             try {
                 WEAPONS = await (await fetch('Data/3D/weapons.json')).json();
@@ -340,17 +341,6 @@
                 loadingEl.textContent = 'Ошибка weapons.json';
                 return;
             }
-
-            atlasImg.onload = () => {
-                atlasCtx.drawImage(atlasImg, 0, 0);
-                atlasCanvasReady = true;
-                if (Object.keys(ATLAS).length) {
-                    Object.keys(ATLAS).forEach(id => {
-                        previewCache[id] = spritePreview(ATLAS[id]);
-                    });
-                }
-                renderCatalog();
-            };
 
             buildWeaponDropdown();
             buildQualityDropdown();
@@ -360,7 +350,6 @@
                 renderCatalog();
             });
 
-            // Обработчик кликов для дропдаунов
             document.addEventListener('click', function(e) {
                 const toggle = e.target.closest('.dropdown-toggle');
                 if (toggle) {
@@ -422,13 +411,11 @@
         }
 
         async function selectWeapon(w) {
-            if (currentWeapon === w && CONFIG) return;
             currentWeapon = w;
             CONFIG = WEAPONS[w];
 
             try {
                 const raw = await (await fetch(CONFIG.atlas)).json();
-
                 DEFAULTS = { w: 128, h: 128 };
                 ICONS = { topCut: 0, bottomCut: 0, leftCut: 0, rightCut: 0 };
 
@@ -438,10 +425,10 @@
                 }
                 if (raw._icons) {
                     ICONS = {
-                        topCut:    raw._icons.topCut    || 0,
+                        topCut: raw._icons.topCut || 0,
                         bottomCut: raw._icons.bottomCut || 0,
-                        leftCut:   raw._icons.leftCut   || 0,
-                        rightCut:  raw._icons.rightCut  || 0,
+                        leftCut: raw._icons.leftCut || 0,
+                        rightCut: raw._icons.rightCut || 0,
                     };
                     delete raw._icons;
                 }
@@ -455,10 +442,13 @@
                 ATLAS = {};
             }
 
-            Object.keys(previewCache).forEach(k => delete previewCache[k]);
+            // Чистим старый кэш
+            Object.keys(previewCanvasCache).forEach(k => delete previewCanvasCache[k]);
+            
+            // Генерируем новые Canvas'ы, если атлас готов
             if (atlasCanvasReady) {
                 Object.keys(ATLAS).forEach(id => {
-                    previewCache[id] = spritePreview(ATLAS[id]);
+                    previewCanvasCache[id] = generatePreviewCanvas(ATLAS[id]);
                 });
             }
 
@@ -467,7 +457,6 @@
 
         function loadModel() {
             while (group.children.length) group.remove(group.children[0]);
-            modelLoaded = false;
             currentId = null;
 
             const loader = new OBJLoader();
@@ -507,11 +496,36 @@
             resize();
             loadingEl.style.display = 'none';
 
-            modelLoaded = true;
             renderCatalog();
-
             const ids = Object.keys(ATLAS);
             if (ids.length > 0) applySkinById(ids[0]);
+        }
+
+        // Генерация DOM-элемента Canvas для превью (без base64!)
+        function generatePreviewCanvas(s, boxSize = 128) {
+            if (!atlasCanvasReady) return null;
+
+            const c = document.createElement('canvas');
+            c.width = boxSize;
+            c.height = boxSize;
+            const ctx = c.getContext('2d');
+            ctx.imageSmoothingEnabled = false;
+
+            const sx = s.x + ICONS.leftCut;
+            const sy = s.y + ICONS.topCut;
+            const sw = s.w - ICONS.leftCut - ICONS.rightCut;
+            const sh = s.h - ICONS.topCut - ICONS.bottomCut;
+
+            if (sw <= 0 || sh <= 0) return c;
+
+            const scale = Math.min(boxSize / sw, boxSize / sh);
+            const dw = sw * scale;
+            const dh = sh * scale;
+            const dx = (boxSize - dw) / 2;
+            const dy = (boxSize - dh) / 2;
+
+            ctx.drawImage(atlasCanvas, sx, sy, sw, sh, dx, dy, dw, dh);
+            return c;
         }
 
         function buildCard(id) {
@@ -521,15 +535,31 @@
             el.className = 'skin-card quality-' + quality;
             el.dataset.id = id;
             if (id === currentId) el.classList.add('active');
-            el.innerHTML = `
-                <div class="top-part">
-                    <img src="${previewCache[id] || ''}" alt="">
-                </div>
-                <div class="bottom-part">
-                    <div class="name">${s.name || id}</div>
-                    <div class="weapon">${currentWeapon}</div>
-                </div>
+
+            const topPart = document.createElement('div');
+            topPart.className = 'top-part';
+
+            // Вставляем Canvas вместо картинки
+            const cachedCanvas = previewCanvasCache[id];
+            if (cachedCanvas) {
+                // Клонируем, чтобы вставить в DOM (canvas нельзя вставить в 2 места)
+                const clone = document.createElement('canvas');
+                clone.width = cachedCanvas.width;
+                clone.height = cachedCanvas.height;
+                clone.getContext('2d').drawImage(cachedCanvas, 0, 0);
+                topPart.appendChild(clone);
+            }
+
+            const bottomPart = document.createElement('div');
+            bottomPart.className = 'bottom-part';
+            bottomPart.innerHTML = `
+                <div class="name">${s.name || id}</div>
+                <div class="weapon">${currentWeapon}</div>
             `;
+
+            el.appendChild(topPart);
+            el.appendChild(bottomPart);
+
             el.addEventListener('click', () => {
                 showScreen('viewer');
                 applySkinById(id);
@@ -549,7 +579,12 @@
             if (ids.length === 0) {
                 catalogGrid.innerHTML = '<div style="color:#888;padding:20px;text-align:center;grid-column:1/-1;">Ничего не найдено</div>';
             } else {
-                ids.forEach(id => catalogGrid.appendChild(buildCard(id)));
+                ids.forEach(id => {
+                    if (!previewCanvasCache[id] && atlasCanvasReady) {
+                        previewCanvasCache[id] = generatePreviewCanvas(ATLAS[id]);
+                    }
+                    catalogGrid.appendChild(buildCard(id));
+                });
             }
         }
 
@@ -580,31 +615,6 @@
                 `ID: ${currentId}\n` +
                 `name: ${s.name || '—'}\n` +
                 `x: ${s.x} y: ${s.y}  ${s.w}×${s.h}`;
-        }
-
-        function spritePreview(s, boxSize = 128) {
-            if (!atlasCanvasReady) return '';
-            const c = document.createElement('canvas');
-            c.width = boxSize;
-            c.height = boxSize;
-            const ctx = c.getContext('2d');
-            ctx.imageSmoothingEnabled = false;
-
-            const sx = s.x + ICONS.leftCut;
-            const sy = s.y + ICONS.topCut;
-            const sw = s.w - ICONS.leftCut - ICONS.rightCut;
-            const sh = s.h - ICONS.topCut    - ICONS.bottomCut;
-
-            if (sw <= 0 || sh <= 0) return '';
-
-            const scale = Math.min(boxSize / sw, boxSize / sh);
-            const dw = sw * scale;
-            const dh = sh * scale;
-            const dx = (boxSize - dw) / 2;
-            const dy = (boxSize - dh) / 2;
-
-            ctx.drawImage(atlasCanvas, sx, sy, sw, sh, dx, dy, dw, dh);
-            return c.toDataURL();
         }
 
         function showScreen(name) {
