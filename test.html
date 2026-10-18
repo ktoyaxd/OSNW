@@ -6,71 +6,141 @@
 <title>3D-осмотр — OSNW</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body {
-        background: #202126; color: #fff;
+    body {
+        background: #202126;
+        color: #fff;
         font-family: 'Segoe UI', Arial, sans-serif;
-        height: 100vh; overflow: hidden;
+        height: 100vh;
+        position: relative;
+        overflow: hidden;
+    }
+    body::before {
+        content: '';
+        position: fixed;
+        top: -100%; left: -100%;
+        width: 300%; height: 300%;
+        background-image: url('Icons/OS_logo.png');
+        background-repeat: repeat;
+        background-size: 80px 80px;
+        opacity: 0.06;
+        pointer-events: none;
+        z-index: 0;
+        animation: scrollDiagonal 30s linear infinite;
+    }
+    @keyframes scrollDiagonal {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(300px, -150px); }
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ===== Экраны (мобилка) ===== */
-    .screen { display: none; height: 100vh; position: relative; }
-    .screen.active { display: flex; flex-direction: column; }
+    /* ===== Кнопки сайта ===== */
+    .fullscreen-btn, .infosite-btn, .profile-btn {
+        position: fixed; right: 16px;
+        width: 40px; height: 40px;
+        background: #3A3F45; border: 1px solid #363940;
+        color: #fff; cursor: pointer; z-index: 999;
+        transition: all 0.3s ease;
+        display: flex; align-items: center; justify-content: center;
+        line-height: 1;
+    }
+    .fullscreen-btn { top: 16px; font-size: 20px; }
+    .infosite-btn  { top: 64px; font-size: 20px; }
+    .profile-btn   { top: 112px; font-size: 18px; font-weight: 700; }
+    .fullscreen-btn:hover, .infosite-btn:hover, .profile-btn:hover {
+        background: #363940; border-color: #fff;
+    }
 
-    /* ===== ЭКРАН КАТАЛОГА ===== */
-    #screen-catalog { padding: 12px; overflow-y: auto; }
-    #catalogTop {
-        display: flex; gap: 6px; flex-wrap: wrap;
-        margin-bottom: 10px; align-items: center;
+    .back-btn {
+        color: #fff; text-decoration: none;
+        font-size: 16px; padding: 8px 16px;
+        border: 1px solid #363940; background: #3A3F45;
+        transition: background 0.3s; cursor: pointer;
+        white-space: nowrap; font-family: inherit;
     }
-    #weaponSwitch {
-        display: flex; gap: 6px;
-        overflow-x: auto; -webkit-overflow-scrolling: touch;
-        flex: 1 1 100%; padding-bottom: 2px;
+    .back-btn:hover { background: #363940; border-color: #fff; }
+
+    .search-box {
+        flex: 1; min-width: 100px;
+        padding: 10px 16px;
+        border: 1px solid #363940; background: #3A3F45;
+        color: #fff; font-size: 16px; outline: none;
+        transition: border 0.3s;
     }
-    #weaponSwitch button {
-        background: #3A3F45; color: #fff;
+    .search-box:focus { border-color: #fff; }
+    .search-box::placeholder { color: #fff; opacity: 0.6; }
+
+    .menu-btn {
+        display: block;
+        background: #3A3F45;
         border: 1px solid #363940;
-        padding: 6px 12px; font-size: 12px;
-        cursor: pointer; font-family: inherit;
-        white-space: nowrap; flex-shrink: 0;
-        transition: 0.3s;
-    }
-    #weaponSwitch button.active {
-        background: #FFD700; color: #202126; border-color: #FFD700;
-    }
-    #sortBar { display: flex; gap: 6px; flex-wrap: wrap; }
-    #sortBar button {
-        background: #3A3F45; color: #fff;
-        border: 1px solid #363940;
-        padding: 6px 10px; font-size: 11px;
-        cursor: pointer; transition: 0.3s;
+        color: #fff; font-size: 14px; font-weight: 600;
+        padding: 10px 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        text-transform: uppercase;
+        letter-spacing: 1px;
         font-family: inherit;
     }
-    #sortBar button:hover { background: #363940; border-color: #fff; }
-    #sortBar button.active {
+    .menu-btn:hover {
+        background: #363940; border-color: #fff;
+        transform: translateY(-2px);
+    }
+    .menu-btn.active {
         background: #FFD700; color: #202126; border-color: #FFD700;
     }
-    #searchBox {
-        flex: 1 1 100%; padding: 10px 14px;
-        border: 1px solid #363940; background: #3A3F45;
-        color: #fff; font-size: 14px; outline: none;
-    }
-    #searchBox::placeholder { color: #fff; opacity: 0.6; }
-    #searchBox:focus { border-color: #fff; }
 
-    #catalogGrid {
+    /* ===== Экраны ===== */
+    .screen { display: none; height: 100vh; position: relative; z-index: 1; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* ===== КАТАЛОГ ===== */
+    #screen-catalog { padding: 12px; overflow-y: auto; }
+    #catalogTop {
+        display: flex; gap: 8px; flex-wrap: wrap;
+        margin-bottom: 10px; align-items: flex-start;
+    }
+    #weaponSwitch {
+        display: flex; gap: 6px; flex-wrap: wrap;
+        flex: 1 1 100%;
+    }
+    #sortBar { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ===== Обзор ===== */
+    #screen-viewer { background: #202126; }
+    #viewerTop {
+        padding: 10px 12px; display: flex; gap: 10px; align-items: center;
+        background: #202126; border-bottom: 1px solid #363940; z-index: 10;
+    }
+    #viewerInfo { font-size: 13px; color: #8a95a5; }
+    #viewerInfo b { color: #FFD700; }
+    #canvas-container { flex: 1; position: relative; min-height: 0; }
+    #canvas-container canvas { display: block; }
+
+    /* ===== Каталог карточек (как в index.html) ===== */
+    .catalog-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
     }
     .skin-card {
-        position: relative; border-radius: 8px;
-        overflow: hidden; aspect-ratio: 1.4 / 1;
-        display: flex; flex-direction: column;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        cursor: pointer; transition: transform 0.15s;
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        aspect-ratio: 1.4 / 1;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        animation: fadeIn 0.4s ease forwards;
+        opacity: 0;
+        transition: transform 0.15s;
     }
     .skin-card:hover { transform: translateY(-2px); }
+    .skin-card.active { outline: 2px solid #FFD700; outline-offset: -2px; }
     .skin-card .top-part {
         flex: 1; display: flex; align-items: center; justify-content: center;
         padding: 10px; position: relative; min-height: 0;
@@ -81,68 +151,33 @@
         filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
     .skin-card .bottom-part {
-        background: #2D3037; padding: 8px 12px; min-height: 46px;
+        background: #2D3037;
+        padding: 8px 12px; min-height: 46px;
         display: flex; flex-direction: column; justify-content: center;
     }
     .skin-card .name {
-        font-size: 13px; font-weight: 700; color: #fff;
-        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        line-height: 1.2; text-align: left;
+        font-size: 14px; font-weight: 700; color: #fff;
+        text-align: left; overflow: hidden;
+        text-overflow: ellipsis; white-space: nowrap;
+        line-height: 1.2;
     }
     .skin-card .weapon {
         font-size: 10px; color: #8a95a5; text-align: left;
-        margin-top: 2px; overflow: hidden; text-overflow: ellipsis;
-        white-space: nowrap;
+        margin-top: 2px; overflow: hidden;
+        text-overflow: ellipsis; white-space: nowrap;
     }
-    .skin-card.quality-common .top-part { background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 30%, #7A7A7A 60%, #3A3F45 100%); }
-    .skin-card.quality-common { border: 2px solid #C0C0C0; }
-    .skin-card.quality-base .top-part { background: linear-gradient(180deg, #6489DA 0%, #5B78BA 30%, #4B5D83 60%, #454C5F 100%); }
-    .skin-card.quality-base { border: 2px solid #5AB0FF; }
-    .skin-card.quality-pro .top-part { background: linear-gradient(180deg, #AA373A 0%, #8C3B44 30%, #6F3D46 60%, #52414B 100%); }
-    .skin-card.quality-pro { border: 2px solid #FF4444; }
-    .skin-card.quality-legend .top-part { background: linear-gradient(180deg, #C9367C 0%, #A13870 30%, #6F3C5D 60%, #514052 100%); }
-    .skin-card.quality-legend { border: 2px solid #A43E70; }
-    .skin-card.quality-myth .top-part { background: linear-gradient(180deg, #F4D74B 0%, #BFAD47 30%, #877D4C 60%, #585951 100%); }
-    .skin-card.quality-myth { border: 2px solid #D2BE4B; }
 
-    /* ===== ЭКРАН ОБЗОРА ===== */
-    #screen-viewer {
-        background: #202126;
-    }
-    #viewerTop {
-        padding: 10px 12px; display: flex; gap: 10px; align-items: center;
-        background: #202126; border-bottom: 1px solid #363940; z-index: 10;
-    }
-    #backBtn {
-        background: #3A3F45; color: #fff;
-        border: 1px solid #363940;
-        padding: 8px 16px; cursor: pointer;
-        font-size: 14px; font-family: inherit;
-        transition: 0.3s;
-    }
-    #backBtn:hover { background: #363940; border-color: #fff; }
-    #viewerInfo { font-size: 13px; color: #8a95a5; }
-    #viewerInfo b { color: #FFD700; }
-    #canvas-container { flex: 1; position: relative; }
-    #canvas-container canvas { display: block; }
-
-    /* ===== ПК-версия ===== */
-    @media (min-width: 900px) {
-        #screen-catalog { display: none !important; }
-        #screen-viewer { display: flex !important; flex-direction: row; }
-        #viewerTop { display: none; }
-        #rightCol {
-            flex: 0 0 420px; display: flex !important;
-            flex-direction: column; gap: 8px;
-            padding: 12px; background: #202126;
-            border-left: 1px solid #363940;
-            overflow-y: auto;
-        }
-        #canvas-container { flex: 1; }
-    }
-    @media (max-width: 899px) {
-        #rightCol { display: none !important; }
-    }
+    /* ===== Качества ===== */
+    .quality-common .top-part { background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 30%, #7A7A7A 60%, #3A3F45 100%); }
+    .quality-common { border: 2px solid #C0C0C0; }
+    .quality-base .top-part { background: linear-gradient(180deg, #6489DA 0%, #5B78BA 30%, #4B5D83 60%, #454C5F 100%); }
+    .quality-base { border: 2px solid #5AB0FF; }
+    .quality-pro .top-part { background: linear-gradient(180deg, #AA373A 0%, #8C3B44 30%, #6F3D46 60%, #52414B 100%); }
+    .quality-pro { border: 2px solid #FF4444; }
+    .quality-legend .top-part { background: linear-gradient(180deg, #C9367C 0%, #A13870 30%, #6F3C5D 60%, #514052 100%); }
+    .quality-legend { border: 2px solid #A43E70; }
+    .quality-myth .top-part { background: linear-gradient(180deg, #F4D74B 0%, #BFAD47 30%, #877D4C 60%, #585951 100%); }
+    .quality-myth { border: 2px solid #D2BE4B; }
 
     /* ===== Debug ===== */
     #debug {
@@ -151,7 +186,7 @@
         background: rgba(0,0,0,0.6); padding: 6px 8px;
         border-radius: 4px; pointer-events: none;
         max-width: 240px; line-height: 1.3;
-        white-space: pre-line;
+        white-space: pre-line; z-index: 5;
     }
     #loading {
         position: fixed; top: 50%; left: 50%;
@@ -159,24 +194,60 @@
         color: #FFD700; font-size: 14px;
         z-index: 200; text-align: center;
     }
+
+    /* ===== ПК ===== */
+    @media (min-width: 1024px) {
+        #screen-catalog { display: none !important; }
+        #screen-viewer {
+            display: flex !important;
+            flex-direction: row;
+            align-items: stretch;
+            height: 100vh;
+        }
+        #viewerTop { display: none; }
+        #rightCol {
+            flex: 0 0 340px; min-width: 340px;
+            display: flex !important;
+            flex-direction: column; gap: 8px;
+            padding: 12px; background: #202126;
+            border-left: 1px solid #363940;
+            overflow-y: auto;
+        }
+        #rightCol .skin-card {
+            flex: 0 0 auto;
+            width: 100% !important;
+            height: 100px !important;
+            aspect-ratio: auto !important;
+        }
+        #rightCol .skin-card .name { font-size: 12px; }
+        #canvas-container { flex: 1; min-height: 0; height: 100%; }
+    }
+    @media (max-width: 1023px) {
+        #rightCol { display: none !important; }
+    }
 </style>
 </head>
 <body>
 
-    <!-- ===== ЭКРАН КАТАЛОГА (мобилка) ===== -->
+    <!-- Кнопки сайта -->
+    <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
+    <button class="infosite-btn" id="InfoSite">i</button>
+    <button class="profile-btn" id="profileBtn">П</button>
+
+    <!-- ===== ЭКРАН КАТАЛОГА ===== -->
     <div id="screen-catalog" class="screen active">
         <div id="catalogTop">
             <div id="weaponSwitch"></div>
             <div id="sortBar"></div>
-            <input id="searchBox" placeholder="Поиск...">
+            <input id="searchBox" class="search-box" placeholder="Поиск...">
         </div>
-        <div id="catalogGrid"></div>
+        <div id="catalogGrid" class="catalog-grid"></div>
     </div>
 
     <!-- ===== ЭКРАН ОБЗОРА ===== -->
     <div id="screen-viewer" class="screen">
         <div id="viewerTop">
-            <button id="backBtn">← Назад</button>
+            <button id="backBtn" class="back-btn">← Назад</button>
             <div id="viewerInfo">—</div>
         </div>
         <div id="canvas-container">
@@ -207,6 +278,20 @@
         const searchEl = document.getElementById('searchBox');
         const rightCol = document.getElementById('rightCol');
         const viewerInfo = document.getElementById('viewerInfo');
+
+        // Кнопки
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+            else if (document.exitFullscreen) document.exitFullscreen();
+        });
+        document.getElementById('InfoSite').addEventListener('click', () => {
+            alert('Информация о сайте — раздел в разработке.');
+        });
+        document.getElementById('profileBtn').addEventListener('click', () => {
+            const u = localStorage.getItem('osnw_user');
+            if (u) alert('Профиль: ' + JSON.parse(u).nickname);
+            else alert('Вы не авторизованы. Перейдите на главную страницу для входа.');
+        });
 
         const ATLAS_SIZE = 2048;
 
@@ -287,7 +372,7 @@
         let sortMode = 'name';
         let searchQuery = '';
 
-        const previewCache = {}; // id -> dataURL
+        const previewCache = {};
         const group = new THREE.Group();
         let modelLoaded = false;
 
@@ -300,21 +385,24 @@
                 return;
             }
 
-            // атлас на canvas
             atlasImg.onload = () => {
                 atlasCtx.drawImage(atlasImg, 0, 0);
                 atlasCanvasReady = true;
-                if (currentWeapon) rebuildAll();
+                if (currentWeapon && ATLAS && Object.keys(ATLAS).length) {
+                    Object.keys(ATLAS).forEach(id => {
+                        previewCache[id] = spritePreview(ATLAS[id]);
+                    });
+                }
+                renderCatalog();
             };
 
             buildWeaponSwitch();
             buildSortBar();
             searchEl.addEventListener('input', () => {
                 searchQuery = searchEl.value.toLowerCase().trim();
-                rebuildAll();
+                renderCatalog();
             });
 
-            // выбор первого оружия
             const firstWeapon = Object.keys(WEAPONS)[0];
             await selectWeapon(firstWeapon);
         }
@@ -324,7 +412,11 @@
             Object.keys(WEAPONS).forEach(w => {
                 const b = document.createElement('button');
                 b.textContent = w;
-                if (w === currentWeapon) b.className = 'active';
+                b.className = 'menu-btn' + (w === currentWeapon ? ' active' : '');
+                b.style.fontSize = '12px';
+                b.style.padding = '8px 12px';
+                b.style.textTransform = 'none';
+                b.style.letterSpacing = '0';
                 b.addEventListener('click', () => selectWeapon(w));
                 weaponSwitchEl.appendChild(b);
             });
@@ -340,11 +432,15 @@
             opts.forEach(o => {
                 const b = document.createElement('button');
                 b.textContent = o.label;
-                if (o.id === sortMode) b.className = 'active';
+                b.className = 'menu-btn' + (o.id === sortMode ? ' active' : '');
+                b.style.fontSize = '12px';
+                b.style.padding = '8px 12px';
+                b.style.textTransform = 'none';
+                b.style.letterSpacing = '0';
                 b.addEventListener('click', () => {
                     sortMode = o.id;
                     buildSortBar();
-                    rebuildAll();
+                    renderCatalog();
                 });
                 sortBarEl.appendChild(b);
             });
@@ -359,7 +455,6 @@
             CONFIG = WEAPONS[w];
             buildWeaponSwitch();
 
-            // загрузка атласа
             try {
                 const raw = await (await fetch(CONFIG.atlas)).json();
 
@@ -389,7 +484,6 @@
                 ATLAS = {};
             }
 
-            // кэш превью — считаем ОДИН раз
             Object.keys(previewCache).forEach(k => delete previewCache[k]);
             if (atlasCanvasReady) {
                 Object.keys(ATLAS).forEach(id => {
@@ -397,12 +491,10 @@
                 });
             }
 
-            // модель
             loadModel();
         }
 
         function loadModel() {
-            // очистить
             while (group.children.length) group.remove(group.children[0]);
             modelLoaded = false;
             currentId = null;
@@ -445,15 +537,10 @@
             loadingEl.style.display = 'none';
 
             modelLoaded = true;
-            rebuildAll();
-        }
 
-        function rebuildAll() {
             renderCatalog();
-            if (modelLoaded) {
-                const ids = sortedIds();
-                if (ids.length > 0) applySkinById(ids[0]);
-            }
+            const ids = sortedIds();
+            if (ids.length > 0) applySkinById(ids[0]);
         }
 
         function sortedIds() {
@@ -474,6 +561,29 @@
             return ids;
         }
 
+        function buildCard(id) {
+            const s = ATLAS[id];
+            const quality = (s.quality || 'common').toLowerCase();
+            const el = document.createElement('div');
+            el.className = 'skin-card quality-' + quality;
+            el.dataset.id = id;
+            if (id === currentId) el.classList.add('active');
+            el.innerHTML = `
+                <div class="top-part">
+                    <img src="${previewCache[id] || ''}" alt="">
+                </div>
+                <div class="bottom-part">
+                    <div class="name">${s.name || id}</div>
+                    <div class="weapon">${currentWeapon}</div>
+                </div>
+            `;
+            el.addEventListener('click', () => {
+                if (window.innerWidth < 1024) showScreen('viewer');
+                applySkinById(id);
+            });
+            return el;
+        }
+
         function renderCatalog() {
             const ids = sortedIds().filter(id => {
                 if (!searchQuery) return true;
@@ -481,44 +591,17 @@
                 return (s.name || id).toLowerCase().includes(searchQuery);
             });
 
+            catalogGrid.innerHTML = '';
             if (ids.length === 0) {
-                catalogGrid.innerHTML = '<div style="color:#888;padding:20px;text-align:center;">Ничего не найдено</div>';
-                if (rightCol) rightCol.innerHTML = '';
-                return;
+                catalogGrid.innerHTML = '<div style="color:#888;padding:20px;text-align:center;grid-column:1/-1;">Ничего не найдено</div>';
+            } else {
+                ids.forEach(id => catalogGrid.appendChild(buildCard(id)));
             }
 
-            const buildCard = (id) => {
-                const s = ATLAS[id];
-                const quality = (s.quality || 'common').toLowerCase();
-                const el = document.createElement('div');
-                el.className = 'skin-card quality-' + quality;
-                if (id === currentId) el.classList.add('active');
-                el.innerHTML = `
-                    <div class="top-part">
-                        <img src="${previewCache[id] || ''}">
-                    </div>
-                    <div class="bottom-part">
-                        <div class="name">${s.name || id}</div>
-                        <div class="weapon">${currentWeapon}</div>
-                    </div>
-                `;
-                el.addEventListener('click', () => {
-                    if (window.innerWidth < 900) {
-                        // мобилка — открыть обзор
-                        showScreen('viewer');
-                    }
-                    applySkinById(id);
-                });
-                return el;
-            };
-
-            // мобилка
-            catalogGrid.innerHTML = '';
-            ids.forEach(id => catalogGrid.appendChild(buildCard(id)));
-
-            // ПК — правый столбец
-            if (rightCol) {
-                rightCol.innerHTML = '';
+            rightCol.innerHTML = '';
+            if (ids.length === 0) {
+                rightCol.innerHTML = '<div style="color:#888;padding:20px;text-align:center;">Ничего не найдено</div>';
+            } else {
                 ids.forEach(id => rightCol.appendChild(buildCard(id)));
             }
         }
@@ -538,13 +621,8 @@
             updateDebug();
             viewerInfo.innerHTML = `<b>${currentWeapon}</b> — ${s.name || id}`;
 
-            // подсветить активную
-            document.querySelectorAll('.skin-card').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.skin-card').forEach(el => {
-                const nameEl = el.querySelector('.name');
-                if (nameEl && nameEl.textContent === (s.name || id)) {
-                    el.classList.add('active');
-                }
+                el.classList.toggle('active', el.dataset.id === id);
             });
         }
 
@@ -578,11 +656,10 @@
             const dx = (boxSize - dw) / 2;
             const dy = (boxSize - dh) / 2;
 
-            ctx.drawImage(atlasCanvas, sx, sy, sw, sh, dx, dy, dw, dh);
+            ctx.drawImage(atlasCanvas, sx, sy, sw, sh, dx, dy, dh, dw);
             return c.toDataURL();
         }
 
-        // ===== Переключение экранов =====
         function showScreen(name) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById('screen-' + name).classList.add('active');
