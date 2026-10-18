@@ -5,11 +5,73 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>3D-осмотр — OSNW</title>
 <style>
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { margin: 0; background: #202126; overflow: hidden;
-        font-family: 'Segoe UI', Arial, sans-serif; color: #fff; height: 100vh; }
-    #canvas-container { position: fixed; inset: 0 0 100px 0; }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+        background: #202126; color: #fff;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        min-height: 100vh; height: 100vh;
+        display: flex; overflow: hidden;
+        position: relative;
+    }
+    body::before {
+        content: '';
+        position: fixed; top: -100%; left: -100%;
+        width: 300%; height: 300%;
+        background-image: url('Icons/OS_logo.png');
+        background-repeat: repeat; background-size: 80px 80px;
+        opacity: 0.06; pointer-events: none; z-index: 0;
+        animation: scrollDiagonal 30s linear infinite;
+    }
+    @keyframes scrollDiagonal {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(300px, -150px); }
+    }
 
+    /* ===== 3D-сцена ===== */
+    #canvas-container {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 120px;
+        z-index: 1;
+    }
+
+    /* ===== Переключатель оружия ===== */
+    #weaponSwitch {
+        position: fixed; top: 12px; right: 12px; left: 12px;
+        z-index: 40; display: flex; gap: 6px;
+        overflow-x: auto; -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+    }
+    #weaponSwitch a {
+        background: #3A3F45; color: #fff;
+        border: 1px solid #363940;
+        padding: 6px 12px; font-size: 12px;
+        text-decoration: none; font-family: inherit;
+        white-space: nowrap; flex-shrink: 0;
+        transition: 0.3s;
+    }
+    #weaponSwitch a.active {
+        background: #FFD700; color: #202126; border-color: #FFD700;
+    }
+
+    /* ===== Debug ===== */
+    #debug {
+        position: fixed; top: 56px; left: 12px;
+        color: #6a8aff; font-size: 10px; font-family: monospace;
+        background: rgba(0,0,0,0.6); padding: 6px 8px;
+        border-radius: 4px; pointer-events: none;
+        max-width: 240px; line-height: 1.3;
+        white-space: pre-line; z-index: 40;
+    }
+
+    /* ===== Загрузка ===== */
+    #loading {
+        position: fixed; top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        color: #FFD700; font-size: 14px; z-index: 200;
+        text-align: center; line-height: 1.6;
+    }
+
+    /* ===== Карточки — мобильная версия (внизу) ===== */
     #cards {
         position: fixed; bottom: 0; left: 0; right: 0;
         display: flex; gap: 8px; overflow-x: auto;
@@ -26,8 +88,7 @@
     }
     .card.active { transform: translateY(-4px); box-shadow: 0 6px 16px rgba(255,215,0,0.5); }
     .card .top-part {
-        flex: 1;
-        display: flex; align-items: center; justify-content: center;
+        flex: 1; display: flex; align-items: center; justify-content: center;
         padding: 6px; min-height: 0;
     }
     .card .top-part img {
@@ -45,6 +106,26 @@
         line-height: 1.1;
     }
 
+    /* ===== Сортировка ===== */
+    #sortBar {
+        position: fixed; top: 56px; right: 12px;
+        z-index: 40; display: flex; gap: 6px;
+        flex-wrap: wrap; justify-content: flex-end;
+        max-width: 260px;
+    }
+    #sortBar button {
+        background: #3A3F45; color: #fff;
+        border: 1px solid #363940;
+        padding: 6px 10px; font-size: 11px;
+        cursor: pointer; transition: 0.3s;
+        font-family: inherit;
+    }
+    #sortBar button:hover { background: #363940; border-color: #fff; }
+    #sortBar button.active {
+        background: #FFD700; color: #202126; border-color: #FFD700;
+    }
+
+    /* ===== Качества ===== */
     .card.quality-common .top-part { background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 30%, #7A7A7A 60%, #3A3F45 100%); }
     .card.quality-common { border: 2px solid #C0C0C0; }
     .card.quality-base .top-part { background: linear-gradient(180deg, #6489DA 0%, #5B78BA 30%, #4B5D83 60%, #454C5F 100%); }
@@ -56,41 +137,73 @@
     .card.quality-myth .top-part { background: linear-gradient(180deg, #F4D74B 0%, #BFAD47 30%, #877D4C 60%, #585951 100%); }
     .card.quality-myth { border: 2px solid #D2BE4B; }
 
-    #weaponSwitch {
-        position: fixed; top: 12px; right: 12px; left: 12px;
-        z-index: 40; display: flex; gap: 6px;
-        overflow-x: auto; -webkit-overflow-scrolling: touch;
-        padding-bottom: 4px;
-    }
-    #weaponSwitch a {
-        background: #2D3037; color: #fff; border: 2px solid #444;
-        padding: 6px 10px; font-size: 11px; text-decoration: none;
-        font-family: inherit; white-space: nowrap; flex-shrink: 0;
-    }
-    #weaponSwitch a.active {
-        background: #FFD700; color: #202126; border-color: #FFD700;
-    }
-
-    #debug {
-        position: fixed; top: 56px; left: 12px;
-        color: #6a8aff; font-size: 10px; font-family: monospace;
-        background: rgba(0,0,0,0.6); padding: 6px 8px; border-radius: 4px;
-        pointer-events: none; max-width: 240px; line-height: 1.3;
-        white-space: pre-line;
-    }
-    #loading {
-        position: fixed; top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        color: #FFD700; font-size: 14px; z-index: 200;
-        text-align: center; line-height: 1.6;
+    /* ===== ПК-версия: модель слева, карточки справа ===== */
+    @media (min-width: 900px) {
+        body { padding: 20px; gap: 16px; }
+        #canvas-container {
+            position: relative;
+            flex: 1 1 auto;
+            height: auto;
+            border: 1px solid #363940;
+            background: #202126;
+            z-index: 1;
+            min-width: 0;
+        }
+        #cards {
+            position: relative;
+            flex: 0 0 360px;
+            bottom: auto; left: auto; right: auto;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 0;
+            background: transparent;
+            align-content: start;
+            z-index: 1;
+        }
+        .card {
+            width: 100%;
+            height: 100px;
+        }
+        .card .name { font-size: 12px; }
+        #weaponSwitch {
+            position: relative;
+            top: auto; right: auto; left: auto;
+            margin-bottom: 8px;
+        }
+        #sortBar {
+            position: relative;
+            top: auto; right: auto;
+            margin-bottom: 8px;
+            justify-content: flex-start;
+            max-width: 100%;
+        }
+        #debug {
+            position: relative;
+            top: auto; left: auto;
+            margin-top: 8px;
+            max-width: 100%;
+        }
+        /* Обёртка для правой колонки */
+        #rightCol {
+            flex: 0 0 380px;
+            display: flex; flex-direction: column;
+            gap: 8px; z-index: 2;
+        }
     }
 </style>
 </head>
 <body>
     <div id="canvas-container"></div>
+
+    <div id="rightCol" style="display:none;"></div>
+
     <div id="debug"></div>
     <div id="loading">Загрузка...</div>
     <div id="weaponSwitch"></div>
+    <div id="sortBar"></div>
     <div id="cards"></div>
 
     <script type="importmap">
@@ -109,6 +222,7 @@
         const cardsEl = document.getElementById('cards');
         const loadingEl = document.getElementById('loading');
         const weaponSwitchEl = document.getElementById('weaponSwitch');
+        const sortBarEl = document.getElementById('sortBar');
 
         const ATLAS_SIZE = 2048;
         const params = new URLSearchParams(location.search);
@@ -116,13 +230,16 @@
 
         // ===== Сцена =====
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x202126);
+        scene.background = null;
 
         const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
         camera.position.set(0, 0, 4);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+        const renderer = new THREE.WebGLRenderer({
+            antialias: true, powerPreference: 'high-performance', alpha: true
+        });
         renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+        renderer.setClearColor(0x000000, 0);
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         const controls = new OrbitControls(camera, renderer.domElement);
@@ -188,6 +305,7 @@
         let DEFAULTS = { w: 128, h: 128 };
         let ICONS = { topCut: 0, bottomCut: 0, leftCut: 0, rightCut: 0 };
         let currentId = null;
+        let sortMode = 'name';
         const group = new THREE.Group();
 
         // ===== Загрузка =====
@@ -207,6 +325,7 @@
                 return;
             }
             buildWeaponSwitcher(weapons, WEAPON);
+            buildSortBar();
 
             try {
                 if (CONFIG.atlas) {
@@ -279,7 +398,7 @@
 
             loadingEl.style.display = 'none';
 
-            const ids = Object.keys(ATLAS);
+            const ids = sortedIds(ATLAS);
             if (ids.length > 0) applySkinById(ids[0]);
 
             buildCards();
@@ -317,10 +436,10 @@
                 `ID: ${currentId}\n` +
                 `name: ${s.name || '—'}\n` +
                 `model: ${s.w}×${s.h}  x=${s.x} y=${s.y}\n` +
-                `icon cuts: L${ICONS.leftCut} T${ICONS.topCut} R${ICONS.rightCut} B${ICONS.bottomCut}`;
+                `icon: L${ICONS.leftCut} T${ICONS.topCut} R${ICONS.rightCut} B${ICONS.bottomCut}`;
         }
 
-        // ===== Превью из атласа =====
+        // ===== Превью =====
         function spritePreview(s, boxSize = 96) {
             if (!atlasCanvasReady) return '';
             const c = document.createElement('canvas');
@@ -346,9 +465,48 @@
             return c.toDataURL();
         }
 
+        // ===== Сортировка =====
+        function sortedIds(atlas) {
+            const ids = Object.keys(atlas);
+            if (sortMode === 'name') {
+                ids.sort((a, b) => (atlas[a].name || a).localeCompare(atlas[b].name || b));
+            } else if (sortMode === 'quality') {
+                const order = { common: 0, base: 1, pro: 2, legend: 3, myth: 4 };
+                ids.sort((a, b) => {
+                    const qa = order[(atlas[a].quality || 'common').toLowerCase()] ?? 99;
+                    const qb = order[(atlas[b].quality || 'common').toLowerCase()] ?? 99;
+                    if (qa !== qb) return qa - qb;
+                    return (atlas[a].name || a).localeCompare(atlas[b].name || b);
+                });
+            } else {
+                ids.sort();
+            }
+            return ids;
+        }
+
+        function buildSortBar() {
+            sortBarEl.innerHTML = '';
+            const options = [
+                { id: 'name',    label: 'A→Z' },
+                { id: 'quality', label: 'Качество' },
+                { id: 'id',      label: 'ID' },
+            ];
+            options.forEach(o => {
+                const b = document.createElement('button');
+                b.textContent = o.label;
+                if (o.id === sortMode) b.className = 'active';
+                b.addEventListener('click', () => {
+                    sortMode = o.id;
+                    buildSortBar();
+                    buildCards();
+                });
+                sortBarEl.appendChild(b);
+            });
+        }
+
         function buildCards() {
             cardsEl.innerHTML = '';
-            const ids = Object.keys(ATLAS);
+            const ids = sortedIds(ATLAS);
             if (ids.length === 0) {
                 cardsEl.innerHTML = '<div style="color:#888;padding:10px">Скинов нет</div>';
                 return;
