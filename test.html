@@ -29,10 +29,11 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ===== СТИЛЬ КАТАЛОГА (из index.html) ===== */
+    /* ===== СТИЛЬ КАТАЛОГА ===== */
     .top-bar {
         display: flex; align-items: center; gap: 12px;
         margin-bottom: 20px; flex-wrap: nowrap;
+        max-width: 1400px; margin-left: auto; margin-right: auto;
     }
     .back-btn {
         color: #ffffff; text-decoration: none;
@@ -56,6 +57,7 @@
     .catalog-filters {
         display: flex; gap: 10px;
         margin-bottom: 16px; flex-wrap: wrap;
+        max-width: 1400px; margin-left: auto; margin-right: auto;
     }
     .dropdown {
         position: relative; flex: 1; min-width: 140px;
@@ -93,6 +95,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 12px;
+        max-width: 1400px; margin-left: auto; margin-right: auto;
     }
     .skin-card {
         position: relative; border-radius: 8px; overflow: hidden;
@@ -137,21 +140,19 @@
     .quality-myth .top-part { background: linear-gradient(180deg, #F4D74B 0%, #BFAD47 30%, #877D4C 60%, #585951 100%); }
     .quality-myth { border: 2px solid #D2BE4B; }
 
-    @media (max-width: 767px) {
-        .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
-    }
-
     /* ===== Экраны ===== */
-    .screen { display: none; height: 100vh; position: relative; z-index: 1; }
+    .screen { display: none; height: 100vh; position: relative; z-index: 1; overflow-y: auto; }
     .screen.active { display: flex; flex-direction: column; }
-    #screen-catalog { padding: 20px; overflow-y: auto; }
-    #screen-viewer { background: #202126; }
+    #screen-catalog { padding: 20px; }
+    #screen-viewer { background: #202126; overflow: hidden; }
+    
     #viewerTop {
         padding: 10px 12px; display: flex; gap: 10px; align-items: center;
         background: #202126; border-bottom: 1px solid #363940; z-index: 10;
     }
     #viewerInfo { font-size: 13px; color: #8a95a5; }
     #viewerInfo b { color: #FFD700; }
+    
     #canvas-container { flex: 1; position: relative; min-height: 0; }
     #canvas-container canvas { display: block; width: 100%; height: 100%; }
 
@@ -170,56 +171,16 @@
         z-index: 200; text-align: center;
     }
 
-    /* ===== ПК-версия (>= 768px) ===== */
-    @media (min-width: 768px) {
-        #screen-catalog { display: none !important; }
-        #screen-viewer {
-            display: flex !important;
-            flex-direction: row;
-            height: 100vh;
-        }
-        #viewerTop { display: none; }
-
-        #canvas-container {
-            flex: 1 1 auto;
-            height: 100%;
-            min-width: 0;
-        }
-        #rightCol {
-            flex: 0 0 360px;
-            width: 360px;
-            height: 100%;
-            display: flex !important;
-            flex-direction: column;
-            gap: 8px;
-            padding: 12px;
-            background: #202126;
-            border-left: 1px solid #363940;
-            overflow-y: auto;
-            box-sizing: border-box;
-        }
-        #rightCol .skin-card {
-            flex: 0 0 auto;
-            width: 100% !important;
-            height: 100px !important;
-            aspect-ratio: auto !important;
-        }
-        #rightCol .skin-card .name { font-size: 12px; }
-        #rightCol .top-bar { margin-bottom: 8px; }
-        #rightCol .catalog-filters { margin-bottom: 8px; }
-        #rightCol .dropdown-toggle { padding: 8px 10px; font-size: 13px; }
-        #rightCol .dropdown-item { padding: 8px 10px; font-size: 13px; }
-    }
-
-    /* Мобилка */
+    /* ===== Адаптив ===== */
     @media (max-width: 767px) {
-        #rightCol { display: none !important; }
+        .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+        #screen-catalog { padding: 12px; }
     }
 </style>
 </head>
 <body>
 
-    <!-- ===== ЭКРАН КАТАЛОГА (мобилка) ===== -->
+    <!-- ===== ЭКРАН КАТАЛОГА ===== -->
     <div id="screen-catalog" class="screen active">
         <div class="top-bar">
             <input id="searchBox" class="search-box" placeholder="Поиск...">
@@ -248,7 +209,6 @@
         <div id="canvas-container">
             <div id="debug"></div>
         </div>
-        <div id="rightCol"></div>
     </div>
 
     <div id="loading">Загрузка...</div>
@@ -269,7 +229,6 @@
         const loadingEl = document.getElementById('loading');
         const catalogGrid = document.getElementById('catalogGrid');
         const searchEl = document.getElementById('searchBox');
-        const rightCol = document.getElementById('rightCol');
         const viewerInfo = document.getElementById('viewerInfo');
 
         const weaponToggle = document.getElementById('weaponToggle');
@@ -385,14 +344,12 @@
             atlasImg.onload = () => {
                 atlasCtx.drawImage(atlasImg, 0, 0);
                 atlasCanvasReady = true;
-                // Пересчитать превью, если атлас-данные уже есть
                 if (Object.keys(ATLAS).length) {
                     Object.keys(ATLAS).forEach(id => {
                         previewCache[id] = spritePreview(ATLAS[id]);
                     });
                 }
                 renderCatalog();
-                if (window.innerWidth >= 768) renderRightPanel();
             };
 
             buildWeaponDropdown();
@@ -401,10 +358,9 @@
             searchEl.addEventListener('input', () => {
                 searchQuery = searchEl.value.toLowerCase().trim();
                 renderCatalog();
-                if (window.innerWidth >= 768) renderRightGrid();
             });
 
-            // Обработчик кликов для дропдаунов на мобилке
+            // Обработчик кликов для дропдаунов
             document.addEventListener('click', function(e) {
                 const toggle = e.target.closest('.dropdown-toggle');
                 if (toggle) {
@@ -417,32 +373,16 @@
                 const item = e.target.closest('.dropdown-item');
                 if (item) {
                     const d = item.closest('.dropdown');
-                    if (!d) return;
-                    
-                    if (d.id === 'weaponDropdown' || d.id === 'weaponDropdownRight') {
+                    if (d.id === 'weaponDropdown') {
                         currentWeaponFilter = item.dataset.value;
-                        selectWeapon(currentWeaponFilter);
-                        // Обновить оба дропдауна
                         weaponToggle.textContent = item.textContent;
-                        const rightToggle = document.getElementById('weaponToggleRight');
-                        if (rightToggle) rightToggle.textContent = item.textContent;
                         buildWeaponDropdown();
-                        if (window.innerWidth >= 768) {
-                            const wm = document.getElementById('weaponMenuRight');
-                            if (wm) {
-                                wm.querySelectorAll('.dropdown-item').forEach(x => {
-                                    x.classList.toggle('active', x.dataset.value === currentWeaponFilter);
-                                });
-                            }
-                        }
-                    } else if (d.id === 'qualityDropdown' || d.id === 'qualityDropdownRight') {
+                        selectWeapon(currentWeaponFilter);
+                    } else if (d.id === 'qualityDropdown') {
                         currentQualityFilter = item.dataset.value;
                         qualityToggle.textContent = item.textContent;
-                        const rightToggle = document.getElementById('qualityToggleRight');
-                        if (rightToggle) rightToggle.textContent = item.textContent;
                         buildQualityDropdown();
                         renderCatalog();
-                        if (window.innerWidth >= 768) renderRightGrid();
                     }
                     d.classList.remove('open');
                     return;
@@ -569,7 +509,6 @@
 
             modelLoaded = true;
             renderCatalog();
-            if (window.innerWidth >= 768) renderRightPanel();
 
             const ids = Object.keys(ATLAS);
             if (ids.length > 0) applySkinById(ids[0]);
@@ -592,7 +531,7 @@
                 </div>
             `;
             el.addEventListener('click', () => {
-                if (window.innerWidth < 768) showScreen('viewer');
+                showScreen('viewer');
                 applySkinById(id);
             });
             return el;
@@ -612,98 +551,6 @@
             } else {
                 ids.forEach(id => catalogGrid.appendChild(buildCard(id)));
             }
-        }
-
-        // ===== ПК правый столбец =====
-        function renderRightPanel() {
-            // Не перерисовываем, если уже есть контейнер
-            if (document.getElementById('rightGrid')) {
-                renderRightGrid();
-                return;
-            }
-
-            rightCol.innerHTML = '';
-
-            // Поиск
-            const topBar = document.createElement('div');
-            topBar.className = 'top-bar';
-            topBar.innerHTML = `<input id="searchBoxRight" class="search-box" placeholder="Поиск...">`;
-            rightCol.appendChild(topBar);
-
-            // Фильтры
-            const filters = document.createElement('div');
-            filters.className = 'catalog-filters';
-
-            const wd = document.createElement('div');
-            wd.className = 'dropdown'; wd.id = 'weaponDropdownRight';
-            wd.innerHTML = `<button class="dropdown-toggle" id="weaponToggleRight">${currentWeaponFilter}</button>
-                            <div class="dropdown-menu" id="weaponMenuRight"></div>`;
-            filters.appendChild(wd);
-
-            const qd = document.createElement('div');
-            qd.className = 'dropdown'; qd.id = 'qualityDropdownRight';
-            const qName = QUALITIES.find(q => q.id === currentQualityFilter).name;
-            qd.innerHTML = `<button class="dropdown-toggle" id="qualityToggleRight">${qName}</button>
-                            <div class="dropdown-menu" id="qualityMenuRight"></div>`;
-            filters.appendChild(qd);
-
-            rightCol.appendChild(filters);
-
-            // Контейнер карточек
-            const grid = document.createElement('div');
-            grid.id = 'rightGrid';
-            grid.style.display = 'flex';
-            grid.style.flexDirection = 'column';
-            grid.style.gap = '8px';
-            rightCol.appendChild(grid);
-
-            // Заполнить дропдауны
-            const wm = document.getElementById('weaponMenuRight');
-            Object.keys(WEAPONS).forEach(w => {
-                const it = document.createElement('div');
-                it.className = 'dropdown-item' + (w === currentWeaponFilter ? ' active' : '');
-                it.textContent = w;
-                it.dataset.value = w;
-                wm.appendChild(it);
-            });
-
-            const qm = document.getElementById('qualityMenuRight');
-            QUALITIES.forEach(q => {
-                const it = document.createElement('div');
-                it.className = 'dropdown-item' + (q.id === currentQualityFilter ? ' active' : '');
-                it.textContent = q.name;
-                it.dataset.value = q.id;
-                qm.appendChild(it);
-            });
-
-            // Обработчики для правого поиска
-            document.getElementById('searchBoxRight').addEventListener('input', (e) => {
-                searchQuery = e.target.value.toLowerCase().trim();
-                renderRightGrid();
-            });
-
-            renderRightGrid();
-        }
-
-        function renderRightGrid() {
-            const grid = document.getElementById('rightGrid');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            const ids = Object.keys(ATLAS).filter(id => {
-                const s = ATLAS[id];
-                if (searchQuery && !(s.name || id).toLowerCase().includes(searchQuery)) return false;
-                if (currentQualityFilter !== 'all' && (s.quality || 'common').toLowerCase() !== currentQualityFilter) return false;
-                return true;
-            });
-
-            if (ids.length === 0) {
-                grid.innerHTML = '<div style="color:#888;padding:20px;text-align:center;">Ничего не найдено</div>';
-                return;
-            }
-            ids.forEach(id => {
-                grid.appendChild(buildCard(id));
-            });
         }
 
         function applySkinById(id) {
