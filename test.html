@@ -7,24 +7,18 @@
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
-        background: #202126;
-        color: #fff;
+        background: #202126; color: #fff;
         font-family: 'Segoe UI', Arial, sans-serif;
-        height: 100vh;
+        height: 100vh; overflow: hidden;
         position: relative;
-        overflow: hidden;
     }
     body::before {
         content: '';
-        position: fixed;
-        top: -100%; left: -100%;
+        position: fixed; top: -100%; left: -100%;
         width: 300%; height: 300%;
         background-image: url('Icons/OS_logo.png');
-        background-repeat: repeat;
-        background-size: 80px 80px;
-        opacity: 0.06;
-        pointer-events: none;
-        z-index: 0;
+        background-repeat: repeat; background-size: 80px 80px;
+        opacity: 0.06; pointer-events: none; z-index: 0;
         animation: scrollDiagonal 30s linear infinite;
     }
     @keyframes scrollDiagonal {
@@ -36,107 +30,76 @@
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ===== Кнопки сайта ===== */
-    .fullscreen-btn, .infosite-btn, .profile-btn {
-        position: fixed; right: 16px;
-        width: 40px; height: 40px;
-        background: #3A3F45; border: 1px solid #363940;
-        color: #fff; cursor: pointer; z-index: 999;
-        transition: all 0.3s ease;
-        display: flex; align-items: center; justify-content: center;
-        line-height: 1;
+    /* ===== СТИЛЬ КАТАЛОГА (скопирован из index.html) ===== */
+    .top-bar {
+        display: flex; align-items: center; gap: 12px;
+        margin-bottom: 20px; flex-wrap: nowrap;
     }
-    .fullscreen-btn { top: 16px; font-size: 20px; }
-    .infosite-btn  { top: 64px; font-size: 20px; }
-    .profile-btn   { top: 112px; font-size: 18px; font-weight: 700; }
-    .fullscreen-btn:hover, .infosite-btn:hover, .profile-btn:hover {
-        background: #363940; border-color: #fff;
-    }
-
     .back-btn {
-        color: #fff; text-decoration: none;
+        color: #ffffff; text-decoration: none;
         font-size: 16px; padding: 8px 16px;
         border: 1px solid #363940; background: #3A3F45;
         transition: background 0.3s; cursor: pointer;
         white-space: nowrap; font-family: inherit;
     }
-    .back-btn:hover { background: #363940; border-color: #fff; }
+    .back-btn:hover { background: #363940; border-color: #FFFFFF; }
 
     .search-box {
         flex: 1; min-width: 100px;
         padding: 10px 16px;
         border: 1px solid #363940; background: #3A3F45;
-        color: #fff; font-size: 16px; outline: none;
+        color: #ffffff; font-size: 16px; outline: none;
         transition: border 0.3s;
     }
-    .search-box:focus { border-color: #fff; }
-    .search-box::placeholder { color: #fff; opacity: 0.6; }
+    .search-box:focus { border-color: #ffffff; }
+    .search-box::placeholder { color: #ffffff; opacity: 0.6; }
 
-    .menu-btn {
-        display: block;
-        background: #3A3F45;
-        border: 1px solid #363940;
-        color: #fff; font-size: 14px; font-weight: 600;
-        padding: 10px 14px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+    .catalog-filters {
+        display: flex; gap: 10px;
+        margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .dropdown {
+        position: relative;
+        flex: 1; min-width: 140px; margin-bottom: 0;
+    }
+    .dropdown-toggle {
+        width: 100%; padding: 12px;
+        background: #42474B; border: 1px solid #363940;
+        color: #fff; cursor: pointer; font-size: 15px;
+        text-align: left; transition: 0.3s;
+        display: flex; justify-content: space-between; align-items: center;
         font-family: inherit;
     }
-    .menu-btn:hover {
-        background: #363940; border-color: #fff;
-        transform: translateY(-2px);
+    .dropdown-toggle:hover { background: #363940; border-color: #FFFFFF; }
+    .dropdown-toggle::after {
+        content: '▼'; font-size: 10px; opacity: 0.6; transition: transform 0.3s;
     }
-    .menu-btn.active {
-        background: #FFD700; color: #202126; border-color: #FFD700;
+    .dropdown.open .dropdown-toggle::after { transform: rotate(180deg); }
+    .dropdown-menu {
+        position: absolute; top: 100%; left: 0; right: 0;
+        background: #2a2f3a; border: 1px solid #363940;
+        border-top: none; max-height: 250px; overflow-y: auto;
+        display: none; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
+    .dropdown.open .dropdown-menu { display: block; }
+    .dropdown-item {
+        padding: 12px; cursor: pointer; transition: background 0.2s;
+        font-size: 15px; border-bottom: 1px solid #363940; color: #fff;
+    }
+    .dropdown-item:last-child { border-bottom: none; }
+    .dropdown-item:hover { background: #3A3F45; }
+    .dropdown-item.active { background: #3A3F45; color: #fff; }
 
-    /* ===== Экраны ===== */
-    .screen { display: none; height: 100vh; position: relative; z-index: 1; }
-    .screen.active { display: flex; flex-direction: column; }
-
-    /* ===== КАТАЛОГ ===== */
-    #screen-catalog { padding: 12px; overflow-y: auto; }
-    #catalogTop {
-        display: flex; gap: 8px; flex-wrap: wrap;
-        margin-bottom: 10px; align-items: flex-start;
-    }
-    #weaponSwitch {
-        display: flex; gap: 6px; flex-wrap: wrap;
-        flex: 1 1 100%;
-    }
-    #sortBar { display: flex; gap: 6px; flex-wrap: wrap; }
-
-    /* ===== Обзор ===== */
-    #screen-viewer { background: #202126; }
-    #viewerTop {
-        padding: 10px 12px; display: flex; gap: 10px; align-items: center;
-        background: #202126; border-bottom: 1px solid #363940; z-index: 10;
-    }
-    #viewerInfo { font-size: 13px; color: #8a95a5; }
-    #viewerInfo b { color: #FFD700; }
-    #canvas-container { flex: 1; position: relative; min-height: 0; }
-    #canvas-container canvas { display: block; }
-
-    /* ===== Каталог карточек (как в index.html) ===== */
     .catalog-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
         gap: 12px;
     }
     .skin-card {
-        position: relative;
-        border-radius: 8px;
-        overflow: hidden;
-        aspect-ratio: 1.4 / 1;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-        cursor: pointer;
-        animation: fadeIn 0.4s ease forwards;
-        opacity: 0;
+        position: relative; border-radius: 8px; overflow: hidden;
+        aspect-ratio: 1.4 / 1; display: flex; flex-direction: column;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); cursor: default;
+        animation: fadeIn 0.4s ease forwards; opacity: 0;
         transition: transform 0.15s;
     }
     .skin-card:hover { transform: translateY(-2px); }
@@ -151,23 +114,20 @@
         filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     }
     .skin-card .bottom-part {
-        background: #2D3037;
-        padding: 8px 12px; min-height: 46px;
+        background: #2D3037; padding: 8px 12px; min-height: 46px;
         display: flex; flex-direction: column; justify-content: center;
     }
     .skin-card .name {
-        font-size: 14px; font-weight: 700; color: #fff;
-        text-align: left; overflow: hidden;
-        text-overflow: ellipsis; white-space: nowrap;
+        font-size: 14px; font-weight: 700; color: #fff; text-align: left;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         line-height: 1.2;
     }
     .skin-card .weapon {
         font-size: 10px; color: #8a95a5; text-align: left;
-        margin-top: 2px; overflow: hidden;
-        text-overflow: ellipsis; white-space: nowrap;
+        margin-top: 2px; overflow: hidden; text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
-    /* ===== Качества ===== */
     .quality-common .top-part { background: linear-gradient(180deg, #FFFFFF 0%, #C0C0C0 30%, #7A7A7A 60%, #3A3F45 100%); }
     .quality-common { border: 2px solid #C0C0C0; }
     .quality-base .top-part { background: linear-gradient(180deg, #6489DA 0%, #5B78BA 30%, #4B5D83 60%, #454C5F 100%); }
@@ -178,6 +138,30 @@
     .quality-legend { border: 2px solid #A43E70; }
     .quality-myth .top-part { background: linear-gradient(180deg, #F4D74B 0%, #BFAD47 30%, #877D4C 60%, #585951 100%); }
     .quality-myth { border: 2px solid #D2BE4B; }
+
+    @media (min-width: 768px) {
+        .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
+    }
+    @media (max-width: 767px) {
+        .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+    }
+
+    /* ===== Экраны (обертка для логики) ===== */
+    .screen { display: none; height: 100vh; position: relative; z-index: 1; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    #screen-catalog { padding: 20px; overflow-y: auto; }
+
+    /* ===== Обзор ===== */
+    #screen-viewer { background: #202126; }
+    #viewerTop {
+        padding: 10px 12px; display: flex; gap: 10px; align-items: center;
+        background: #202126; border-bottom: 1px solid #363940; z-index: 10;
+    }
+    #viewerInfo { font-size: 13px; color: #8a95a5; }
+    #viewerInfo b { color: #FFD700; }
+    #canvas-container { flex: 1; position: relative; min-height: 0; }
+    #canvas-container canvas { display: block; }
 
     /* ===== Debug ===== */
     #debug {
@@ -207,16 +191,13 @@
         #viewerTop { display: none; }
         #rightCol {
             flex: 0 0 340px; min-width: 340px;
-            display: flex !important;
-            flex-direction: column; gap: 8px;
-            padding: 12px; background: #202126;
-            border-left: 1px solid #363940;
-            overflow-y: auto;
+            display: flex !important; flex-direction: column;
+            gap: 8px; padding: 12px; background: #202126;
+            border-left: 1px solid #363940; overflow-y: auto;
         }
         #rightCol .skin-card {
             flex: 0 0 auto;
-            width: 100% !important;
-            height: 100px !important;
+            width: 100% !important; height: 100px !important;
             aspect-ratio: auto !important;
         }
         #rightCol .skin-card .name { font-size: 12px; }
@@ -229,19 +210,26 @@
 </head>
 <body>
 
-    <!-- Кнопки сайта -->
-    <button class="fullscreen-btn" id="fullscreenBtn">⛶</button>
-    <button class="infosite-btn" id="InfoSite">i</button>
-    <button class="profile-btn" id="profileBtn">П</button>
-
     <!-- ===== ЭКРАН КАТАЛОГА ===== -->
     <div id="screen-catalog" class="screen active">
-        <div id="catalogTop">
-            <div id="weaponSwitch"></div>
-            <div id="sortBar"></div>
+        <div class="top-bar">
             <input id="searchBox" class="search-box" placeholder="Поиск...">
         </div>
-        <div id="catalogGrid" class="catalog-grid"></div>
+
+        <div class="catalog-filters">
+            <div class="dropdown" id="weaponDropdown">
+                <button class="dropdown-toggle" id="weaponToggle">Оружие</button>
+                <div class="dropdown-menu" id="weaponMenu"></div>
+            </div>
+            <div class="dropdown" id="qualityDropdown">
+                <button class="dropdown-toggle" id="qualityToggle">Качество</button>
+                <div class="dropdown-menu" id="qualityMenu"></div>
+            </div>
+        </div>
+
+        <div class="catalog-grid" id="catalogGrid">
+            <div class="no-data" style="color:#888;padding:20px;text-align:center;grid-column:1/-1;">Загрузка...</div>
+        </div>
     </div>
 
     <!-- ===== ЭКРАН ОБЗОРА ===== -->
@@ -273,25 +261,29 @@
         const debugEl = document.getElementById('debug');
         const loadingEl = document.getElementById('loading');
         const catalogGrid = document.getElementById('catalogGrid');
-        const weaponSwitchEl = document.getElementById('weaponSwitch');
-        const sortBarEl = document.getElementById('sortBar');
         const searchEl = document.getElementById('searchBox');
         const rightCol = document.getElementById('rightCol');
         const viewerInfo = document.getElementById('viewerInfo');
 
-        // Кнопки
-        document.getElementById('fullscreenBtn').addEventListener('click', () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
-            else if (document.exitFullscreen) document.exitFullscreen();
-        });
-        document.getElementById('InfoSite').addEventListener('click', () => {
-            alert('Информация о сайте — раздел в разработке.');
-        });
-        document.getElementById('profileBtn').addEventListener('click', () => {
-            const u = localStorage.getItem('osnw_user');
-            if (u) alert('Профиль: ' + JSON.parse(u).nickname);
-            else alert('Вы не авторизованы. Перейдите на главную страницу для входа.');
-        });
+        // === dropdown для оружия ===
+        const weaponToggle = document.getElementById('weaponToggle');
+        const weaponMenu = document.getElementById('weaponMenu');
+        const weaponDropdown = document.getElementById('weaponDropdown');
+        const qualityToggle = document.getElementById('qualityToggle');
+        const qualityMenu = document.getElementById('qualityMenu');
+        const qualityDropdown = document.getElementById('qualityDropdown');
+
+        let currentWeaponFilter = 'all';
+        let currentQualityFilter = 'all';
+
+        const QUALITIES = [
+            { id: 'all', name: 'Все' },
+            { id: 'common', name: 'Обычное' },
+            { id: 'base', name: 'Базовое' },
+            { id: 'pro', name: 'Профессиональное' },
+            { id: 'legend', name: 'Легендарное' },
+            { id: 'myth', name: 'Мистическое' }
+        ];
 
         const ATLAS_SIZE = 2048;
 
@@ -369,14 +361,13 @@
         let DEFAULTS = { w: 128, h: 128 };
         let ICONS = { topCut: 0, bottomCut: 0, leftCut: 0, rightCut: 0 };
         let currentId = null;
-        let sortMode = 'name';
         let searchQuery = '';
 
         const previewCache = {};
         const group = new THREE.Group();
         let modelLoaded = false;
 
-        // ===== Старт =====
+        // ===== Загрузка =====
         async function boot() {
             try {
                 WEAPONS = await (await fetch('Data/3D/weapons.json')).json();
@@ -396,64 +387,78 @@
                 renderCatalog();
             };
 
-            buildWeaponSwitch();
-            buildSortBar();
+            buildWeaponDropdown();
+            buildQualityDropdown();
             searchEl.addEventListener('input', () => {
                 searchQuery = searchEl.value.toLowerCase().trim();
                 renderCatalog();
             });
 
+            // Обработчик кликов по дропдаунам
+            document.addEventListener('click', function(e) {
+                const toggle = e.target.closest('.dropdown-toggle');
+                if (toggle) {
+                    e.stopPropagation();
+                    const d = toggle.closest('.dropdown');
+                    document.querySelectorAll('.dropdown').forEach(x => { if (x !== d) x.classList.remove('open'); });
+                    d.classList.toggle('open');
+                    return;
+                }
+                const item = e.target.closest('.dropdown-item');
+                if (item) {
+                    const d = item.closest('.dropdown');
+                    if (d.id === 'weaponDropdown') {
+                        currentWeaponFilter = item.dataset.value;
+                        weaponToggle.textContent = item.textContent;
+                        buildWeaponDropdown();
+                        selectWeapon(currentWeaponFilter === 'all' ? Object.keys(WEAPONS)[0] : currentWeaponFilter);
+                    } else if (d.id === 'qualityDropdown') {
+                        currentQualityFilter = item.dataset.value;
+                        qualityToggle.textContent = item.textContent;
+                        buildQualityDropdown();
+                        renderCatalog();
+                    }
+                    d.classList.remove('open');
+                    return;
+                }
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+                }
+            });
+
             const firstWeapon = Object.keys(WEAPONS)[0];
+            currentWeaponFilter = firstWeapon;
             await selectWeapon(firstWeapon);
+            weaponToggle.textContent = firstWeapon;
+            buildWeaponDropdown();
         }
 
-        function buildWeaponSwitch() {
-            weaponSwitchEl.innerHTML = '';
+        function buildWeaponDropdown() {
+            weaponMenu.innerHTML = '';
             Object.keys(WEAPONS).forEach(w => {
-                const b = document.createElement('button');
-                b.textContent = w;
-                b.className = 'menu-btn' + (w === currentWeapon ? ' active' : '');
-                b.style.fontSize = '12px';
-                b.style.padding = '8px 12px';
-                b.style.textTransform = 'none';
-                b.style.letterSpacing = '0';
-                b.addEventListener('click', () => selectWeapon(w));
-                weaponSwitchEl.appendChild(b);
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (w === currentWeaponFilter ? ' active' : '');
+                item.textContent = w;
+                item.dataset.value = w;
+                weaponMenu.appendChild(item);
             });
         }
 
-        function buildSortBar() {
-            sortBarEl.innerHTML = '';
-            const opts = [
-                { id: 'name', label: 'A→Z' },
-                { id: 'quality', label: 'Качество' },
-                { id: 'id', label: 'ID' },
-            ];
-            opts.forEach(o => {
-                const b = document.createElement('button');
-                b.textContent = o.label;
-                b.className = 'menu-btn' + (o.id === sortMode ? ' active' : '');
-                b.style.fontSize = '12px';
-                b.style.padding = '8px 12px';
-                b.style.textTransform = 'none';
-                b.style.letterSpacing = '0';
-                b.addEventListener('click', () => {
-                    sortMode = o.id;
-                    buildSortBar();
-                    renderCatalog();
-                });
-                sortBarEl.appendChild(b);
+        function buildQualityDropdown() {
+            qualityMenu.innerHTML = '';
+            QUALITIES.forEach(q => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item' + (q.id === currentQualityFilter ? ' active' : '');
+                item.textContent = q.name;
+                item.dataset.value = q.id;
+                qualityMenu.appendChild(item);
             });
         }
 
         async function selectWeapon(w) {
-            if (currentWeapon === w && CONFIG) {
-                buildWeaponSwitch();
-                return;
-            }
+            if (currentWeapon === w && CONFIG) return;
             currentWeapon = w;
             CONFIG = WEAPONS[w];
-            buildWeaponSwitch();
 
             try {
                 const raw = await (await fetch(CONFIG.atlas)).json();
@@ -537,28 +542,10 @@
             loadingEl.style.display = 'none';
 
             modelLoaded = true;
-
             renderCatalog();
-            const ids = sortedIds();
-            if (ids.length > 0) applySkinById(ids[0]);
-        }
 
-        function sortedIds() {
             const ids = Object.keys(ATLAS);
-            if (sortMode === 'name') {
-                ids.sort((a, b) => (ATLAS[a].name || a).localeCompare(ATLAS[b].name || b));
-            } else if (sortMode === 'quality') {
-                const order = { common: 0, base: 1, pro: 2, legend: 3, myth: 4 };
-                ids.sort((a, b) => {
-                    const qa = order[(ATLAS[a].quality || 'common').toLowerCase()] ?? 99;
-                    const qb = order[(ATLAS[b].quality || 'common').toLowerCase()] ?? 99;
-                    if (qa !== qb) return qa - qb;
-                    return (ATLAS[a].name || a).localeCompare(ATLAS[b].name || b);
-                });
-            } else {
-                ids.sort();
-            }
-            return ids;
+            if (ids.length > 0) applySkinById(ids[0]);
         }
 
         function buildCard(id) {
@@ -585,10 +572,11 @@
         }
 
         function renderCatalog() {
-            const ids = sortedIds().filter(id => {
-                if (!searchQuery) return true;
+            const ids = Object.keys(ATLAS).filter(id => {
                 const s = ATLAS[id];
-                return (s.name || id).toLowerCase().includes(searchQuery);
+                if (searchQuery && !(s.name || id).toLowerCase().includes(searchQuery)) return false;
+                if (currentQualityFilter !== 'all' && (s.quality || 'common').toLowerCase() !== currentQualityFilter) return false;
+                return true;
             });
 
             catalogGrid.innerHTML = '';
@@ -656,7 +644,7 @@
             const dx = (boxSize - dw) / 2;
             const dy = (boxSize - dh) / 2;
 
-            ctx.drawImage(atlasCanvas, sx, sy, sw, sh, dx, dy, dh, dw);
+            ctx.drawImage(atlasCanvas, sx, sy, sw, sh, dx, dy, dw, dh);
             return c.toDataURL();
         }
 
